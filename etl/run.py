@@ -13,7 +13,7 @@ Usage:
 """
 import argparse, sys, time
 from datetime import datetime
-from . import db, fx_rates, baselinker, amazon, aggregator
+from . import db, fx_rates, baselinker, amazon, amazon_fees, aggregator
 
 
 def main():
@@ -22,12 +22,13 @@ def main():
     parser.add_argument("--orders", action="store_true", help="Sync Baselinker orders")
     parser.add_argument("--fba", action="store_true", help="Sync Amazon FBA orders")
     parser.add_argument("--products", action="store_true", help="Sync product catalog")
+    parser.add_argument("--fees", action="store_true", help="Fetch real Amazon fees from Finances API")
     parser.add_argument("--aggregate", action="store_true", help="Aggregate daily metrics")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
     # If no flags → run everything
-    run_all = not any([args.fx, args.orders, args.fba, args.products, args.aggregate])
+    run_all = not any([args.fx, args.orders, args.fba, args.products, args.fees, args.aggregate])
 
     print(f"{'='*60}")
     print(f"nesell-analytics ETL — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -50,11 +51,15 @@ def main():
             amazon.sync_orders(conn, days_back=args.days)
 
         if run_all or args.products:
-            print("\n[4/5] Syncing product catalog...")
+            print("\n[4/6] Syncing product catalog...")
             baselinker.sync_products(conn)
 
+        if run_all or args.fees:
+            print("\n[5/6] Fetching real Amazon fees...")
+            amazon_fees.sync_fees(conn, days_back=args.days)
+
         if run_all or args.aggregate:
-            print("\n[5/5] Aggregating daily metrics...")
+            print("\n[6/6] Aggregating daily metrics...")
             aggregator.aggregate_daily(conn, days_back=args.days)
 
     except Exception as e:

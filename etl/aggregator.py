@@ -20,12 +20,16 @@ def _get_all(table, params):
 
 
 def aggregate_daily(conn, days_back: int = 90):
-    """Compute daily_metrics from orders + order_items + product costs."""
+    """Compute daily_metrics from orders + order_items + product costs.
+
+    Uses real per-order fees (from orders.platform_fee) when available,
+    falls back to flat fee_pct from platforms table.
+    """
     cutoff = str(date.today() - timedelta(days=days_back))
 
     # Get all non-cancelled orders in period (paginated)
     orders = _get_all("orders", {
-        "select": "id,platform_id,order_date,currency,status",
+        "select": "id,platform_id,order_date,currency,status,platform_fee,total_paid",
         "order_date": f"gte.{cutoff}",
         "status": "neq.cancelled",
         "order": "order_date.desc",
@@ -38,6 +42,16 @@ def aggregate_daily(conn, days_back: int = 90):
 
     order_ids = [o["id"] for o in orders]
     order_map = {o["id"]: o for o in orders}
+
+    # Build per-order fee map (real fees from Finances API)
+    order_fee_map = {}
+    for o in orders:
+        fee = float(o.get("platform_fee", 0) or 0)
+        order_fee_map[o["id"]] = fee
+
+    # Count how many have real fees vs zero
+    real_fees = sum(1 for f in order_fee_map.values() if f > 0)
+    print(f"  Orders with real fees: {real_fees}/{len(orders)}")
 
     # Get all order items for these orders (batch by 100 IDs)
     all_items = []
@@ -56,14 +70,20 @@ def aggregate_daily(conn, days_back: int = 90):
     products = _get_all("products", {"select": "sku,cost_pln"})
     cost_map = {p["sku"]: float(p["cost_pln"] or 0) for p in products}
 
-    # Get platform fee rates
+    # Get platform fee rates (fallback for orders without real fees)
     platforms = db._get("platforms", {"select": "id,fee_pct"})
-    fee_map = {p["id"]: float(p["fee_pct"] or 0) for p in platforms}
+    fee_pct_map = {p["id"]: float(p["fee_pct"] or 0) for p in platforms}
 
     # Aggregate: group by (date, platform_id, sku)
     agg = defaultdict(lambda: {
-        "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR"
+        "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
+        "real_fees": 0.0,  # sum of real per-order fees allocated to this group
     })
+
+    # First pass: count items per order (for fee allocation)
+    items_per_order = defaultdict(int)
+    for item in all_items:
+        items_per_order[item["order_id"]] += int(item["quantity"] or 1)
 
     for item in all_items:
         order = order_map.get(item["order_id"])
@@ -73,11 +93,19 @@ def aggregate_daily(conn, days_back: int = 90):
         plat_id = order["platform_id"]
         sku = item.get("sku") or "unknown"
         key = (day, plat_id, sku)
+        qty = int(item["quantity"] or 1)
 
         agg[key]["orders"].add(item["order_id"])
-        agg[key]["units"] += int(item["quantity"] or 1)
-        agg[key]["revenue"] += float(item["unit_price"] or 0) * int(item["quantity"] or 1)
+        agg[key]["units"] += qty
+        agg[key]["revenue"] += float(item["unit_price"] or 0) * qty
         agg[key]["currency"] = item.get("currency") or order.get("currency", "EUR")
+
+        # Allocate real order fee proportionally by quantity
+        order_fee = order_fee_map.get(item["order_id"], 0)
+        if order_fee > 0:
+            total_items_in_order = items_per_order.get(item["order_id"], 1)
+            fee_share = order_fee * qty / total_items_in_order
+            agg[key]["real_fees"] += fee_share
 
     # Build metrics
     metrics = []
@@ -90,10 +118,16 @@ def aggregate_daily(conn, days_back: int = 90):
         rate = fx if fx else 1.0
         revenue_pln = round(revenue * rate, 2) if currency != "PLN" else revenue
 
+        # Fees: use real fees if available, else fallback to flat %
+        if data["real_fees"] > 0:
+            # Real fees are in original currency — convert to PLN
+            fees = round(data["real_fees"] * rate, 2) if currency != "PLN" else round(data["real_fees"], 2)
+        else:
+            fees = round(revenue_pln * fee_pct_map.get(plat_id, 0) / 100, 2)
+
         # Costs
         cost_per_unit = cost_map.get(sku, 0)
         cogs = round(cost_per_unit * data["units"], 2)
-        fees = round(revenue_pln * fee_map.get(plat_id, 0) / 100, 2)
         shipping = 0
         gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
         margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
