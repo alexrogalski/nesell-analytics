@@ -16,13 +16,25 @@ def _headers():
 def _get(path, params=None):
     """GET request to Amazon SP-API with retry."""
     url = f"{config.AMZ_API_BASE}{path}"
-    for attempt in range(3):
-        resp = requests.get(url, headers=_headers(), params=params)
+    for attempt in range(5):
+        try:
+            resp = requests.get(url, headers=_headers(), params=params, timeout=30)
+        except requests.exceptions.ConnectionError:
+            wait = 5 * (attempt + 1)
+            print(f"    [ConnectionError] retrying in {wait}s (attempt {attempt+1}/5)")
+            time.sleep(wait)
+            continue
         if resp.status_code == 429:
-            time.sleep(2 ** attempt)
+            wait = 2 ** (attempt + 1)
+            print(f"    [429] waiting {wait}s...")
+            time.sleep(wait)
+            continue
+        if resp.status_code == 403:
+            # Token expired — refresh
+            time.sleep(2)
             continue
         return resp.json()
-    return resp.json()
+    return {}
 
 
 def sync_orders(conn, days_back: int = 90):
@@ -39,6 +51,7 @@ def sync_orders(conn, days_back: int = 90):
             "MarketplaceIds": marketplace_ids,
             "CreatedAfter": after,
             "MaxResultsPerPage": 100,
+            "FulfillmentChannels": "AFN",  # FBA only — FBM already in Baselinker
         }
         if next_token:
             params = {"MarketplaceIds": marketplace_ids, "NextToken": next_token}
