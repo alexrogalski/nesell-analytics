@@ -7,16 +7,22 @@ import plotly.graph_objects as go
 from datetime import date, timedelta
 
 # --- Supabase REST API ---
-from etl import config
+try:
+    SUPABASE_URL = st.secrets["SUPABASE_URL"]
+    SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+except Exception:
+    from etl import config
+    SUPABASE_URL = config.SUPABASE_URL
+    SUPABASE_KEY = config.SUPABASE_KEY
 
 _HEADERS = {
-    "apikey": config.SUPABASE_KEY,
-    "Authorization": f"Bearer {config.SUPABASE_KEY}",
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
 }
 
 
 def _get(table, params=None):
-    url = f"{config.SUPABASE_URL}/rest/v1/{table}"
+    url = f"{SUPABASE_URL}/rest/v1/{table}"
     resp = requests.get(url, headers=_HEADERS, params=params or {})
     resp.raise_for_status()
     return resp.json()
