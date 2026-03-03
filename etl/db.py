@@ -235,3 +235,125 @@ def run_rpc(conn, function_name, params=None):
     if resp.status_code not in (200, 204):
         raise Exception(f"RPC {function_name} error: {resp.text[:200]}")
     return resp.json() if resp.text else None
+
+
+# ── Amazon data tables ───────────────────────────────────────────────
+
+def upsert_amazon_traffic(conn, records):
+    """Upsert Amazon traffic data (sessions, page views, Buy Box %)."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_traffic", chunk, on_conflict="date,asin,marketplace_id")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_inventory(conn, records):
+    """Upsert FBA inventory snapshots."""
+    if not records:
+        return 0
+    from datetime import date
+    today = str(date.today())
+    for r in records:
+        r.setdefault("snapshot_date", today)
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_inventory", chunk, on_conflict="snapshot_date,sku")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_storage_fees(conn, records):
+    """Upsert FBA storage fee data."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_storage_fees", chunk, on_conflict="month,asin")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_fba_fees(conn, records):
+    """Upsert estimated FBA fees per SKU."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_fba_fees", chunk, on_conflict="sku")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_returns(conn, records):
+    """Insert Amazon return records (append-only)."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_returns", chunk)
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_reimbursements(conn, records):
+    """Upsert Amazon reimbursement records."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_reimbursements", chunk, on_conflict="reimbursement_id,sku")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_bsr(conn, records):
+    """Upsert BSR snapshots."""
+    if not records:
+        return 0
+    from datetime import date
+    today = str(date.today())
+    for r in records:
+        r.setdefault("snapshot_date", today)
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_bsr", chunk, on_conflict="snapshot_date,asin,marketplace_id,category_id")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_pricing(conn, records):
+    """Upsert competitive pricing snapshots."""
+    if not records:
+        return 0
+    from datetime import date
+    today = str(date.today())
+    for r in records:
+        r.setdefault("snapshot_date", today)
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_pricing", chunk, on_conflict="snapshot_date,asin,marketplace_id")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_settlements(conn, records):
+    """Insert settlement records (append-only)."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_settlements", chunk)
+        total += len(chunk)
+    return total
