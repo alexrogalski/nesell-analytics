@@ -4,12 +4,27 @@ from collections import defaultdict
 from . import db, fx_rates
 
 
+def _get_all(table, params):
+    """Paginated GET — fetch all rows (PostgREST default limit is 1000)."""
+    all_rows = []
+    offset = 0
+    batch_size = 1000
+    while True:
+        p = {**params, "limit": str(batch_size), "offset": str(offset)}
+        rows = db._get(table, p)
+        all_rows.extend(rows)
+        if len(rows) < batch_size:
+            break
+        offset += batch_size
+    return all_rows
+
+
 def aggregate_daily(conn, days_back: int = 90):
     """Compute daily_metrics from orders + order_items + product costs."""
     cutoff = str(date.today() - timedelta(days=days_back))
 
-    # Get all non-cancelled orders in period
-    orders = db._get("orders", {
+    # Get all non-cancelled orders in period (paginated)
+    orders = _get_all("orders", {
         "select": "id,platform_id,order_date,currency,status",
         "order_date": f"gte.{cutoff}",
         "status": "neq.cancelled",
@@ -19,22 +34,26 @@ def aggregate_daily(conn, days_back: int = 90):
         print("  No orders found for aggregation")
         return 0
 
+    print(f"  Found {len(orders)} orders in period")
+
     order_ids = [o["id"] for o in orders]
     order_map = {o["id"]: o for o in orders}
 
-    # Get all order items for these orders (batch)
+    # Get all order items for these orders (batch by 100 IDs)
     all_items = []
     for i in range(0, len(order_ids), 100):
         batch = order_ids[i:i+100]
         ids_str = ",".join(str(x) for x in batch)
-        items = db._get("order_items", {
+        items = _get_all("order_items", {
             "select": "order_id,sku,quantity,unit_price,currency",
             "order_id": f"in.({ids_str})",
         })
         all_items.extend(items)
 
-    # Get product costs
-    products = db._get("products", {"select": "sku,cost_pln"})
+    print(f"  Found {len(all_items)} order items")
+
+    # Get product costs (paginated)
+    products = _get_all("products", {"select": "sku,cost_pln"})
     cost_map = {p["sku"]: float(p["cost_pln"] or 0) for p in products}
 
     # Get platform fee rates

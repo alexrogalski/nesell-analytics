@@ -198,6 +198,22 @@ def upsert_daily_metrics(conn, metrics):
     return total
 
 
+def count_order_items(conn, order_id):
+    """Count existing order items for a given order_id."""
+    resp = requests.get(
+        _url("order_items"),
+        headers=_HEADERS,
+        params={
+            "select": "id",
+            "order_id": f"eq.{order_id}",
+            "limit": "1",
+        },
+    )
+    if resp.status_code != 200:
+        return 0
+    return len(resp.json())
+
+
 def get_order_id_by_external(conn, external_id, platform_id):
     """Get internal order ID by external ID."""
     rows = _get("orders", {

@@ -14,26 +14,34 @@ def _headers():
 
 
 def _get(path, params=None):
-    """GET request to Amazon SP-API with retry."""
+    """GET request to Amazon SP-API with retry and generous backoff."""
     url = f"{config.AMZ_API_BASE}{path}"
-    for attempt in range(5):
+    for attempt in range(8):
         try:
             resp = requests.get(url, headers=_headers(), params=params, timeout=30)
         except requests.exceptions.ConnectionError:
-            wait = 5 * (attempt + 1)
-            print(f"    [ConnectionError] retrying in {wait}s (attempt {attempt+1}/5)")
+            wait = 10 * (attempt + 1)
+            print(f"    [ConnectionError] retrying in {wait}s (attempt {attempt+1}/8)")
             time.sleep(wait)
             continue
         if resp.status_code == 429:
-            wait = 2 ** (attempt + 1)
-            print(f"    [429] waiting {wait}s...")
+            # Aggressive backoff: 5, 10, 20, 40, 60, 60, 60, 60
+            wait = min(5 * (2 ** attempt), 60)
+            print(f"    [429] rate limited, waiting {wait}s (attempt {attempt+1}/8)...")
             time.sleep(wait)
             continue
         if resp.status_code == 403:
-            # Token expired — refresh
-            time.sleep(2)
+            # Token expired — refresh and retry
+            print(f"    [403] token may be expired, refreshing (attempt {attempt+1}/8)...")
+            time.sleep(3)
+            continue
+        if resp.status_code >= 500:
+            wait = 5 * (attempt + 1)
+            print(f"    [{resp.status_code}] server error, retrying in {wait}s (attempt {attempt+1}/8)")
+            time.sleep(wait)
             continue
         return resp.json()
+    print(f"    [WARN] All 8 attempts failed for {path}")
     return {}
 
 
@@ -65,7 +73,7 @@ def sync_orders(conn, days_back: int = 90):
         print(f"  Amazon orders batch: {len(orders)} (total {len(all_orders)})")
         if not next_token:
             break
-        time.sleep(1)
+        time.sleep(2)  # respect rate limits on getOrders
 
     # Transform
     db_orders = []
@@ -113,11 +121,11 @@ def sync_orders(conn, days_back: int = 90):
 
 
 def _sync_order_items(conn, raw_orders, platform_map):
-    """Fetch order items from SP-API and upsert."""
+    """Fetch order items from SP-API — skip orders that already have items."""
     total_items = 0
-    hdrs = _headers()
+    skipped = 0
 
-    for o in raw_orders:
+    for idx, o in enumerate(raw_orders):
         order_id_amz = o["AmazonOrderId"]
         mkt_id = o.get("MarketplaceId", "")
         plat_code = config.MARKETPLACE_TO_PLATFORM.get(mkt_id, "amazon_de")
@@ -129,7 +137,13 @@ def _sync_order_items(conn, raw_orders, platform_map):
         if not internal_order_id:
             continue
 
-        # Fetch items
+        # Check if items already exist for this order — avoid duplicates
+        existing_count = db.count_order_items(conn, internal_order_id)
+        if existing_count > 0:
+            skipped += 1
+            continue
+
+        # Fetch items from Amazon API
         data = _get(f"/orders/v0/orders/{order_id_amz}/orderItems")
         items_data = data.get("payload", {}).get("OrderItems", [])
 
@@ -157,7 +171,11 @@ def _sync_order_items(conn, raw_orders, platform_map):
             db.upsert_order_items(conn, items)
             total_items += len(items)
 
-        time.sleep(0.5)  # rate limit
+        # Progress every 50 orders
+        if (idx + 1) % 50 == 0:
+            print(f"    Items progress: {idx+1}/{len(raw_orders)} orders processed, {total_items} items inserted, {skipped} skipped (already had items)")
 
-    print(f"  Upserted {total_items} Amazon order items")
+        time.sleep(2)  # 2s between getOrderItems calls to respect rate limits
+
+    print(f"  Inserted {total_items} Amazon order items ({skipped} orders skipped — already had items)")
     return total_items
