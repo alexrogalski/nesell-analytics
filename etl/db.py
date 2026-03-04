@@ -243,9 +243,15 @@ def upsert_amazon_traffic(conn, records):
     """Upsert Amazon traffic data (sessions, page views, Buy Box %)."""
     if not records:
         return 0
+    # Deduplicate by (date, asin, marketplace_id) within batch
+    seen = {}
+    for r in records:
+        key = (r.get("date"), r.get("asin"), r.get("marketplace_id"))
+        seen[key] = r
+    deduped = list(seen.values())
     total = 0
-    for i in range(0, len(records), 500):
-        chunk = records[i:i+500]
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
         _post("amazon_traffic", chunk, on_conflict="date,asin,marketplace_id")
         total += len(chunk)
     return total
