@@ -280,12 +280,17 @@ def upsert_amazon_storage_fees(conn, records):
 
 
 def upsert_amazon_fba_fees(conn, records):
-    """Upsert estimated FBA fees per SKU."""
+    """Upsert estimated FBA fees per SKU (deduplicate within batch)."""
     if not records:
         return 0
+    # Deduplicate by SKU within batch (keep last occurrence)
+    seen = {}
+    for r in records:
+        seen[r.get("sku", "")] = r
+    deduped = list(seen.values())
     total = 0
-    for i in range(0, len(records), 500):
-        chunk = records[i:i+500]
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
         _post("amazon_fba_fees", chunk, on_conflict="sku")
         total += len(chunk)
     return total

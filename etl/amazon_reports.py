@@ -25,6 +25,8 @@ def sync_traffic(conn, days_back=30):
     print("  [Traffic] Fetching Sales & Traffic Report...")
     end = datetime.utcnow()
     start = end - timedelta(days=min(days_back, 30))
+    from datetime import date as date_type
+    today = str(date_type.today())
 
     # Each marketplace gets its own report (traffic data is per-marketplace)
     all_traffic = []
@@ -44,38 +46,7 @@ def sync_traffic(conn, days_back=30):
             print(f"    No traffic data for {plat_code}")
             continue
 
-        # Parse per-ASIN data
-        for item in data.get("salesAndTrafficByAsin", []):
-            traffic = item.get("trafficByAsin", {})
-            sales = item.get("salesByAsin", {})
-            child_asin = item.get("childAsin", "")
-            parent_asin = item.get("parentAsin", "")
-
-            sessions = (traffic.get("browserSessions", 0) or 0) + (traffic.get("mobileAppSessions", 0) or 0)
-            page_views = (traffic.get("browserPageViews", 0) or 0) + (traffic.get("mobileAppPageViews", 0) or 0)
-            buy_box_pct = traffic.get("buyBoxPercentage", 0) or 0
-            units = sales.get("unitsOrdered", 0) or 0
-            units_b2b = sales.get("unitsOrderedB2B", 0) or 0
-            revenue_data = sales.get("orderedProductSales", {})
-            revenue = float(revenue_data.get("amount", 0) or 0)
-            currency = revenue_data.get("currencyCode", "EUR")
-            total_items = sales.get("totalOrderItems", 0) or 0
-
-            all_traffic.append({
-                "asin": child_asin or parent_asin,
-                "parent_asin": parent_asin,
-                "marketplace_id": mkt_id,
-                "sessions": sessions,
-                "page_views": page_views,
-                "buy_box_pct": round(buy_box_pct, 2),
-                "units_ordered": units,
-                "units_ordered_b2b": units_b2b,
-                "ordered_product_sales": revenue,
-                "total_order_items": total_items,
-                "currency": currency,
-            })
-
-        # Parse per-date aggregate data
+        # Parse per-date aggregate data (daily totals per marketplace)
         for item in data.get("salesAndTrafficByDate", []):
             day = item.get("date", "")[:10]
             t = item.get("trafficByDate", {})
@@ -98,6 +69,38 @@ def sync_traffic(conn, days_back=30):
                 "ordered_product_sales": float(revenue_data.get("amount", 0) or 0),
                 "total_order_items": s.get("totalOrderItems", 0) or 0,
                 "currency": revenue_data.get("currencyCode", "EUR"),
+            })
+
+        # Parse per-ASIN data (aggregated over period — use today as date)
+        for item in data.get("salesAndTrafficByAsin", []):
+            traffic = item.get("trafficByAsin", {})
+            sales = item.get("salesByAsin", {})
+            child_asin = item.get("childAsin", "")
+            parent_asin = item.get("parentAsin", "")
+
+            sessions = (traffic.get("browserSessions", 0) or 0) + (traffic.get("mobileAppSessions", 0) or 0)
+            page_views = (traffic.get("browserPageViews", 0) or 0) + (traffic.get("mobileAppPageViews", 0) or 0)
+            buy_box_pct = traffic.get("buyBoxPercentage", 0) or 0
+            units = sales.get("unitsOrdered", 0) or 0
+            units_b2b = sales.get("unitsOrderedB2B", 0) or 0
+            revenue_data = sales.get("orderedProductSales", {})
+            revenue = float(revenue_data.get("amount", 0) or 0)
+            currency = revenue_data.get("currencyCode", "EUR")
+            total_items = sales.get("totalOrderItems", 0) or 0
+
+            all_traffic.append({
+                "date": today,
+                "asin": child_asin or parent_asin,
+                "parent_asin": parent_asin,
+                "marketplace_id": mkt_id,
+                "sessions": sessions,
+                "page_views": page_views,
+                "buy_box_pct": round(buy_box_pct, 2),
+                "units_ordered": units,
+                "units_ordered_b2b": units_b2b,
+                "ordered_product_sales": revenue,
+                "total_order_items": total_items,
+                "currency": currency,
             })
 
         time.sleep(3)  # respect rate limits between marketplace requests
