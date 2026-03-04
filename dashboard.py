@@ -164,8 +164,8 @@ k5.metric("Zamowienia", f"{int(total_orders):,}", delta=d_ord)
 k6.metric("Marza", f"{avg_margin:.1f}%", delta=d_margin)
 
 # --- Tabs ---
-tab_overview, tab_platforms, tab_products, tab_orders, tab_mom = st.tabs([
-    "Przegląd", "Platformy", "Produkty", "Zamówienia", "Miesiąc vs miesiąc"
+tab_overview, tab_platforms, tab_products, tab_orders, tab_amazon, tab_mom = st.tabs([
+    "Przegląd", "Platformy", "Produkty", "Zamówienia", "Amazon", "Miesiąc vs miesiąc"
 ])
 
 # ==================== TAB: OVERVIEW ====================
@@ -388,6 +388,274 @@ with tab_orders:
                     st.warning("Nie znaleziono zamówienia")
     else:
         st.info("Brak zamówień w wybranym okresie")
+
+
+# ==================== TAB: AMAZON ====================
+with tab_amazon:
+    amz_section = st.radio("", ["Traffic & Buy Box", "Inventory", "BSR & Pricing", "Zwroty"],
+                           horizontal=True, key="amz_section")
+
+    # --- Traffic & Buy Box ---
+    if amz_section == "Traffic & Buy Box":
+        st.subheader("Amazon Traffic & Buy Box")
+
+        @st.cache_data(ttl=300)
+        def load_traffic(cutoff_date):
+            rows = _get("amazon_traffic", {
+                "select": "date,asin,marketplace_id,sessions,page_views,buy_box_pct,units_ordered,ordered_product_sales,currency",
+                "date": f"gte.{cutoff_date}",
+                "order": "date.asc",
+            })
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+        traf = load_traffic(cutoff)
+        if traf.empty:
+            st.info("Brak danych traffic. Uruchom: python3.11 -m etl.run --reports")
+        else:
+            # Marketplace name mapping
+            from etl.config import MARKETPLACE_TO_PLATFORM
+            mkt_names = {v: v.replace("amazon_", "").upper() for v in MARKETPLACE_TO_PLATFORM.values()}
+            mkt_id_to_name = {k: mkt_names.get(v, v) for k, v in MARKETPLACE_TO_PLATFORM.items()}
+            traf["marketplace"] = traf["marketplace_id"].map(mkt_id_to_name).fillna(traf["marketplace_id"])
+
+            # Split: daily totals vs per-ASIN
+            daily_traf = traf[traf["asin"] == "__TOTAL__"].copy()
+            asin_traf = traf[traf["asin"] != "__TOTAL__"].copy()
+
+            if not daily_traf.empty:
+                daily_traf["date_dt"] = pd.to_datetime(daily_traf["date"])
+
+                # KPIs
+                tk1, tk2, tk3, tk4 = st.columns(4)
+                tk1.metric("Sessions", f"{daily_traf['sessions'].sum():,.0f}")
+                tk2.metric("Page Views", f"{daily_traf['page_views'].sum():,.0f}")
+                tk3.metric("Units Ordered", f"{daily_traf['units_ordered'].sum():,.0f}")
+                avg_bb = daily_traf["buy_box_pct"].mean()
+                tk4.metric("Avg Buy Box %", f"{avg_bb:.1f}%")
+
+                # Sessions per day per marketplace
+                st.subheader("Sesje dziennie per marketplace")
+                sess_daily = daily_traf.groupby(["date_dt", "marketplace"]).agg(
+                    sessions=("sessions", "sum")).reset_index()
+                fig_sess = px.bar(sess_daily, x="date_dt", y="sessions", color="marketplace",
+                                  barmode="stack")
+                fig_sess.update_layout(height=350, margin=dict(l=0, r=0, t=30, b=0),
+                                       xaxis_title="", yaxis_title="Sessions")
+                st.plotly_chart(fig_sess, use_container_width=True)
+
+                # Buy Box % trend
+                st.subheader("Buy Box % trend")
+                bb_daily = daily_traf.groupby(["date_dt", "marketplace"]).agg(
+                    buy_box=("buy_box_pct", "mean")).reset_index()
+                fig_bb = px.line(bb_daily, x="date_dt", y="buy_box", color="marketplace",
+                                 markers=True)
+                fig_bb.update_layout(height=300, margin=dict(l=0, r=0, t=30, b=0),
+                                     yaxis_title="Buy Box %", yaxis=dict(range=[0, 105]))
+                st.plotly_chart(fig_bb, use_container_width=True)
+
+                # Conversion: units/sessions
+                st.subheader("Konwersja (units / sessions)")
+                conv = daily_traf.groupby("date_dt").agg(
+                    sessions=("sessions", "sum"), units=("units_ordered", "sum")).reset_index()
+                conv["conv_pct"] = (conv["units"] / conv["sessions"] * 100).round(2).fillna(0)
+                fig_conv = px.line(conv, x="date_dt", y="conv_pct", markers=True)
+                fig_conv.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=0),
+                                       yaxis_title="Konwersja %")
+                st.plotly_chart(fig_conv, use_container_width=True)
+
+            # Per-ASIN table
+            if not asin_traf.empty:
+                st.subheader("Top ASINy (per-ASIN aggregate)")
+                asin_agg = asin_traf.groupby(["asin", "marketplace"]).agg(
+                    sessions=("sessions", "sum"),
+                    page_views=("page_views", "sum"),
+                    buy_box=("buy_box_pct", "mean"),
+                    units=("units_ordered", "sum"),
+                    revenue=("ordered_product_sales", "sum"),
+                ).reset_index()
+                asin_agg["conv"] = (asin_agg["units"] / asin_agg["sessions"] * 100).round(1).fillna(0)
+                asin_agg = asin_agg.sort_values("revenue", ascending=False).head(30)
+                asin_agg.columns = ["ASIN", "Marketplace", "Sessions", "Page Views", "Buy Box %",
+                                    "Units", "Revenue", "Conv %"]
+                st.dataframe(asin_agg, use_container_width=True, hide_index=True)
+
+    # --- Inventory ---
+    elif amz_section == "Inventory":
+        st.subheader("FBA Inventory")
+
+        @st.cache_data(ttl=300)
+        def load_inventory():
+            rows = _get("amazon_inventory", {
+                "select": "snapshot_date,sku,fnsku,asin,product_name,country,fulfillable_qty",
+                "order": "snapshot_date.desc",
+                "limit": "500",
+            })
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+        inv = load_inventory()
+        if inv.empty:
+            st.info("Brak danych inventory. Uruchom: python3.11 -m etl.run --reports")
+        else:
+            latest_date = inv["snapshot_date"].max()
+            inv_latest = inv[inv["snapshot_date"] == latest_date].copy()
+
+            ik1, ik2, ik3 = st.columns(3)
+            ik1.metric("SKU w FBA", f"{inv_latest['sku'].nunique()}")
+            ik2.metric("Kraje", f"{inv_latest['country'].nunique()}")
+            ik3.metric("Laczny stock", f"{inv_latest['fulfillable_qty'].sum():,}")
+
+            # Stock by country
+            st.subheader("Stock per kraj")
+            by_country = inv_latest.groupby("country").agg(
+                skus=("sku", "nunique"), stock=("fulfillable_qty", "sum")).reset_index()
+            by_country = by_country.sort_values("stock", ascending=False)
+            fig_inv = px.bar(by_country, x="country", y="stock", text="skus",
+                             color_discrete_sequence=["#4CAF50"])
+            fig_inv.update_layout(height=300, margin=dict(l=0, r=0, t=30, b=0),
+                                  yaxis_title="Fulfillable qty")
+            fig_inv.update_traces(texttemplate="%{text} SKU", textposition="outside")
+            st.plotly_chart(fig_inv, use_container_width=True)
+
+            # Low stock alerts
+            st.subheader("Niski stock (< 5 szt)")
+            low = inv_latest[inv_latest["fulfillable_qty"] < 5].sort_values("fulfillable_qty")
+            if not low.empty:
+                low_show = low[["sku", "product_name", "country", "fulfillable_qty"]].copy()
+                low_show.columns = ["SKU", "Produkt", "Kraj", "Stock"]
+                st.dataframe(low_show, use_container_width=True, hide_index=True)
+            else:
+                st.success("Wszystkie SKU maja >= 5 szt")
+
+            # Full table
+            st.subheader(f"Pelny inventory ({latest_date})")
+            inv_show = inv_latest[["sku", "asin", "product_name", "country", "fulfillable_qty"]].copy()
+            inv_show.columns = ["SKU", "ASIN", "Produkt", "Kraj", "Stock"]
+            inv_show = inv_show.sort_values(["SKU", "Kraj"])
+            st.dataframe(inv_show, use_container_width=True, hide_index=True)
+
+    # --- BSR & Pricing ---
+    elif amz_section == "BSR & Pricing":
+        st.subheader("Best Sellers Rank & Competitive Pricing")
+
+        @st.cache_data(ttl=300)
+        def load_bsr():
+            rows = _get("amazon_bsr", {
+                "select": "snapshot_date,asin,marketplace_id,category_name,rank",
+                "order": "snapshot_date.desc",
+                "limit": "500",
+            })
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+        @st.cache_data(ttl=300)
+        def load_pricing():
+            rows = _get("amazon_pricing", {
+                "select": "snapshot_date,asin,marketplace_id,landed_price,listing_price,shipping_price,currency,condition_value",
+                "order": "snapshot_date.desc",
+                "limit": "500",
+            })
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+        bsr = load_bsr()
+        pricing = load_pricing()
+
+        if not bsr.empty:
+            from etl.config import MARKETPLACE_TO_PLATFORM
+            mkt_id_to_name = {k: v.replace("amazon_", "").upper() for k, v in MARKETPLACE_TO_PLATFORM.items()}
+            bsr["marketplace"] = bsr["marketplace_id"].map(mkt_id_to_name).fillna(bsr["marketplace_id"])
+
+            latest_bsr = bsr[bsr["snapshot_date"] == bsr["snapshot_date"].max()]
+
+            st.subheader("BSR Rankings (latest)")
+            bsr_show = latest_bsr[["asin", "marketplace", "category_name", "rank"]].copy()
+            bsr_show.columns = ["ASIN", "Marketplace", "Kategoria", "Rank"]
+            bsr_show = bsr_show.sort_values("Rank")
+            st.dataframe(bsr_show, use_container_width=True, hide_index=True)
+
+            # Top ASINs by rank
+            st.subheader("Top 10 ASINow (najnizszy rank)")
+            top_bsr = latest_bsr.sort_values("rank").head(10)
+            fig_bsr = px.bar(top_bsr, x="asin", y="rank", color="marketplace",
+                             text="rank", barmode="group")
+            fig_bsr.update_layout(height=300, margin=dict(l=0, r=0, t=30, b=0),
+                                  yaxis_title="BSR Rank", yaxis=dict(autorange="reversed"))
+            st.plotly_chart(fig_bsr, use_container_width=True)
+        else:
+            st.info("Brak danych BSR. Uruchom: python3.11 -m etl.run --amzdata")
+
+        if not pricing.empty:
+            from etl.config import MARKETPLACE_TO_PLATFORM
+            mkt_id_to_name2 = {k: v.replace("amazon_", "").upper() for k, v in MARKETPLACE_TO_PLATFORM.items()}
+            pricing["marketplace"] = pricing["marketplace_id"].map(mkt_id_to_name2).fillna(pricing["marketplace_id"])
+
+            latest_pr = pricing[pricing["snapshot_date"] == pricing["snapshot_date"].max()]
+
+            st.subheader("Competitive Pricing (latest)")
+            pr_show = latest_pr[["asin", "marketplace", "landed_price", "listing_price", "shipping_price", "currency", "condition_value"]].copy()
+            pr_show.columns = ["ASIN", "Marketplace", "Landed Price", "Listing Price", "Shipping", "Waluta", "Stan"]
+            pr_show = pr_show.sort_values(["ASIN", "Marketplace"])
+            st.dataframe(pr_show, use_container_width=True, hide_index=True)
+        else:
+            st.info("Brak danych pricing. Uruchom: python3.11 -m etl.run --amzdata")
+
+    # --- Returns ---
+    elif amz_section == "Zwroty":
+        st.subheader("Amazon Zwroty (FBA)")
+
+        @st.cache_data(ttl=300)
+        def load_returns():
+            rows = _get("amazon_returns", {
+                "select": "return_date,order_id,sku,asin,product_name,quantity,reason,detailed_disposition,status",
+                "order": "return_date.desc",
+                "limit": "500",
+            })
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+
+        rets = load_returns()
+        if rets.empty:
+            st.info("Brak danych zwrotow. Uruchom: python3.11 -m etl.run --reports")
+        else:
+            rk1, rk2, rk3 = st.columns(3)
+            rk1.metric("Zwroty", f"{len(rets)}")
+            rk2.metric("Sztuki", f"{rets['quantity'].sum():,.0f}")
+            rk3.metric("Unikalne SKU", f"{rets['sku'].nunique()}")
+
+            # Returns by reason
+            st.subheader("Powody zwrotow")
+            by_reason = rets.groupby("reason").agg(count=("quantity", "sum")).reset_index()
+            by_reason = by_reason.sort_values("count", ascending=False)
+            fig_ret = px.bar(by_reason, x="reason", y="count", color_discrete_sequence=["#F44336"])
+            fig_ret.update_layout(height=300, margin=dict(l=0, r=0, t=30, b=0),
+                                  xaxis_title="Powod", yaxis_title="Ilosc")
+            st.plotly_chart(fig_ret, use_container_width=True)
+
+            # Returns by SKU
+            st.subheader("Zwroty per SKU")
+            by_sku = rets.groupby(["sku", "product_name"]).agg(
+                count=("quantity", "sum")).reset_index()
+            by_sku = by_sku.sort_values("count", ascending=False).head(20)
+            by_sku.columns = ["SKU", "Produkt", "Ilosc zwrotow"]
+            st.dataframe(by_sku, use_container_width=True, hide_index=True)
+
+            # Returns timeline
+            rets_with_date = rets[rets["return_date"].notna()].copy()
+            if not rets_with_date.empty:
+                st.subheader("Zwroty w czasie")
+                rets_with_date["date_dt"] = pd.to_datetime(rets_with_date["return_date"])
+                ret_daily = rets_with_date.groupby("date_dt").agg(
+                    count=("quantity", "sum")).reset_index()
+                fig_ret_t = px.bar(ret_daily, x="date_dt", y="count",
+                                   color_discrete_sequence=["#FF9800"])
+                fig_ret_t.update_layout(height=250, margin=dict(l=0, r=0, t=30, b=0),
+                                        xaxis_title="", yaxis_title="Zwroty")
+                st.plotly_chart(fig_ret_t, use_container_width=True)
+
+            # Full table
+            with st.expander("Pelna lista zwrotow"):
+                ret_show = rets[["return_date", "order_id", "sku", "product_name", "quantity",
+                                 "reason", "detailed_disposition", "status"]].copy()
+                ret_show.columns = ["Data", "Order ID", "SKU", "Produkt", "Szt.",
+                                    "Powod", "Dyspozycja", "Status"]
+                st.dataframe(ret_show, use_container_width=True, hide_index=True)
 
 
 # ==================== TAB: MONTH vs MONTH ====================
