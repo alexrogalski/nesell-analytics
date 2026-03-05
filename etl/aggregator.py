@@ -74,6 +74,19 @@ def aggregate_daily(conn, days_back: int = 90):
     platforms = db._get("platforms", {"select": "id,fee_pct"})
     fee_pct_map = {p["id"]: float(p["fee_pct"] or 0) for p in platforms}
 
+    # Load returns data to deduct from P&L
+    returns = _get_all("amazon_returns", {
+        "select": "return_date,sku,quantity",
+        "return_date": f"gte.{cutoff}",
+    })
+    # Group returns by (date, sku)
+    returns_map = defaultdict(int)
+    for r in returns:
+        rd = (r.get("return_date", "")[:10], r.get("sku", ""))
+        returns_map[rd] += int(r.get("quantity", 1) or 1)
+    if returns:
+        print(f"  Found {len(returns)} returns ({sum(returns_map.values())} units)")
+
     # Aggregate: group by (date, platform_id, sku)
     agg = defaultdict(lambda: {
         "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
@@ -125,9 +138,18 @@ def aggregate_daily(conn, days_back: int = 90):
         else:
             fees = round(revenue_pln * fee_pct_map.get(plat_id, 0) / 100, 2)
 
+        # Deduct returns (reduce units & revenue)
+        returned_units = returns_map.get((day, sku), 0)
+        net_units = max(data["units"] - returned_units, 0)
+
         # Costs
         cost_per_unit = cost_map.get(sku, 0)
-        cogs = round(cost_per_unit * data["units"], 2)
+        cogs = round(cost_per_unit * net_units, 2)
+        # Revenue adjusted for returns (proportional reduction)
+        if returned_units > 0 and data["units"] > 0:
+            return_ratio = returned_units / data["units"]
+            revenue_pln = round(revenue_pln * (1 - return_ratio), 2)
+            revenue = round(revenue * (1 - return_ratio), 2)
         shipping = 0
         gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
         margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
@@ -137,7 +159,7 @@ def aggregate_daily(conn, days_back: int = 90):
             "platform_id": plat_id,
             "sku": sku,
             "orders_count": len(data["orders"]),
-            "units_sold": data["units"],
+            "units_sold": net_units,
             "revenue": revenue,
             "revenue_pln": revenue_pln,
             "cogs": cogs,
