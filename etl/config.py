@@ -31,7 +31,7 @@ AMZ_API_BASE = "https://sellingpartnerapi-eu.amazon.com"
 
 # --- Printful ---
 _pf = _load_env_file(KEYS_DIR / "printful.env")
-PRINTFUL_V1_TOKEN = _pf.get("PRINTFUL_API_KEY", "")
+PRINTFUL_V1_TOKEN = _pf.get("PRINTFUL_API_TOKEN", "")
 PRINTFUL_STORE_ID = "15269225"
 
 # --- Supabase ---
