@@ -1,0 +1,2984 @@
+{
+  "timestamp": "2026-03-10T17:31:00.083380",
+  "skus_checked": [
+    [
+      "6843674_12735",
+      "nesell Bestickte Kappe Make Europe Great Again - Dad Hat Uni",
+      "B0DTHWXV1K"
+    ],
+    [
+      "6843674_12736",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHXP8BB"
+    ],
+    [
+      "6843674_7853",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHVSQ5M"
+    ],
+    [
+      "6843674_7854",
+      "nesell Bestickte Kappe Make Europe Great Again - Dad Hat Uni",
+      "B0DTFB1TCT"
+    ],
+    [
+      "6843674_7855",
+      "nesell Bestickte Kappe Make Europe Great Again - Dad Hat Uni",
+      "B0DTHWYFN1"
+    ],
+    [
+      "6843674_7856",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHXV2ZG"
+    ],
+    [
+      "6843674_7857",
+      "nesell Bestickte Kappe Make Europe Great Again - Dad Hat Uni",
+      "B0DTJ7R947"
+    ],
+    [
+      "6843674_7858",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHWX1YR"
+    ],
+    [
+      "6843674_7859",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHVX359"
+    ],
+    [
+      "6843674_9794",
+      "nesell Bestickte Kappe Make Europe Great Again mit Flagge - ",
+      "B0DTHWWKJ8"
+    ],
+    [
+      "PFT-88471944-8745",
+      "nesell Bestickte Kappe Make Europe Great Again - Dad Hat Uni",
+      "B0GQT2C2QM"
+    ]
+  ],
+  "fixes_applied": [
+    {
+      "sku": "6843674_12735",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Cranberry",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Cranberry",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Canneberge",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Canneberge",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Mirtillo",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Mirtillo",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Arándano",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Arándano",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Cranberry",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Cranberry",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Żurawinowy",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Żurawinowy",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Tranbär",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Tranbär",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Canneberge",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Canneberge",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Dunkelgrau",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Dunkelgrau",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Gris Foncé",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Gris Foncé",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Grigio Scuro",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Grigio Scuro",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Gris Oscuro",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Gris Oscuro",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Donkergrijs",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Donkergrijs",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Ciemnoszary",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Ciemnoszary",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Mörkgrå",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Mörkgrå",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Gris Foncé",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Gris Foncé",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Weiss",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Weiss",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Blanc",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Blanc",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Bianco",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Bianco",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Blanco",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Blanco",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Wit",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Wit",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Biały",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Biały",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Vit",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Vit",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Blanc",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Blanc",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Schwarz",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Schwarz",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Noir",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Noir",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Nero",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Nero",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Negro",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Negro",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Zwart",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Zwart",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Czarny",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Czarny",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Svart",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Svart",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Noir",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Noir",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Beige",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Beige",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Kaki",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Kaki",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Caqui",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Caqui",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Kaki",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Khaki",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Khaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Kaki",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Kaki",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Hellblau",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Hellblau",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Clair",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Clair",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Azzurro",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Azzurro",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Azul Claro",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Azul Claro",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Lichtblauw",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Lichtblauw",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Jasnoniebieski",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Jasnoniebieski",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Ljusblå",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Ljusblå",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Clair",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Clair",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Marineblau",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Marineblau",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Marine",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Marine",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Blu Navy",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Blu Navy",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Azul Marino",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Azul Marino",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Marineblauw",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Marineblauw",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Granatowy",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Granatowy",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Marinblå",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Marinblå",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Marine",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Marine",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Rosa",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Rose",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Rose",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Rosa",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Rosa",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Roze",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Roze",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Różowy",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Różowy",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Rosa",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Rose",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Rose",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Steingrau",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Steingrau",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Pierre",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Pierre",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Pietra",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Pietra",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Piedra",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Piedra",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Steengrijs",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Steengrijs",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Kamienny",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Kamienny",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Stengrå",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Stengrå",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Pierre",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Pierre",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "DE",
+      "mp_id": "A1PA6795UKMFR9",
+      "old_title": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Gruenes Tarnmuster",
+      "new_title": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Gruenes Tarnmuster",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Camouflage Vert",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Camouflage Vert",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Mimetico Verde",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Mimetico Verde",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Camuflaje Verde",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Camuflaje Verde",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Groen Camouflage",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Groen Camouflage",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "PL",
+      "mp_id": "A1C3SOZRARQ6R3",
+      "old_title": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Zielony Kamuflaż",
+      "new_title": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Zielony Kamuflaż",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Grön Kamouflage",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Grön Kamouflage",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Camouflage Vert",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Camouflage Vert",
+      "product_type": "HAT",
+      "title_fix": true,
+      "keywords_fix": "bestickte kappe europa europe patriot geschenk baseball cap dad hat baumwolle verstellbar make great again unisex",
+      "bullets_fix": null,
+      "desc_fix": "Hochwertige bestickte Baseball Cap Make Europe Great Again."
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "FR",
+      "mp_id": "A13V1IB3VIYZZH",
+      "old_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex en Coton - Spruce",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex en Coton - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "casquette brodée europe patriote cadeau baseball cap dad hat coton ajustable make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "IT",
+      "mp_id": "APJ6JRA9NG5V4",
+      "old_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex in Cotone - Spruce",
+      "new_title": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex in Cotone - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "cappello ricamato europa patriota regalo baseball cap dad hat cotone regolabile make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "ES",
+      "mp_id": "A1RKKUPIHCS9HS",
+      "old_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex de Algodón - Spruce",
+      "new_title": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex de Algodón - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "gorra bordada europa patriota regalo baseball cap dad hat algodón ajustable make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "NL",
+      "mp_id": "A1805IZSGTT6HS",
+      "old_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex Katoen - Spruce",
+      "new_title": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex Katoen - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "geborduurde pet europa patriot cadeau baseball cap dad hat katoen verstelbaar make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "SE",
+      "mp_id": "A2NODRKZP88ZB9",
+      "old_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex Bomull - Spruce",
+      "new_title": "Broderad Keps Make Europe Great Again - Dad Hat Unisex Bomull - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "broderad keps europa patriot present baseball cap dad hat bomull justerbar make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "BE",
+      "mp_id": "AMEN7PMS3EDWL",
+      "old_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex en Coton - Spruce",
+      "new_title": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex en Coton - Spruce",
+      "product_type": "HAT",
+      "title_fix": false,
+      "keywords_fix": "casquette brodée europe patriote cadeau baseball cap dad hat coton ajustable make europe great again unisex",
+      "bullets_fix": null,
+      "desc_fix": null
+    }
+  ],
+  "patch_results": [
+    {
+      "sku": "6843674_12735",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Cranberry",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Cranberry",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Canneberge",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Canneberge",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Mirtillo",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Mirtillo",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Arándano",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Arándano",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Cranberry",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Cranberry",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Żurawinowy",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Żurawinowy",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Tranbär",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Tranbär",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Canneberge",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Canneberge",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12735",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Dunkelgrau",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Dunkelgrau",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Gris Foncé",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Gris Foncé",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Grigio Scuro",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Grigio Scuro",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Gris Oscuro",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Gris Oscuro",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Donkergrijs",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Donkergrijs",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Ciemnoszary",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Ciemnoszary",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Mörkgrå",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Mörkgrå",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Gris Foncé",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Gris Foncé",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_12736",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Weiss",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Weiss",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Blanc",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Blanc",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Bianco",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Bianco",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Blanco",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Blanco",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Wit",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Wit",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Biały",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Biały",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Vit",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Vit",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Blanc",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Blanc",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7853",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Schwarz",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Schwarz",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Noir",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Noir",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Nero",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Nero",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Negro",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Negro",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Zwart",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Zwart",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Czarny",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Czarny",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Svart",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Svart",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Noir",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Noir",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7854",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Beige",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Beige",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Kaki",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Kaki",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Caqui",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Caqui",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Kaki",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Khaki",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Khaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Kaki",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Kaki",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Kaki",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7855",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Hellblau",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Hellblau",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Clair",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Clair",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Azzurro",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Azzurro",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Azul Claro",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Azul Claro",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Lichtblauw",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Lichtblauw",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Jasnoniebieski",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Jasnoniebieski",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Ljusblå",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Ljusblå",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Clair",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Clair",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7856",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Marineblau",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Marineblau",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Marine",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Marine",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Blu Navy",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Blu Navy",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Azul Marino",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Azul Marino",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Marineblauw",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Marineblauw",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Granatowy",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Granatowy",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Marinblå",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Marinblå",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Bleu Marine",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Bleu Marine",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7857",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Rosa",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Rose",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Rose",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Rosa",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Rosa",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Roze",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Roze",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Różowy",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Różowy",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Rosa",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Rosa",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Rose",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Rose",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7858",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Steingrau",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Steingrau",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Pierre",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Pierre",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Pietra",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Pietra",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Piedra",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Piedra",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Steengrijs",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Steengrijs",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Kamienny",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Kamienny",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Stengrå",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Stengrå",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Pierre",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Pierre",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_7859",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "DE",
+      "field": "title",
+      "old": "Bestickte Kappe Make Europe Great Again mit Flagge - Dad Hat Unisex - Gruenes Tarnmuster",
+      "new": "Bestickte Kappe Make Europe Great Again - Dad Hat Unisex - Gruenes Tarnmuster",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "DE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "DE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "FR",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Camouflage Vert",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Camouflage Vert",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "FR",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "IT",
+      "field": "title",
+      "old": "Cappello Ricamato Make Europe Great Again con Bandiera - Dad Hat Unisex - Mimetico Verde",
+      "new": "Cappello Ricamato Make Europe Great Again - Dad Hat Unisex - Mimetico Verde",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "IT",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "ES",
+      "field": "title",
+      "old": "Gorra Bordada Make Europe Great Again con Bandera - Dad Hat Unisex - Camuflaje Verde",
+      "new": "Gorra Bordada Make Europe Great Again - Dad Hat Unisex - Camuflaje Verde",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "ES",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "NL",
+      "field": "title",
+      "old": "Geborduurde Pet Make Europe Great Again met Vlag - Dad Hat Unisex - Groen Camouflage",
+      "new": "Geborduurde Pet Make Europe Great Again - Dad Hat Unisex - Groen Camouflage",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "NL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "PL",
+      "field": "title",
+      "old": "Haftowana Czapka Make Europe Great Again z Flagą - Dad Hat Unisex - Zielony Kamuflaż",
+      "new": "Haftowana Czapka Make Europe Great Again - Dad Hat Unisex - Zielony Kamuflaż",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "PL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "PL",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "SE",
+      "field": "title",
+      "old": "Broderad Keps Make Europe Great Again med Flagga - Dad Hat Unisex - Grön Kamouflage",
+      "new": "Broderad Keps Make Europe Great Again - Dad Hat Unisex - Grön Kamouflage",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "SE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "BE",
+      "field": "title",
+      "old": "Casquette Brodée Make Europe Great Again avec Drapeau - Dad Hat Unisex - Camouflage Vert",
+      "new": "Casquette Brodée Make Europe Great Again - Dad Hat Unisex - Camouflage Vert",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "6843674_9794",
+      "country": "BE",
+      "field": "description",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "FR",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "IT",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "ES",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "NL",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "SE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    },
+    {
+      "sku": "PFT-88471944-8745",
+      "country": "BE",
+      "field": "keywords",
+      "status": "ACCEPTED",
+      "http": 200
+    }
+  ],
+  "summary": {
+    "skus_checked": 11,
+    "fixes_needed": 86,
+    "success": 246,
+    "errors": 0
+  }
+}
