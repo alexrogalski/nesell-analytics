@@ -1,0 +1,134 @@
+{
+  "timestamp": "2026-03-10T11:37:02.933659",
+  "mode": "live",
+  "variant_images": {
+    "PFT-90229846-8747": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/33f95a7326fb9637a4c591f28efeca5f/retro-trucker-hat-black-front-69aff314bf915.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/0df1e3b8cc68cced86d7a6113acf5875/retro-trucker-hat-black-back-69aff314c00e9.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/683633ad48e5fd8037cacbe727dcdcf6/retro-trucker-hat-black-left-69aff314c01c4.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/20dbc3a1c0b6530b11f4d3f8233fa6b4/retro-trucker-hat-black-left-front-69aff314c029e.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/02d4d50b80776516d1a1a75ee1141255/retro-trucker-hat-black-right-69aff314c0375.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/f562e185d7c4445271e13baf0eef4645/retro-trucker-hat-black-right-front-69aff314c0445.jpg"
+    ],
+    "PFT-90229846-8748": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/eace9513e3894a97bba85f080b6953ba/retro-trucker-hat-black-white-front-69aff32f05a0d.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/b1daa6d602f7f47a89806521d06396c7/retro-trucker-hat-black-white-back-69aff32f063e4.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/a283f19e11ca1a441800d138f84d8333/retro-trucker-hat-black-white-left-69aff32f06503.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/617fc0a8e8aaccbf0d2547abeb22dd39/retro-trucker-hat-black-white-left-front-69aff32f065e2.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/c2b304f6031f33d99fda0fc2a8d8f843/retro-trucker-hat-black-white-right-69aff32f066bb.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/adbf17b5b569652d41d1bb9b23be20f9/retro-trucker-hat-black-white-right-front-69aff32f0678c.jpg"
+    ],
+    "PFT-90229846-8749": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/813230af91c9b54d0f4910791bbfb014/retro-trucker-hat-brown-khaki-front-69aff36fb583d.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/9ee9800f51b631e25a600bed1a1294e5/retro-trucker-hat-brown-khaki-back-69aff36fb5f11.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/985de9e67d2e3caebed4430ec48723f0/retro-trucker-hat-brown-khaki-left-69aff36fb5ffd.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/306d6bb51bccb30e54516479d80cd4c9/retro-trucker-hat-brown-khaki-left-front-69aff36fb60de.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/dd80e96cf8802cd43e1b2b579eae02aa/retro-trucker-hat-brown-khaki-right-69aff36fb61e9.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/5955d8fd6e9c2388932bba27a1d8e4c3/retro-trucker-hat-brown-khaki-right-front-69aff36fb635f.jpg"
+    ],
+    "PFT-90229846-8751": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/296ef19cd47769640f03e00923664fb2/retro-trucker-hat-navy-front-69aff3850e5ff.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/ed089e4b140334fd3db27bafde664310/retro-trucker-hat-navy-back-69aff3850ecf7.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/1b4b33bc545589f15a072022fdb32ab7/retro-trucker-hat-navy-left-69aff3850ee1e.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/5fc964200311facf202e5241c5f1afcd/retro-trucker-hat-navy-left-front-69aff3850ef01.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/fac46966456bf4ac5cd369f8516128e2/retro-trucker-hat-navy-right-69aff3850efd8.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/60df3e63eefb4f7a4f41a531cecb8243/retro-trucker-hat-navy-right-front-69aff3850f0a6.jpg"
+    ],
+    "PFT-90229846-8752": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/c6e3ccfc45b7a7ded98591f3f2f1cf51/retro-trucker-hat-khaki-front-69aff3c6beb48.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/d05adbf67110de85600c53f22dfdf380/retro-trucker-hat-khaki-back-69aff3c6bf6d8.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/996664742658bab0dee267577dd96d2a/retro-trucker-hat-khaki-left-69aff3c6bf899.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/7d2fcdf38ba7b717a674ea28a2591cbd/retro-trucker-hat-khaki-left-front-69aff3c6bf9ed.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/9923cfd1644ddf2a695cbce80fa2ff61/retro-trucker-hat-khaki-right-69aff3c6bfb97.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/94c435b18a06958c9770beed18ce5d24/retro-trucker-hat-khaki-right-front-69aff3c6bfcfd.jpg"
+    ],
+    "PFT-90229846-8753": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/004032946756e142c03ea62603b6a362/retro-trucker-hat-pink-front-69aff3dd4ec5d.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/12545fb308508cb1020981b98d4c7472/retro-trucker-hat-pink-back-69aff3dd4f4d9.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/73e782db2660c2c1ec3414607cd05c53/retro-trucker-hat-pink-left-69aff3dd4f5ea.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/bb6bffac5773a35c86f9bd660f48649e/retro-trucker-hat-pink-left-front-69aff3dd4f6d1.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/9ff6018b7c75a9046d6e3498f59bc48e/retro-trucker-hat-pink-right-69aff3dd4f7ac.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/a4ec9a6d3397c44db8edd3dd460de994/retro-trucker-hat-pink-right-front-69aff3dd4f889.jpg"
+    ],
+    "PFT-90229846": [
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/33f95a7326fb9637a4c591f28efeca5f/retro-trucker-hat-black-front-69aff314bf915.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/0df1e3b8cc68cced86d7a6113acf5875/retro-trucker-hat-black-back-69aff314c00e9.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/683633ad48e5fd8037cacbe727dcdcf6/retro-trucker-hat-black-left-69aff314c01c4.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/20dbc3a1c0b6530b11f4d3f8233fa6b4/retro-trucker-hat-black-left-front-69aff314c029e.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/02d4d50b80776516d1a1a75ee1141255/retro-trucker-hat-black-right-69aff314c0375.jpg",
+      "https://printful-upload.s3-accelerate.amazonaws.com/tmp/f562e185d7c4445271e13baf0eef4645/retro-trucker-hat-black-right-front-69aff314c0445.jpg"
+    ]
+  },
+  "results": {
+    "PFT-90229846": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8747": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8748": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8749": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8751": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8752": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    },
+    "PFT-90229846-8753": {
+      "DE": "ACCEPTED",
+      "FR": "ACCEPTED",
+      "IT": "ACCEPTED",
+      "ES": "ACCEPTED",
+      "NL": "ACCEPTED",
+      "PL": "ACCEPTED",
+      "SE": "ACCEPTED",
+      "BE": "ACCEPTED"
+    }
+  }
+}

@@ -1,0 +1,609 @@
+{
+  "success": 87,
+  "already_exists": 5,
+  "errors": 0,
+  "details": [
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90201053",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRX3P3"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-90202876",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQCHL5Y5"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854576",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJYZJD"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93854948",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHRJS9H"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855132",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHJ1C57"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855391",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHF9G8Z"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855556",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHR6D9L"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93855915",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHT2M9G"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856110",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHC6YGC"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856169",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHWVT67"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "SE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856209",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH8QN3G"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856238",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQH5R9FX"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "FR",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "ES",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "IT",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "NL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "PL",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    },
+    {
+      "sku": "PFT-93856317",
+      "marketplace": "BE",
+      "action": "CREATED",
+      "status": "success",
+      "asin": "B0GQHHTT89"
+    }
+  ]
+}
