@@ -1,0 +1,1874 @@
+[
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "ce4d4ea6050840f4ac326eb5d5ca89e7",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "5f91a509a149444f94a91564dec2df6c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "9e514d1d3e5f4d4aa9eb44f9d591109e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "d7f2e63e3ada47f9bec1058b8e093bc2",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "aa8ddd699f92498a8f5e06c1dfd77682",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "67c746ee27b844d1b0e01463b6e8f590",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "610e1fdebfad463c89c8f8e2d706224f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7854",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7854",
+      "status": "ACCEPTED",
+      "submissionId": "a8cc363834c240c9bd766ca45ab3fc60",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "07e62be22c0e419fa3e857bd33c4cd38",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "045add45758b4c0fa202dcdc79844f79",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "78de05e1d9884263ac55316eba7b2d95",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "36b296718fc64ce6bae57b7a63e361d6",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "4963cdfa54d54081ae9aeb15c93cb139",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "7db9a5c32ac846ee970373688e7aeea2",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "4617808a07554707b16440f7bac75daa",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7857",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7857",
+      "status": "ACCEPTED",
+      "submissionId": "108c34cfd80041bf839b8baa945b117c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "de98b761ba934ceeaea4da97c12fb605",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "434dbb5e4d624c6d81f4fea3ddbbebff",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "d9358f37b149403dbb91ee9105661157",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "02c5ad9b26a34ffb84f21fffd31c39f3",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "25ef76510e294b9fb678c0e911a6f848",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "f79a0ec67b914c5e83e2d0bbe82a7657",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "e0766c791e004aeebdb79961ebc845d3",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7853",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7853",
+      "status": "ACCEPTED",
+      "submissionId": "799825cdfd424aa581aef8d982a42421",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "b8728ce2cbe24f1099f0c8d9bb8776bf",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "4f113607329544a5b581270ce500a003",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "1e666187d5d145f9917d448c2116c61e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "dcb1d339c5a24819bb54b7d98be1614a",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "8a9a08cac59c4c8ca76b9b583100562f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "f3d42db5015348f1a87a3f57eee645fb",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "d99f8706b53a4fde88007dfddbbb48e1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7855",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7855",
+      "status": "ACCEPTED",
+      "submissionId": "15505916c8394051862859ac1b97b288",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "23942c3baa6e421d84c6013cead0438b",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "965a723e09be421caeaf622d8c16a8e6",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "1baf8d5bd7da4f8c89282f78def149ff",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "d369c52bfd06498ba206ab696ad4ce3e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "b605e0e34a8b466aa8aa90d532d967f1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "1a11d3be50ee427d9b0d95a2efee88e4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "1c2cf75a73624807ad7ec3d221767ee3",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7856",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7856",
+      "status": "ACCEPTED",
+      "submissionId": "63f8c643afda432897d995cd60725e0e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "e27eabff7aee45c685c125f3db7e3daa",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "77448c5b96ac46319581d987e53dfd12",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "e0ce1248ca5b4a0e81ee4173b4c324da",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "501de8a34f6f4128ad876c3cbd1cac79",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "588d412d99d04d3498c76e4c7d458c68",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "01521e68c5da4237a25614177bac0380",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "686816ccd2bc408c9ceeaef843d7b630",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7858",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7858",
+      "status": "ACCEPTED",
+      "submissionId": "33d39c872b5d42b5985c78750bc35ec4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "fad30233ddaa4654a4972c60091e3e17",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "d46b82a87e17462a9e600ac76c4bf9a6",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "9c30b43553304ab69d8a5f1475020d74",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "f46c2774b9ff4363b72f5d0e109aad1f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "7620f689c823418aa5d490204058dd5c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "2c28a7d831c1487bafadf0272892dad1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "04beeec2c79247f4aae61385b87ade04",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-7859",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-7859",
+      "status": "ACCEPTED",
+      "submissionId": "c210f34ecc254e97b335daeb3f82ac42",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "5c5cf87854c8442589ef8bd1f934bcc5",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "b3e5d126260245be9ef663cce8e8a337",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "24a0e478606a46abaf1f78dd150b48e9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "d45ed44194c1487594dcb0831c0bd65c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "d120710483a24cb3a14a5976876e276a",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "b6a0ff9bb0c946ab9b6f1dd8a4b306bf",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "594af0853fa44b09a45a3e554543e0a4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-90034427-12736",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-90034427-12736",
+      "status": "ACCEPTED",
+      "submissionId": "e198edfe58f244a1a1fd1f26e2a4ca33",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "6081d431a9754b89901527b7f8d8427d",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "aeea680a1bc44698ab6bb51ed05016ab",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "fd65bb6caaf844e6b978b6b986f6a6ff",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "ada2e3c8bead4e8c815cff7b409fcc55",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "46f0151ef1854509b203a44c950c620c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "6596bf391d914fab84a4595e5a56fae8",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "078d43c401144fcfa1486a69157f9276",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7853",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7853",
+      "status": "ACCEPTED",
+      "submissionId": "556c76f5adc24f809f703ff3c796b6a3",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "f5733fb9f7b8410b8371e308f58bcaee",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "02582602214a46579c82fc0c25651ab4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "e8668a8b4f374c15ae66981da0151205",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "53c0a8c12d184c259557adcad32c9e3f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "d057b55ecd90490e946793786d8f5643",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "fb1146d17e8e48ecb36055a8e5c7c4b2",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "c8f92c469965454a8195b4656b0380e9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7854",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7854",
+      "status": "ACCEPTED",
+      "submissionId": "baf14b02dd0c4795aa3a4f36b24e80d4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "b7a75bb2abf34732a43251879298f1a7",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "28e676a4889a436d9bd46618f8d9dca4",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "3ef58e6628f44977b6fe43551fab975f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "66e6e5edf340469ca8b40e0311a38eae",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "ad39106037d94eeb8549f6987b67da13",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "1aab66d938234d97a73c25943331c69e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "ba1f5f53ce7d4525ab70a089691957f1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7855",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7855",
+      "status": "ACCEPTED",
+      "submissionId": "f58c72cfd9804ed6a4083333fb2ecb36",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "f9802cc5ae1f419192716edd5c1c4ea1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "632302aa827948da97439d161fd2b827",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "320ab4a4a29d475ea8cc1c0480a71812",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "6ad22857397a42778a59191aadf4d4dd",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "eac260669ca84f5d96b7ccb2e0c612c9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "304137d54c1a41a893f64fabf5f23b60",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "200d277167064d15b2491caf806c69ea",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7856",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7856",
+      "status": "ACCEPTED",
+      "submissionId": "6f76d3357e5a4846ba03e3e46a3c9c4c",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "d24d2f6604024e3a91cf1619c18e583d",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "9399dd27ec404bbf8e4f0569fe3f9f95",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "7883cd53fb68477fa22068af3111c103",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "6370253f042c4a54bbdc1499b69d8f5b",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "9b3d381647b74aaeb4df589798e3c226",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "dc0023777bf944f3bc640a1541b7f44f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "25aa821faefd4ee785f740ae0c6974dc",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7857",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7857",
+      "status": "ACCEPTED",
+      "submissionId": "1e1ecad903e049c2a268f3fb9f9ca0f0",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "c4879314f8c24213a3b42e7001718c0e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "5aced2867df647cf9593f34066c32911",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "3c038a0cdc6d467aa75305734425046e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "88d6ec907e934d24bee988dd22c97aa9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "e01cbfd896f94bb5bca47568e60fd098",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "824652269cb34e6f9abb380579233583",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "1ca878f2040b421c90f92df62191b39f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7858",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7858",
+      "status": "ACCEPTED",
+      "submissionId": "5b603d0a1a2442ad9135db254425c4bd",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "131c7f5bb2ee46cfaf291347487c825f",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "1cdc5b05f8df460293ee4b0258f758e6",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "0acf3b50c0694e2986286897b58db2c5",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "951f6c8ef2e64517a3e676ad43d44748",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "5e7927ffa6674dd695f8b6e6c5043ace",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "3aec816b67ac424993171775770bdf63",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "8ce5e46c463b4d27bfc8d148ef941c3e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-7859",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-7859",
+      "status": "ACCEPTED",
+      "submissionId": "b8582cff9f6f4e13bc95caaa0824eff8",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "ebcf6e57212640f0a4a9bbb2036e9051",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "005264a3aa124f83b7d85549e5122355",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "4ec29af02b014d36aa2458ba91b9ada1",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "f18cc9af768f4ab39d6ce28c9d1feace",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "f749c374328e41b590ba0eae5c9698ba",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "e8f5a255a14f4a13a5e48480dc55e172",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "d202455535ca405980246590a55a477e",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12736",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12736",
+      "status": "ACCEPTED",
+      "submissionId": "1dda0c8063334b1f89f236600c4fd6d0",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "a127fb7bf9e249efbc90660fc4efe194",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "b3081b21305843ec81606980a4f7e233",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "3865c6cd6a464be9ac78e60eab1117e9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "363482490bef4c9b8c614713ac61cea8",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "da27e083ba7a42ffb490b58b394520c0",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "29bfc11069ff45de8a451bb6493577f5",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "f67b18585c6540a48bde9eac4f239c04",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-9794",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-9794",
+      "status": "ACCEPTED",
+      "submissionId": "d5344521a489482880046da17e635b64",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "DE",
+    "marketplace_id": "A1PA6795UKMFR9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "094edc1773b64cdaa9aaf0827ca549ee",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "FR",
+    "marketplace_id": "A13V1IB3VIYZZH",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "da00ac18368d44e1860ed43a319fca66",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "IT",
+    "marketplace_id": "APJ6JRA9NG5V4",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "2076e5c023224deabd976264e0ab51b7",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "ES",
+    "marketplace_id": "A1RKKUPIHCS9HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "3fd9824293144bc6a845c1dc1e6c6ef8",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "NL",
+    "marketplace_id": "A1805IZSGTT6HS",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "58b0ded4c36847759c68619223d99e00",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "PL",
+    "marketplace_id": "A1C3SOZRARQ6R3",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "fd724c6ed8644f6a8a57b2eb3fe0448a",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "SE",
+    "marketplace_id": "A2NODRKZP88ZB9",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "80798a6981604337b8188b1aa18ac6a9",
+      "issues": []
+    }
+  },
+  {
+    "sku": "PFT-88471944-12735",
+    "marketplace": "BE",
+    "marketplace_id": "AMEN7PMS3EDWL",
+    "success": true,
+    "status_code": 200,
+    "response": {
+      "sku": "PFT-88471944-12735",
+      "status": "ACCEPTED",
+      "submissionId": "ec406a47f7ec47ae98c02002862cd28c",
+      "issues": []
+    }
+  }
+]
