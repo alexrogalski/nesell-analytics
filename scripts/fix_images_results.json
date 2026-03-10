@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-03-10T19:31:44.334381",
+  "total_products": 22,
+  "already_working": 20,
+  "expired": 2,
+  "no_images": 0,
+  "fixed": 1,
+  "failed": 1,
+  "verified": 1,
+  "results": [
+    {
+      "sku": "PFT-88471944-7854",
+      "status": "failed",
+      "reason": "template not found"
+    },
+    {
+      "sku": "PFT-93856317",
+      "status": "fixed",
+      "images_count": 7
+    }
+  ]
+}
