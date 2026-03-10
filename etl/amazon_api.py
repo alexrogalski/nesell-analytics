@@ -43,9 +43,9 @@ def api_get(path, params=None, retries=8):
     for attempt in range(retries):
         try:
             resp = requests.get(url, headers=headers(), params=params, timeout=30)
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
             wait = 10 * (attempt + 1)
-            print(f"    [ConnectionError] retry in {wait}s ({attempt+1}/{retries})")
+            print(f"    [{type(e).__name__}] retry in {wait}s ({attempt+1}/{retries})")
             time.sleep(wait)
             continue
         if resp.status_code == 429:
