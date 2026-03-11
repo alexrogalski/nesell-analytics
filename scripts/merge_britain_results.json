@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-03-11T22:08:28.823160",
+  "results": [
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    },
+    {
+      "action": "create_parent",
+      "sku": "MEGA-BRITAIN",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": [
+        "90000900: You submitted an attribute outer_material that does not belong or is no longer applicable to the product type you were trying to list. We are ignoring the value and processing your submission to ensure a smoother listing experience."
+      ]
+    }
+  ]
+}
