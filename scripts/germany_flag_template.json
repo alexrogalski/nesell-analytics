@@ -1,0 +1,148 @@
+{
+  "data": {
+    "id": 100032925,
+    "external_id": null,
+    "name": "Make Germany Great Again with flag",
+    "catalog_product_id": 206,
+    "created_at": "2026-03-11T09:41:47Z",
+    "updated_at": "2026-03-11T09:46:14Z",
+    "available_catalog_variants": [
+      7853,
+      7854,
+      7855,
+      7856,
+      7857,
+      7858,
+      7859,
+      8745,
+      9794,
+      12735,
+      12736
+    ],
+    "sizes": [
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size",
+      "One size"
+    ],
+    "colors": [
+      {
+        "name": "White",
+        "value": "#ffffff"
+      },
+      {
+        "name": "Black",
+        "value": "#181717"
+      },
+      {
+        "name": "Khaki",
+        "value": "#b49771"
+      },
+      {
+        "name": "Light Blue",
+        "value": "#b5cbda"
+      },
+      {
+        "name": "Navy",
+        "value": "#182031"
+      },
+      {
+        "name": "Pink",
+        "value": "#fab2ba"
+      },
+      {
+        "name": "Stone",
+        "value": "#d6bdad"
+      },
+      {
+        "name": "Spruce",
+        "value": "#183a31"
+      },
+      {
+        "name": "Green Camo",
+        "value": "#415446"
+      },
+      {
+        "name": "Cranberry",
+        "value": "#a3001b"
+      },
+      {
+        "name": "Dark Grey",
+        "value": "#39353a"
+      }
+    ],
+    "product_options": [],
+    "placements": [
+      {
+        "placement": "embroidery_front_large",
+        "technique": "embroidery",
+        "layers": [
+          {
+            "type": "textbox",
+            "position": {
+              "width": 4.4961,
+              "height": 1.0589,
+              "top": 0.642,
+              "left": 0.5198
+            },
+            "url": "",
+            "id": null,
+            "layer_options": []
+          }
+        ],
+        "placement_options": [],
+        "status": "ok",
+        "status_explanation": ""
+      },
+      {
+        "placement": "embroidery_left",
+        "technique": "embroidery",
+        "layers": [
+          {
+            "type": "file",
+            "position": {
+              "width": 1.0823,
+              "height": 0.648,
+              "top": 0.352,
+              "left": 0.4607
+            },
+            "url": "",
+            "id": null,
+            "layer_options": [
+              {
+                "name": "thread_colors",
+                "value": [
+                  "#000000",
+                  "#ffcc00",
+                  "#cc3333"
+                ]
+              }
+            ]
+          }
+        ],
+        "placement_options": [],
+        "status": "ok",
+        "status_explanation": ""
+      }
+    ],
+    "_links": {
+      "self": {
+        "href": "https://api.printful.com/v2/product-templates/100032925"
+      },
+      "compatible_products": {
+        "href": "https://api.printful.com/v2/product-templates/100032925/compatible-products"
+      },
+      "catalog_product": {
+        "href": "https://api.printful.com/v2/catalog-products/206"
+      }
+    }
+  },
+  "extra": []
+}

@@ -1,0 +1,583 @@
+{
+  "created": 96,
+  "skipped": 0,
+  "errors": 0,
+  "details": [
+    {
+      "sku": "PFT-100032925",
+      "mkt": "DE",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "DE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "FR",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "FR",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "IT",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "IT",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "ES",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "ES",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "NL",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "NL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "PL",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "PL",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "SE",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "SE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925",
+      "mkt": "BE",
+      "type": "parent",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7853",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7854",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7855",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7856",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7857",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7858",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-7859",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-8745",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-9794",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12735",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    },
+    {
+      "sku": "PFT-100032925-12736",
+      "mkt": "BE",
+      "type": "child",
+      "status": "OK"
+    }
+  ]
+}
