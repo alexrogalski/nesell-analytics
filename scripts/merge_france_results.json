@@ -1,0 +1,1661 @@
+{
+  "timestamp": "2026-03-11T22:04:36.871847",
+  "results": [
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12735",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-12736",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7853",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7854",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7855",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7856",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7858",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-7859",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-8745",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_flag_style",
+      "sku": "PFT-93854576-9794",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12735",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-12736",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7853",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7854",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7855",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7856",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7857",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7858",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-7859",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-8745",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "update_noflag_style",
+      "sku": "PFT-93856317-9794",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93854576",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "DE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "FR",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "IT",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "ES",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "NL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "PL",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "SE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "action": "deactivate_parent",
+      "sku": "PFT-93856317",
+      "marketplace": "BE",
+      "http_status": 200,
+      "api_status": "ACCEPTED",
+      "errors": [],
+      "warnings": []
+    }
+  ]
+}
