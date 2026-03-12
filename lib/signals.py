@@ -37,12 +37,16 @@ def generate_signals(daily_df, product_df):
                     }
                 )
 
-    # Margin compression signal
-    if len(daily_df) >= 14 and "cm3_pct" in daily_df.columns:
-        last_7_margin = daily_df.tail(7)["cm3_pct"].mean()
-        prev_7_margin = daily_df.iloc[-14:-7]["cm3_pct"].mean()
+    # Margin compression signal (use weighted margin to avoid outlier days)
+    if len(daily_df) >= 14 and "cm3" in daily_df.columns and "revenue_pln" in daily_df.columns:
+        last_7 = daily_df.tail(7)
+        prev_7 = daily_df.iloc[-14:-7]
+        last_7_rev = last_7["revenue_pln"].sum()
+        prev_7_rev = prev_7["revenue_pln"].sum()
+        last_7_margin = (last_7["cm3"].sum() / last_7_rev * 100) if last_7_rev > 0 else 0
+        prev_7_margin = (prev_7["cm3"].sum() / prev_7_rev * 100) if prev_7_rev > 0 else 0
         margin_delta = last_7_margin - prev_7_margin
-        if abs(margin_delta) > 3:
+        if abs(margin_delta) > 3 and abs(margin_delta) < 50:
             direction = "expanding" if margin_delta > 0 else "compressing"
             color = "success" if margin_delta > 0 else "warning"
             signals.append(
