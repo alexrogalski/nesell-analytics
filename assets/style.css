@@ -1,0 +1,208 @@
+/* === NESELL ANALYTICS v2 === */
+/* Quant Terminal Theme */
+
+/* Hide Streamlit chrome */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header[data-testid="stHeader"] {
+    background: #0a0e1a;
+    border-bottom: 1px solid #1e293b;
+}
+
+/* Root variables */
+:root {
+    --bg-primary: #0a0e1a;
+    --bg-card: #111827;
+    --bg-hover: #1a2332;
+    --border: #1e293b;
+    --text-primary: #e2e8f0;
+    --text-muted: #64748b;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-red: #ef4444;
+    --accent-yellow: #f59e0b;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code', monospace;
+}
+
+/* Global background */
+.stApp {
+    background-color: var(--bg-primary);
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #080c16;
+    border-right: 1px solid var(--border);
+}
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stMultiSelect label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+/* Tighter block spacing */
+.block-container {
+    padding-top: 1.5rem;
+    padding-bottom: 0;
+    max-width: 100%;
+}
+
+/* Metric cards */
+div[data-testid="metric-container"] {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+}
+div[data-testid="metric-container"] label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+div[data-testid="metric-container"] div[data-testid="stMetricDelta"] {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+/* Tables */
+div[data-testid="stDataFrame"] {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+div[data-testid="stDataFrame"] table {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+/* Tabs */
+button[data-baseweb="tab"] {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Signal cards (custom HTML) */
+.signal-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+}
+.signal-card.success { border-left: 3px solid var(--accent-green); }
+.signal-card.danger { border-left: 3px solid var(--accent-red); }
+.signal-card.warning { border-left: 3px solid var(--accent-yellow); }
+.signal-card.info { border-left: 3px solid var(--accent-blue); }
+.signal-title {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.signal-detail {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Section headers */
+.section-header {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+    margin-top: 24px;
+}
+
+/* KPI row - custom HTML */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+}
+.kpi-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.kpi-value {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.kpi-delta {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    margin-top: 4px;
+}
+.kpi-delta.positive { color: var(--accent-green); }
+.kpi-delta.negative { color: var(--accent-red); }
+
+/* Data freshness badge */
+.freshness-badge {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-align: right;
+    padding: 4px 0;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Expander styling */
+div[data-testid="stExpander"] {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-card);
+}
+
+/* Selectbox/multiselect dark styling */
+div[data-baseweb="select"] {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+}
+
+/* Plotly chart container - remove extra padding */
+div[data-testid="stPlotlyChart"] {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+/* Column gap tightening */
+div[data-testid="column"] {
+    padding: 0 8px;
+}
