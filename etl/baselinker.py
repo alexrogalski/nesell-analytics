@@ -71,22 +71,39 @@ def _transform_order(o: dict, platform_map: dict) -> dict | None:
 
     # Extract real commission from marketplace (Allegro, Empik, Temu, etc.)
     # Baselinker provides marketplace referral commission via include_commission_data.
-    # For Amazon: we skip writing the fee here because the Amazon Finances API
-    # (amazon_fees.py) provides more complete data (referral + FBA + other fees)
-    # via a separate PATCH call. Since PostgREST upsert overwrites all fields,
-    # writing the partial Baselinker commission here would clobber the more
-    # complete Amazon fee on subsequent syncs.
+    # For Amazon FBA orders (external_id contains dashes like "303-xxx-xxx"):
+    #   SKIP commission here — amazon_fees.py provides more complete data
+    #   (referral + FBA + other fees) via a separate PATCH call.
+    # For Amazon FBM orders (external_id is numeric Baselinker ID):
+    #   WRITE commission from Baselinker — amazon_fees.py can't match these
+    #   by their numeric external_id.
     platform_fee = 0.0
     src = (o.get("order_source") or "").lower()
-    if "amazon" not in src:
+    ext_id = str(o["order_id"])
+    source_ext_id = o.get("order_source_external_id", "") or ""
+
+    if "amazon" in src:
+        # Amazon FBA: external_id will be Amazon order ID with dashes — skip fees
+        # Amazon FBM: external_id is numeric Baselinker ID — write Baselinker commission
+        is_amazon_format = bool(source_ext_id and "-" in source_ext_id)
+        if not is_amazon_format:
+            # FBM order — write Baselinker commission
+            commission = o.get("commission")
+            if commission and isinstance(commission, dict):
+                platform_fee = float(commission.get("gross", 0) or 0)
+    else:
         commission = o.get("commission")
         if commission and isinstance(commission, dict):
             platform_fee = float(commission.get("gross", 0) or 0)
 
+    # For Amazon FBM orders, store the actual Amazon order ID in platform_order_id
+    # so amazon_fees.py can potentially match them in the future
+    platform_order_id = source_ext_id
+
     return {
-        "external_id": str(o["order_id"]),
+        "external_id": ext_id,
         "platform_id": plat_id,
-        "platform_order_id": o.get("order_source_external_id", ""),
+        "platform_order_id": platform_order_id,
         "order_date": datetime.fromtimestamp(o.get("date_confirmed", 0)).isoformat(),
         "status": _map_bl_status(o.get("order_status_id")),
         "buyer_email": o.get("email", ""),
