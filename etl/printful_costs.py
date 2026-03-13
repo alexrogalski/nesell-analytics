@@ -34,7 +34,7 @@ def load_env(path):
 
 # Printful
 _pf = load_env(KEYS_DIR / "printful.env")
-PRINTFUL_TOKEN = _pf.get("PRINTFUL_API_TOKEN", "")
+PRINTFUL_TOKEN = _pf.get("PRINTFUL_API_TOKEN_V2", _pf.get("PRINTFUL_API_TOKEN", ""))
 PRINTFUL_STORE_ID = _pf.get("PRINTFUL_STORE_ID", "15269225")
 
 # Supabase
