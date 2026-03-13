@@ -11,7 +11,7 @@ def bl_api(method: str, params: dict = None) -> dict:
             "token": config.BASELINKER_TOKEN,
             "method": method,
             "parameters": json.dumps(params or {})
-        })
+        }, timeout=60)
         data = resp.json()
         if data.get("status") == "ERROR":
             msg = data.get("error_message", "")
@@ -55,13 +55,33 @@ def _detect_platform(order: dict, platform_map: dict) -> int | None:
 
 
 def _transform_order(o: dict, platform_map: dict) -> dict | None:
-    """Transform single Baselinker order to DB format."""
+    """Transform single Baselinker order to DB format.
+
+    Extracts real marketplace commission from Baselinker's commission field
+    (available when include_commission_data=True in getOrders).
+    Commission structure: {"net": "12.50", "gross": "15.38", "currency": "PLN"}
+    We use the GROSS value as the platform_fee (what the seller actually pays).
+    """
     plat_id = _detect_platform(o, platform_map)
     if not plat_id:
         return None
 
     currency = o.get("currency", "PLN")
     total = float(o.get("payment_done", 0) or 0)
+
+    # Extract real commission from marketplace (Allegro, Empik, Temu, etc.)
+    # Baselinker provides marketplace referral commission via include_commission_data.
+    # For Amazon: we skip writing the fee here because the Amazon Finances API
+    # (amazon_fees.py) provides more complete data (referral + FBA + other fees)
+    # via a separate PATCH call. Since PostgREST upsert overwrites all fields,
+    # writing the partial Baselinker commission here would clobber the more
+    # complete Amazon fee on subsequent syncs.
+    platform_fee = 0.0
+    src = (o.get("order_source") or "").lower()
+    if "amazon" not in src:
+        commission = o.get("commission")
+        if commission and isinstance(commission, dict):
+            platform_fee = float(commission.get("gross", 0) or 0)
 
     return {
         "external_id": str(o["order_id"]),
@@ -75,7 +95,7 @@ def _transform_order(o: dict, platform_map: dict) -> dict | None:
         "total_paid": total,
         "currency": currency,
         "total_paid_pln": total if currency == "PLN" else None,
-        "platform_fee": 0,
+        "platform_fee": platform_fee,
         "platform_fee_pln": 0,
         "raw_data": None,  # skip raw_data to save space
     }
@@ -117,6 +137,7 @@ def sync_orders(conn, days_back: int = 90):
             "date_confirmed_from": cursor_date,
             "get_unconfirmed_orders": False,
             "include_custom_extra_fields": False,
+            "include_commission_data": True,
         }
 
         data = bl_api("getOrders", params)
