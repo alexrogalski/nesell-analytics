@@ -6,7 +6,7 @@ from . import db
 
 
 NBP_BASE = "https://api.nbp.pl/api/exchangerates/rates/a"
-CURRENCIES = ["EUR", "GBP", "SEK", "USD"]
+CURRENCIES = ["EUR", "GBP", "SEK", "USD", "HUF", "CZK"]
 REQUEST_TIMEOUT = 15  # seconds
 
 

@@ -29,7 +29,7 @@ def aggregate_daily(conn, days_back: int = 90):
 
     # Get all non-cancelled orders in period (paginated)
     orders = _get_all("orders", {
-        "select": "id,platform_id,order_date,currency,status,platform_fee,total_paid",
+        "select": "id,external_id,platform_id,order_date,currency,status,platform_fee,total_paid,shipping_cost",
         "order_date": f"gte.{cutoff}",
         "status": "neq.cancelled",
         "order": "order_date.desc",
@@ -38,6 +38,13 @@ def aggregate_daily(conn, days_back: int = 90):
         print("  No orders found for aggregation")
         return 0
 
+    # Exclude FBA inbound shipments (S02-prefix orders)
+    before_filter = len(orders)
+    orders = [o for o in orders if not (o.get("external_id") or "").startswith("S02")]
+    excluded = before_filter - len(orders)
+    if excluded:
+        print(f"  Excluded {excluded} FBA inbound shipments (S02-prefix)")
+
     print(f"  Found {len(orders)} orders in period")
 
     order_ids = [o["id"] for o in orders]
@@ -45,9 +52,11 @@ def aggregate_daily(conn, days_back: int = 90):
 
     # Build per-order fee map (real fees from Finances API)
     order_fee_map = {}
+    order_shipping_map = {}
     for o in orders:
         fee = float(o.get("platform_fee", 0) or 0)
         order_fee_map[o["id"]] = fee
+        order_shipping_map[o["id"]] = float(o.get("shipping_cost", 0) or 0)
 
     # Count how many have real fees vs zero
     real_fees = sum(1 for f in order_fee_map.values() if f > 0)
@@ -91,6 +100,7 @@ def aggregate_daily(conn, days_back: int = 90):
     agg = defaultdict(lambda: {
         "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
         "real_fees": 0.0,  # sum of real per-order fees allocated to this group
+        "shipping": 0.0,   # sum of shipping costs allocated to this group
     })
 
     # First pass: count items per order (for fee allocation)
@@ -119,6 +129,13 @@ def aggregate_daily(conn, days_back: int = 90):
             total_items_in_order = items_per_order.get(item["order_id"], 1)
             fee_share = order_fee * qty / total_items_in_order
             agg[key]["real_fees"] += fee_share
+
+        # Allocate shipping cost proportionally by quantity
+        order_shipping = order_shipping_map.get(item["order_id"], 0)
+        if order_shipping > 0:
+            total_items_in_order = items_per_order.get(item["order_id"], 1)
+            ship_share = order_shipping * qty / total_items_in_order
+            agg[key]["shipping"] += ship_share
 
     # Build metrics
     metrics = []
@@ -150,7 +167,9 @@ def aggregate_daily(conn, days_back: int = 90):
             return_ratio = returned_units / data["units"]
             revenue_pln = round(revenue_pln * (1 - return_ratio), 2)
             revenue = round(revenue * (1 - return_ratio), 2)
-        shipping = 0
+        # Shipping costs (in original currency, convert to PLN)
+        shipping_orig = data["shipping"]
+        shipping = round(shipping_orig * rate, 2) if currency != "PLN" else round(shipping_orig, 2)
         gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
         margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
 
