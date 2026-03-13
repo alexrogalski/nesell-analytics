@@ -3,6 +3,23 @@ from datetime import date, timedelta
 from collections import defaultdict
 from . import db, fx_rates
 
+# Real average fee rates calculated from 593 orders with actual Amazon Finances data.
+# FBA orders have referral (~15%) + FBA fulfillment (~18-19%) + other (~1%) = ~34%.
+# FBM orders (from Baselinker) only have referral (~15%), no FBA fulfillment fees.
+AMAZON_FBA_FEE_PCT = {
+    "EUR": 34.73,  # 584 FBA orders: 5,641.68 / 16,246.49
+    "SEK": 34.73,  # Same as EUR (Amazon SE charges in EUR effectively)
+    "GBP": 34.73,  # Same tier as EUR
+    "PLN": 18.67,  # 9 orders: 177.98 / 953.21 (amazon_pl, lower FBA fees)
+}
+AMAZON_FBA_DEFAULT_FEE_PCT = 34.0  # Weighted average fallback for FBA
+
+# FBM (Fulfilled by Merchant) orders only have referral fee, no FBA fulfillment
+AMAZON_FBM_FEE_PCT = 15.45  # Referral fee only (~15.45%)
+
+# Amazon platform IDs (1-9)
+AMAZON_PLATFORM_IDS = set(range(1, 10))
+
 
 def _get_all(table, params):
     """Paginated GET — fetch all rows (PostgREST default limit is 1000)."""
@@ -96,11 +113,26 @@ def aggregate_daily(conn, days_back: int = 90):
     if returns:
         print(f"  Found {len(returns)} returns ({sum(returns_map.values())} units)")
 
+    # Build set of FBM order IDs (Baselinker-sourced, numeric external_id = FBM)
+    fbm_order_ids = set()
+    fba_order_ids = set()
+    for o in orders:
+        eid = o.get("external_id", "")
+        if o.get("platform_id", 0) in AMAZON_PLATFORM_IDS:
+            if eid.isdigit():
+                fbm_order_ids.add(o["id"])
+            else:
+                fba_order_ids.add(o["id"])
+    if fbm_order_ids or fba_order_ids:
+        print(f"  Amazon orders: {len(fba_order_ids)} FBA + {len(fbm_order_ids)} FBM")
+
     # Aggregate: group by (date, platform_id, sku)
     agg = defaultdict(lambda: {
         "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
         "real_fees": 0.0,  # sum of real per-order fees allocated to this group
         "shipping": 0.0,   # sum of shipping costs allocated to this group
+        "fba_units": 0,    # units from FBA orders (for fee fallback selection)
+        "fbm_units": 0,    # units from FBM orders (for fee fallback selection)
     })
 
     # First pass: count items per order (for fee allocation)
@@ -122,6 +154,12 @@ def aggregate_daily(conn, days_back: int = 90):
         agg[key]["units"] += qty
         agg[key]["revenue"] += float(item["unit_price"] or 0) * qty
         agg[key]["currency"] = item.get("currency") or order.get("currency", "EUR")
+
+        # Track FBA vs FBM units for fee fallback
+        if item["order_id"] in fba_order_ids:
+            agg[key]["fba_units"] += qty
+        elif item["order_id"] in fbm_order_ids:
+            agg[key]["fbm_units"] += qty
 
         # Allocate real order fee proportionally by quantity
         order_fee = order_fee_map.get(item["order_id"], 0)
@@ -148,11 +186,23 @@ def aggregate_daily(conn, days_back: int = 90):
         rate = fx if fx else 1.0
         revenue_pln = round(revenue * rate, 2) if currency != "PLN" else revenue
 
-        # Fees: use real fees if available, else fallback to flat %
+        # Fees: use real fees if available, else use FBA/FBM-aware fallback
         if data["real_fees"] > 0:
             # Real fees are in original currency — convert to PLN
             fees = round(data["real_fees"] * rate, 2) if currency != "PLN" else round(data["real_fees"], 2)
+        elif plat_id in AMAZON_PLATFORM_IDS:
+            # Determine blended fee rate based on FBA vs FBM mix
+            total_amz_units = data["fba_units"] + data["fbm_units"]
+            if total_amz_units > 0:
+                fba_ratio = data["fba_units"] / total_amz_units
+                fba_pct = AMAZON_FBA_FEE_PCT.get(currency, AMAZON_FBA_DEFAULT_FEE_PCT)
+                blended_pct = fba_ratio * fba_pct + (1 - fba_ratio) * AMAZON_FBM_FEE_PCT
+            else:
+                # Unknown fulfillment type, use FBA rate as conservative estimate
+                blended_pct = AMAZON_FBA_FEE_PCT.get(currency, AMAZON_FBA_DEFAULT_FEE_PCT)
+            fees = round(revenue_pln * blended_pct / 100, 2)
         else:
+            # Non-Amazon platforms: use configured flat rate
             fees = round(revenue_pln * fee_pct_map.get(plat_id, 0) / 100, 2)
 
         # Deduct returns (reduce units & revenue)
