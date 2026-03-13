@@ -156,7 +156,47 @@ TRUCKER_COLORS_SE = {
     "12220": "Rost/Beige",
 }
 
-# Country-specific data for each family
+# ── Correct Listing Architecture ──────────────────────────────────────
+#
+# The correct approach is ONE parent per country with STYLE_NAME/COLOR_NAME
+# variation theme. Children are distinguished by:
+#   - style_name: "mit Flagge" / "ohne Flagge" (or localized equivalents)
+#   - color_name: the color of the hat (e.g. "Schwarz", "Weiss")
+#
+# This gives customers a single product page with a style dropdown (flag
+# vs no-flag) and a color dropdown, maximizing reviews and ranking.
+#
+# Working example on DE:
+#   Parent: MEGA-GERMANY-OLD (ASIN B0GS3K29WB)
+#   Variation theme: STYLE_NAME/COLOR_NAME
+#   Children: both "ohne Flagge" and "mit Flagge" styles, each in 11 colors
+#
+# DO NOT create separate NF (no-flag) and FL (flag) parent listings.
+# That splits reviews, rankings, and confuses customers.
+# ──────────────────────────────────────────────────────────────────────
+
+# Unified parent SKUs - ONE parent per country with STYLE_NAME/COLOR_NAME variation.
+# Working example: MEGA-GERMANY-OLD on DE has both "ohne Flagge" and "mit Flagge" styles.
+# New countries should follow this pattern instead of creating separate NF/FL parents.
+UNIFIED_PARENTS = {
+    "Germany": "MEGA-GERMANY-OLD",
+    # Other countries to be created following same pattern:
+    # "France": "MEGA-FRANCE",
+    # "Italy": "MEGA-ITALY",
+    # "Poland": "MEGA-POLAND",
+    # "Belgium": "MEGA-BELGIUM",
+    # "Netherlands": "MEGA-NETHERLANDS",
+    # "GB": "MEGA-GB",
+    # "Spain": "MEGA-SPAIN",
+    # "America": "MEGA-AMERICA",
+    # "Sweden": "MEGA-SWEDEN",
+}
+
+# DEPRECATED: Country-specific data with separate nf_parent / fl_parent SKUs.
+# This structure creates SEPARATE Amazon listings for flag and no-flag versions,
+# which is the WRONG approach. Kept for backwards compatibility (used by
+# audit_listings.py) but should NOT be used for new listing creation.
+# Use UNIFIED_PARENTS above instead.
 COUNTRY_DATA = {
     "France": {
         "nf_parent": "PFT-93856317",
@@ -902,9 +942,17 @@ def build_trucker_listing_for_mkt(mkt_code, suffix, parent_sku, is_parent=False)
 # ── Task Functions ────────────────────────────────────────────────────
 
 def task_propagate_se(dry_run=False):
-    """Task 1: Propagate missing listings to Sweden."""
+    """Task 1: Propagate missing listings to Sweden.
+
+    WARNING: This function creates separate NF and FL parent listings per country,
+    which is the OLD (incorrect) approach. The correct architecture is ONE parent
+    per country with STYLE_NAME/COLOR_NAME variation theme (see UNIFIED_PARENTS).
+    Do not use this for new listing creation. Use UNIFIED_PARENTS pattern instead.
+    """
     print("=" * 70)
     print("TASK 1: Propagate missing MAGA listings to Sweden (SE)")
+    print("WARNING: This task uses deprecated separate NF/FL parents.")
+    print("         New listings should use UNIFIED_PARENTS with STYLE_NAME/COLOR_NAME.")
     print("=" * 70)
 
     created = 0
@@ -1052,9 +1100,17 @@ def task_propagate_se(dry_run=False):
 
 
 def task_create_parents(dry_run=False):
-    """Task 2: Create missing parent SKUs for orphaned families."""
+    """Task 2: Create missing parent SKUs for orphaned families.
+
+    WARNING: This function creates separate NF/FL parent listings, which is
+    the OLD (incorrect) approach. The correct architecture is ONE unified parent
+    per country with STYLE_NAME/COLOR_NAME variation theme (see UNIFIED_PARENTS).
+    Do not create new separate parents. Use UNIFIED_PARENTS pattern instead.
+    """
     print("=" * 70)
     print("TASK 2: Create missing parent SKUs on DE")
+    print("WARNING: This task uses deprecated separate NF/FL parents.")
+    print("         New listings should use UNIFIED_PARENTS with STYLE_NAME/COLOR_NAME.")
     print("=" * 70)
 
     created = 0
