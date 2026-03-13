@@ -16,9 +16,21 @@ Usage:
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
     python3.11 -m etl.run --days 30      # lookback period (default 90)
 """
-import argparse, sys, time
+import argparse, sys, time, traceback
 from datetime import datetime
 from . import db, fx_rates, baselinker, amazon, amazon_fees, amazon_reports, amazon_data, aggregator
+
+
+def _run_step(step_num: int, total: int, label: str, func, *args, **kwargs):
+    """Run a single ETL step with isolated error handling. Returns True on success."""
+    print(f"\n[{step_num}/{total}] {label}...")
+    try:
+        func(*args, **kwargs)
+        return True
+    except Exception as e:
+        print(f"  [FAILED] {label}: {e}")
+        traceback.print_exc()
+        return False
 
 
 def main():
@@ -49,80 +61,96 @@ def main():
     start = time.time()
     step = 0
     total_steps = 8
+    failures = []
 
-    try:
-        if run_all or args.fx:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Syncing FX rates...")
-            fx_rates.sync_fx_rates(conn, days_back=args.days)
+    if run_all or args.fx:
+        step += 1
+        if not _run_step(step, total_steps, "Syncing FX rates",
+                         fx_rates.sync_fx_rates, conn, days_back=args.days):
+            failures.append("FX rates")
 
-        if run_all or args.orders:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Syncing Baselinker orders...")
-            baselinker.sync_orders(conn, days_back=args.days)
+    if run_all or args.orders:
+        step += 1
+        if not _run_step(step, total_steps, "Syncing Baselinker orders",
+                         baselinker.sync_orders, conn, days_back=args.days):
+            failures.append("Baselinker orders")
 
-        if run_all or args.fba:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Syncing Amazon FBA orders...")
-            amazon.sync_orders(conn, days_back=args.days)
+    if run_all or args.fba:
+        step += 1
+        if not _run_step(step, total_steps, "Syncing Amazon FBA orders",
+                         amazon.sync_orders, conn, days_back=args.days):
+            failures.append("Amazon FBA orders")
 
-        if run_all or args.products:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Syncing product catalog...")
-            baselinker.sync_products(conn)
+    if run_all or args.products:
+        step += 1
+        if not _run_step(step, total_steps, "Syncing product catalog",
+                         baselinker.sync_products, conn):
+            failures.append("Product catalog")
 
-        if run_all or args.fees:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Fetching real Amazon fees...")
-            amazon_fees.sync_fees(conn, days_back=args.days)
+    if run_all or args.fees:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching real Amazon fees",
+                         amazon_fees.sync_fees, conn, days_back=args.days):
+            failures.append("Amazon fees")
 
-        if run_all or args.reports:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Fetching Amazon reports...")
-            amazon_reports.sync_all_reports(conn, days_back=args.days)
+    if run_all or args.reports:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching Amazon reports",
+                         amazon_reports.sync_all_reports, conn, days_back=args.days):
+            failures.append("Amazon reports")
 
-        if run_all or args.amzdata:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Fetching Amazon live data (BSR, pricing, inventory)...")
-            amazon_data.sync_all_data(conn, days_back=min(args.days, 30))
+    if run_all or args.amzdata:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching Amazon live data (BSR, pricing, inventory)",
+                         amazon_data.sync_all_data, conn, days_back=min(args.days, 30)):
+            failures.append("Amazon live data")
 
-        if run_all or args.aggregate:
-            step += 1
-            print(f"\n[{step}/{total_steps}] Aggregating daily metrics...")
-            aggregator.aggregate_daily(conn, days_back=args.days)
+    if run_all or args.aggregate:
+        step += 1
+        if not _run_step(step, total_steps, "Aggregating daily metrics",
+                         aggregator.aggregate_daily, conn, days_back=args.days):
+            failures.append("Aggregation")
 
-        # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
-        if args.printful_orders or args.tracking_sync:
-            import logging
-            from .order_automation import process_new_orders, sync_tracking, load_config
-            logging.basicConfig(
-                level=logging.INFO,
-                format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                datefmt="%Y-%m-%d %H:%M:%S",
-            )
-            pf_cfg = load_config()
+    # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
+    if args.printful_orders or args.tracking_sync:
+        import logging
+        from .order_automation import process_new_orders, sync_tracking, load_config
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        pf_cfg = load_config()
 
-        if args.printful_orders:
-            step += 1
-            print(f"\n[{step}] Processing new Printful auto-fulfillment orders...")
+    if args.printful_orders:
+        step += 1
+        print(f"\n[{step}] Processing new Printful auto-fulfillment orders...")
+        try:
             result = process_new_orders(pf_cfg)
             print(f"  Processed: {result['processed']}, Errors: {len(result['errors'])}, Skipped: {len(result['skipped'])}")
+        except Exception as e:
+            print(f"  [FAILED] Printful orders: {e}")
+            traceback.print_exc()
+            failures.append("Printful orders")
 
-        if args.tracking_sync:
-            step += 1
-            print(f"\n[{step}] Syncing Printful tracking info...")
+    if args.tracking_sync:
+        step += 1
+        print(f"\n[{step}] Syncing Printful tracking info...")
+        try:
             result = sync_tracking(pf_cfg)
             print(f"  Updated: {result['updated']}, Errors: {len(result['errors'])}, Still pending: {result['still_pending']}")
-
-    except Exception as e:
-        print(f"\n[ERROR] {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+        except Exception as e:
+            print(f"  [FAILED] Printful tracking: {e}")
+            traceback.print_exc()
+            failures.append("Printful tracking")
 
     elapsed = time.time() - start
     print(f"\n{'='*60}")
-    print(f"Done in {elapsed:.1f}s")
+    if failures:
+        print(f"Done in {elapsed:.1f}s with {len(failures)} FAILED step(s): {', '.join(failures)}")
+        sys.exit(1)
+    else:
+        print(f"Done in {elapsed:.1f}s (all steps OK)")
     print(f"{'='*60}")
 
 

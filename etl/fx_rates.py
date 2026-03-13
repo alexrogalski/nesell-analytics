@@ -1,17 +1,35 @@
 """Fetch FX rates from NBP API (Polish National Bank)."""
 import requests
+import time
 from datetime import date, timedelta
 from . import db
 
 
 NBP_BASE = "https://api.nbp.pl/api/exchangerates/rates/a"
 CURRENCIES = ["EUR", "GBP", "SEK", "USD"]
+REQUEST_TIMEOUT = 15  # seconds
+
+
+def _get_with_retry(url: str, max_retries: int = 3, backoff: float = 2.0) -> requests.Response:
+    """GET request with retry logic and timeout."""
+    headers = {"Accept": "application/json"}
+    for attempt in range(max_retries):
+        try:
+            resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
+            return resp
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            if attempt < max_retries - 1:
+                wait = backoff * (attempt + 1)
+                print(f"    [WARN] NBP request failed (attempt {attempt+1}/{max_retries}), retrying in {wait}s: {e}")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def fetch_nbp_rate(currency: str, day: date) -> float | None:
     """Fetch single currency rate for a date from NBP."""
     url = f"{NBP_BASE}/{currency}/{day.isoformat()}/"
-    resp = requests.get(url, headers={"Accept": "application/json"})
+    resp = _get_with_retry(url)
     if resp.status_code == 200:
         data = resp.json()
         return float(data["rates"][0]["mid"])
@@ -20,7 +38,7 @@ def fetch_nbp_rate(currency: str, day: date) -> float | None:
         for i in range(1, 5):
             prev = day - timedelta(days=i)
             url2 = f"{NBP_BASE}/{currency}/{prev.isoformat()}/"
-            resp2 = requests.get(url2, headers={"Accept": "application/json"})
+            resp2 = _get_with_retry(url2)
             if resp2.status_code == 200:
                 return float(resp2.json()["rates"][0]["mid"])
     return None
@@ -29,7 +47,7 @@ def fetch_nbp_rate(currency: str, day: date) -> float | None:
 def fetch_nbp_range(currency: str, start: date, end: date) -> list[dict]:
     """Fetch rates for a date range."""
     url = f"{NBP_BASE}/{currency}/{start.isoformat()}/{end.isoformat()}/"
-    resp = requests.get(url, headers={"Accept": "application/json"})
+    resp = _get_with_retry(url)
     if resp.status_code == 200:
         return [
             {"date": r["effectiveDate"], "currency": currency, "rate_pln": float(r["mid"])}
