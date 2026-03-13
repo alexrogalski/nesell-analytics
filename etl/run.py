@@ -9,6 +9,7 @@ Usage:
     python3.11 -m etl.run --fba          # only Amazon FBA orders
     python3.11 -m etl.run --products     # only product catalog
     python3.11 -m etl.run --fees         # real Amazon fees (Finances API)
+    python3.11 -m etl.run --allegro-fees # real Allegro fees (Billing API)
     python3.11 -m etl.run --reports      # Amazon reports (traffic, inventory, etc.)
     python3.11 -m etl.run --amzdata      # Amazon live API (BSR, pricing, inventory)
     python3.11 -m etl.run --aggregate    # re-aggregate daily metrics
@@ -18,7 +19,7 @@ Usage:
 """
 import argparse, sys, time, traceback
 from datetime import datetime
-from . import db, fx_rates, baselinker, amazon, amazon_fees, amazon_reports, amazon_data, aggregator
+from . import db, fx_rates, baselinker, amazon, amazon_fees, allegro_fees, amazon_reports, amazon_data, aggregator
 
 
 def _run_step(step_num: int, total: int, label: str, func, *args, **kwargs):
@@ -40,6 +41,7 @@ def main():
     parser.add_argument("--fba", action="store_true", help="Sync Amazon FBA orders")
     parser.add_argument("--products", action="store_true", help="Sync product catalog")
     parser.add_argument("--fees", action="store_true", help="Fetch real Amazon fees (Finances API)")
+    parser.add_argument("--allegro-fees", action="store_true", help="Fetch real Allegro fees (Billing API)")
     parser.add_argument("--reports", action="store_true", help="Amazon reports (traffic, inventory, fees, returns)")
     parser.add_argument("--amzdata", action="store_true", help="Amazon live APIs (BSR, pricing, inventory)")
     parser.add_argument("--aggregate", action="store_true", help="Aggregate daily metrics")
@@ -49,7 +51,7 @@ def main():
     args = parser.parse_args()
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
-                 args.reports, args.amzdata, args.aggregate]
+                 args.allegro_fees, args.reports, args.amzdata, args.aggregate]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync
 
@@ -60,7 +62,7 @@ def main():
     conn = db.get_conn()
     start = time.time()
     step = 0
-    total_steps = 8
+    total_steps = 9
     failures = []
 
     if run_all or args.fx:
@@ -92,6 +94,12 @@ def main():
         if not _run_step(step, total_steps, "Fetching real Amazon fees",
                          amazon_fees.sync_fees, conn, days_back=args.days):
             failures.append("Amazon fees")
+
+    if run_all or args.allegro_fees:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching real Allegro fees",
+                         allegro_fees.sync_allegro_fees, conn, days_back=args.days):
+            failures.append("Allegro fees")
 
     if run_all or args.reports:
         step += 1
