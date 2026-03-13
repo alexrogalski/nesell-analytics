@@ -47,6 +47,13 @@ plat_current = platform_summary(df_current, platforms)
 plat_prev = platform_summary(df_prev, platforms) if not df_prev.empty else pd.DataFrame()
 
 if not plat_current.empty:
+    # Filter out low-activity platforms to prevent misleading percentages
+    # Require at least 5 orders AND 500 PLN revenue in the period
+    plat_current = plat_current[
+        (plat_current["orders_count"] >= 5) & (plat_current["revenue_pln"] >= 500)
+    ].copy()
+
+if not plat_current.empty:
     # Create columns for each marketplace (max 6 per row)
     plats = plat_current.sort_values("revenue_pln", ascending=False)
     n_plats = len(plats)

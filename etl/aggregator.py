@@ -141,12 +141,18 @@ def aggregate_daily(conn, days_back: int = 90):
         print("  No orders found for aggregation")
         return 0
 
-    # Exclude FBA inbound shipments (S02-prefix orders)
+    # Exclude FBA inbound/MCF shipments (S02-prefix orders and Non-Amazon channel)
+    # NOTE: Stale rows from before this filter was added may need manual cleanup
+    # via DELETE from daily_metrics where sku matches S02-related SKUs with 0 revenue.
+    # The etl/amazon.py ingestion filter now prevents new S02 rows from being created.
     before_filter = len(orders)
-    orders = [o for o in orders if not (o.get("external_id") or "").startswith("S02")]
+    orders = [
+        o for o in orders
+        if not (o.get("external_id") or "").startswith("S02")
+    ]
     excluded = before_filter - len(orders)
     if excluded:
-        print(f"  Excluded {excluded} FBA inbound shipments (S02-prefix)")
+        print(f"  Excluded {excluded} FBA inbound/MCF shipments (S02-prefix)")
 
     print(f"  Found {len(orders)} orders in period")
 

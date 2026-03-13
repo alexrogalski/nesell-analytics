@@ -75,6 +75,17 @@ def sync_orders(conn, days_back: int = 90):
             break
         time.sleep(2)  # respect rate limits on getOrders
 
+    # Filter out MCF/inbound shipments before processing
+    before_filter = len(all_orders)
+    all_orders = [
+        o for o in all_orders
+        if not (o.get("AmazonOrderId", "").startswith("S02"))
+        and o.get("SalesChannel") != "Non-Amazon"
+    ]
+    filtered = before_filter - len(all_orders)
+    if filtered:
+        print(f"  Filtered out {filtered} MCF/inbound shipments (S02 or Non-Amazon)")
+
     # Transform
     db_orders = []
     for o in all_orders:
