@@ -3,6 +3,92 @@ from datetime import date, timedelta
 from collections import defaultdict
 from . import db, fx_rates
 
+# ---------------------------------------------------------------------------
+# SKU normalization: map order-item SKUs to canonical product SKUs
+# ---------------------------------------------------------------------------
+
+# Valid size suffixes for stripping (dash or underscore separated)
+_SIZE_SUFFIXES = frozenset({
+    'XS', 'S', 'M', 'L', 'XL', 'XXL', '2XL', '3XL', 'OS', 'OSFA',
+    '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46',
+    '4', '6', '8', '10', '12', '14', '16',
+})
+
+
+def normalize_sku(sku: str, cost_map: dict[str, float]) -> str:
+    """Try to find the canonical product SKU matching this order item SKU.
+
+    Applies a fallback chain of transformations until a match with cost > 0
+    is found in the products cost_map. Returns the original SKU if no match.
+    """
+    if not sku or sku == 'unknown':
+        return sku
+
+    # 0. Trim whitespace (some SKUs have leading spaces from API)
+    clean = sku.strip()
+    if clean != sku and clean in cost_map and cost_map[clean] > 0:
+        return clean
+
+    # Direct match (most common path)
+    if clean in cost_map and cost_map[clean] > 0:
+        return clean
+
+    # 1. Strip trailing dashes: 194954124766--- -> 194954124766
+    nodash = clean.rstrip('-')
+    if nodash != clean and nodash in cost_map and cost_map[nodash] > 0:
+        return nodash
+
+    # 2. Strip leading zeros: 0885178375941 -> 885178375941
+    nozero = clean.lstrip('0')
+    if nozero != clean and nozero in cost_map and cost_map[nozero] > 0:
+        return nozero
+
+    # 3. Both: leading zeros + trailing dashes: 0027131043287--- -> 27131043287
+    both = clean.lstrip('0').rstrip('-')
+    if both != clean and both != nozero and both != nodash:
+        if both in cost_map and cost_map[both] > 0:
+            return both
+
+    # 4. Strip size suffix with dash: SX7664-010-S -> SX7664-010
+    parts = clean.rsplit('-', 1)
+    if len(parts) == 2 and parts[1].upper() in _SIZE_SUFFIXES:
+        base = parts[0]
+        if base in cost_map and cost_map[base] > 0:
+            return base
+
+    # 5. Strip size suffix with underscore: SX7667-100_M -> SX7667-100
+    parts2 = clean.rsplit('_', 1)
+    if len(parts2) == 2 and parts2[1].upper() in _SIZE_SUFFIXES:
+        base2 = parts2[0]
+        if base2 in cost_map and cost_map[base2] > 0:
+            return base2
+
+    # 6. FBA- prefix removal: FBA-6843674_7856 -> 6843674_7856
+    if clean.startswith('FBA-'):
+        stripped = clean[4:]
+        if stripped in cost_map and cost_map[stripped] > 0:
+            return stripped
+        # Also try PFT format: FBA-6843674_7856 -> PFT-6843674-7856
+        pft = 'PFT-' + stripped.replace('_', '-')
+        if pft in cost_map and cost_map[pft] > 0:
+            return pft
+
+    # 7. Printful underscore -> PFT: 6843674_7854 -> PFT-6843674-7854
+    #    Handles both "6843674_7854" and " 6843674_7854" (already stripped)
+    if '_' in clean and clean.replace('_', '').isdigit():
+        pft = 'PFT-' + clean.replace('_', '-')
+        if pft in cost_map and cost_map[pft] > 0:
+            return pft
+
+    # 8. EAN/barcode lookup: check if any product SKU contains this value
+    #    Only for numeric SKUs >= 8 digits (EAN-8, EAN-13, UPC)
+    if clean.isdigit() and len(clean) >= 8:
+        for prod_sku, cost in cost_map.items():
+            if cost > 0 and clean in prod_sku and prod_sku != clean:
+                return prod_sku
+
+    return sku  # No match found, return original
+
 # Real average fee rates calculated from 593 orders with actual Amazon Finances data.
 # FBA orders have referral (~15%) + FBA fulfillment (~18-19%) + other (~1%) = ~34%.
 # FBM orders (from Baselinker) only have referral (~15%), no FBA fulfillment fees.
@@ -95,6 +181,18 @@ def aggregate_daily(conn, days_back: int = 90):
     # Get product costs (paginated)
     products = _get_all("products", {"select": "sku,cost_pln"})
     cost_map = {p["sku"]: float(p["cost_pln"] or 0) for p in products}
+
+    # Build SKU normalization cache for all order-item SKUs
+    raw_skus = set(item.get("sku") or "unknown" for item in all_items)
+    sku_norm_map = {}
+    normalized_count = 0
+    for raw in raw_skus:
+        norm = normalize_sku(raw, cost_map)
+        sku_norm_map[raw] = norm
+        if norm != raw and norm != raw.strip():
+            normalized_count += 1
+    if normalized_count:
+        print(f"  SKU normalization: {normalized_count} SKUs remapped to products with COGS")
 
     # Get platform fee rates (fallback for orders without real fees)
     platforms = db._get("platforms", {"select": "id,fee_pct"})
@@ -209,8 +307,9 @@ def aggregate_daily(conn, days_back: int = 90):
         returned_units = returns_map.get((day, sku), 0)
         net_units = max(data["units"] - returned_units, 0)
 
-        # Costs
-        cost_per_unit = cost_map.get(sku, 0)
+        # Costs (use normalized SKU for COGS lookup)
+        norm_sku = sku_norm_map.get(sku, sku)
+        cost_per_unit = cost_map.get(norm_sku, 0)
         cogs = round(cost_per_unit * net_units, 2)
         # Revenue adjusted for returns (proportional reduction)
         if returned_units > 0 and data["units"] > 0:
