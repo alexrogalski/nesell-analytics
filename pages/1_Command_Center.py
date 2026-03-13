@@ -117,51 +117,38 @@ if not cogs_gaps.empty:
     with st.expander(f"Top {min(15, total_gap_skus)} products missing COGS (by revenue impact)", expanded=total_gap_skus <= 20):
         top_gaps = cogs_gaps.head(15)
         rows_html = ""
-        for idx, row in top_gaps.iterrows():
+        for i, (idx, row) in enumerate(top_gaps.iterrows()):
             sku = row.get("sku", "unknown")
             rev = row.get("revenue_pln", 0)
             units = int(row.get("units", 0))
             orders = int(row.get("orders_count", 0))
             bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
-            row_bg = "#111827" if idx % 2 == 0 else "#0f1729"
-            rows_html += f"""
-            <tr style="background: {row_bg};">
-                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0;
-                           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{sku}</td>
-                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24;">{rev:,.0f}</td>
-                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{units}</td>
-                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{orders}</td>
-                <td style="padding: 8px 10px; text-align: center;">
-                    <a href="{bl_url}" target="_blank"
-                       style="color: #3b82f6; font-family: monospace; font-size: 0.75rem; text-decoration: none;
-                              background: rgba(59,130,246,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">
-                        Edit in BL &#8594;
-                    </a>
-                </td>
-            </tr>
-            """
+            row_bg = "#111827" if i % 2 == 0 else "#0f1729"
+            rows_html += (
+                f'<tr style="background: {row_bg};">'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{sku}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24;">{rev:,.0f}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{units}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{orders}</td>'
+                f'<td style="padding: 8px 10px; text-align: center;">'
+                f'<a href="{bl_url}" target="_blank" style="color: #3b82f6; font-family: monospace; font-size: 0.75rem; text-decoration: none; background: rgba(59,130,246,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">Edit in BL &#8594;</a>'
+                f'</td></tr>'
+            )
 
-        st.markdown(f"""
-        <div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">
-            <table style="width: 100%; border-collapse: collapse; background: #111827;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">
-                        <th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.65rem;
-                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">SKU</th>
-                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
-                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Revenue (PLN)</th>
-                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
-                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Units</th>
-                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
-                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Orders</th>
-                        <th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.65rem;
-                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>{rows_html}</tbody>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
+        table_html = (
+            '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">'
+            '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
+            '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">'
+            '<th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">SKU</th>'
+            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Revenue (PLN)</th>'
+            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Units</th>'
+            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Orders</th>'
+            '<th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Action</th>'
+            '</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            '</table></div>'
+        )
+        st.markdown(table_html, unsafe_allow_html=True)
 
 # --- Data Coverage Indicators ---
 coverage = load_data_coverage(days=days)
