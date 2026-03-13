@@ -199,6 +199,59 @@ def load_fx_rates(days=90):
     return pd.DataFrame(rows)
 
 
+@st.cache_data(ttl=300)
+def load_cogs_gaps(days=90):
+    """Load SKUs with revenue but no COGS, aggregated by SKU."""
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    rows = _get("daily_metrics", {
+        "date": f"gte.{cutoff}",
+        "cogs": "eq.0",
+        "revenue_pln": "gt.0",
+        "select": "sku,revenue_pln,units_sold,orders_count",
+    })
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    for col in ["revenue_pln"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    for col in ["units_sold", "orders_count"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+    # Aggregate by SKU
+    agg_dict = {"revenue_pln": "sum", "orders_count": "sum"}
+    if "units_sold" in df.columns:
+        agg_dict["units_sold"] = "sum"
+    grouped = df.groupby("sku").agg(agg_dict).reset_index()
+    grouped.rename(columns={"units_sold": "units"}, inplace=True)
+    grouped = grouped.sort_values("revenue_pln", ascending=False)
+    return grouped
+
+
+@st.cache_data(ttl=300)
+def load_data_coverage(days=90):
+    """Calculate data coverage stats: COGS %, fee %, data freshness."""
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    rows = _get("daily_metrics", {
+        "date": f"gte.{cutoff}",
+        "select": "date,revenue_pln,cogs,platform_fees",
+    })
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return {"cogs_coverage": 0, "fee_coverage": 0, "last_date": "N/A", "total_revenue": 0}
+    for col in ["revenue_pln", "cogs", "platform_fees"]:
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    total_rev = df["revenue_pln"].sum()
+    rev_with_cogs = df[df["cogs"] > 0]["revenue_pln"].sum()
+    rev_with_fees = df[df["platform_fees"] > 0]["revenue_pln"].sum()
+    return {
+        "cogs_coverage": (rev_with_cogs / total_rev * 100) if total_rev > 0 else 0,
+        "fee_coverage": (rev_with_fees / total_rev * 100) if total_rev > 0 else 0,
+        "last_date": df["date"].max(),
+        "total_revenue": total_rev,
+        "revenue_without_cogs": total_rev - rev_with_cogs,
+    }
+
+
 def get_marketplace_names():
     """Get marketplace ID to display name mapping."""
     try:

@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_products
+from lib.data import load_daily_metrics, load_platforms, load_products, load_cogs_gaps
 from lib.metrics import product_profitability, calc_contribution_margins
 from lib.charts import scatter_quadrant, bar_chart
 
@@ -152,28 +152,144 @@ if not prod_df.empty:
 
     st.dataframe(src_display, use_container_width=True, hide_index=True)
 
-# --- 5. COGS coverage ---
-st.markdown('<div class="section-header">COGS COVERAGE</div>', unsafe_allow_html=True)
+# --- 5. COGS GAPS ---
+st.markdown('<div class="section-header">COGS GAPS</div>', unsafe_allow_html=True)
 
 if not prod_df.empty:
     with_cogs = prod_df[prod_df["cogs"] > 0]
-    without_cogs = prod_df[prod_df["cogs"] == 0]
+    without_cogs = prod_df[(prod_df["cogs"] == 0) & (prod_df["revenue_pln"] > 0)]
 
     cov_rev = with_cogs["revenue_pln"].sum()
     total_rev = prod_df["revenue_pln"].sum()
     coverage_pct = (cov_rev / total_rev * 100) if total_rev > 0 else 0
+    uncovered_rev = total_rev - cov_rev
 
-    c1, c2, c3 = st.columns(3)
+    # Coverage KPIs
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Products with COGS", f"{len(with_cogs)} / {len(prod_df)}")
     c2.metric("Revenue Coverage", f"{coverage_pct:.1f}%")
-    c3.metric("Revenue without COGS", f"{without_cogs['revenue_pln'].sum():,.0f} PLN")
-
-    if coverage_pct < 90:
-        st.warning(
-            f"COGS coverage is {coverage_pct:.0f}% of revenue. "
-            f"Products without costs inflate margins. "
-            f"Real margin (with COGS only): "
-            f"{with_cogs['cm3'].sum() / cov_rev * 100:.1f}%" if cov_rev > 0 else ""
-        )
+    c3.metric("Revenue without COGS", f"{uncovered_rev:,.0f} PLN")
+    if cov_rev > 0:
+        real_margin = with_cogs["cm3"].sum() / cov_rev * 100
+        c4.metric("Real Margin (COGS only)", f"{real_margin:.1f}%")
     else:
-        st.success(f"COGS coverage is good: {coverage_pct:.1f}% of revenue")
+        c4.metric("Real Margin (COGS only)", "N/A")
+
+    # Coverage status banner
+    if coverage_pct < 90:
+        st.markdown(f"""
+        <div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b;
+                    border-radius: 6px; padding: 14px 18px; margin: 12px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
+                        letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 4px;">
+                LOW COGS COVERAGE
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #fbbf24;">
+                {coverage_pct:.0f}% of revenue has COGS data. Reported margins are overstated by ~{100 - coverage_pct:.0f}pp.
+                Add product costs in Baselinker to get accurate P&L.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown(f"""
+        <div style="background: #0b1a12; border: 1px solid #065f46; border-left: 4px solid #10b981;
+                    border-radius: 6px; padding: 14px 18px; margin: 12px 0;">
+            <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399;">
+                COGS coverage is good: {coverage_pct:.1f}% of revenue covered.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Full COGS gaps table
+    if not without_cogs.empty:
+        # Classify source
+        gap_df = without_cogs[["sku", "name", "source", "revenue_pln", "units", "orders_count"]].copy()
+        gap_df["source_label"] = gap_df["source"].apply(
+            lambda x: "Printful" if str(x).lower() in ["printful", "pft"]
+            else ("Wholesale" if str(x).lower() in ["wholesale", "hurtownia"]
+                  else "Unknown")
+        )
+        gap_df = gap_df.sort_values("revenue_pln", ascending=False)
+
+        st.markdown(f"""
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; margin: 8px 0 16px 0;">
+            {len(gap_df)} products with revenue but no COGS. Total impact: {uncovered_rev:,.0f} PLN.
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Build HTML table with Baselinker links
+        rows_html = ""
+        for i, (_, row) in enumerate(gap_df.iterrows()):
+            sku = row.get("sku", "unknown")
+            name = str(row.get("name", ""))[:40]
+            source = row.get("source_label", "Unknown")
+            rev = row.get("revenue_pln", 0)
+            units = int(row.get("units", 0))
+            orders = int(row.get("orders_count", 0))
+            bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
+            row_bg = "#111827" if i % 2 == 0 else "#0f1729"
+
+            # Source badge color
+            source_color = "#10b981" if source == "Printful" else ("#3b82f6" if source == "Wholesale" else "#64748b")
+
+            rows_html += f"""
+            <tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">
+                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; color: #e2e8f0;
+                           white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis;">{sku}</td>
+                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.75rem; color: #94a3b8;
+                           max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{name}</td>
+                <td style="padding: 7px 10px; text-align: center;">
+                    <span style="font-family: monospace; font-size: 0.65rem; color: {source_color};
+                                 background: rgba({','.join(str(int(source_color.lstrip('#')[i:i+2], 16)) for i in (0,2,4))},0.1);
+                                 padding: 2px 6px; border-radius: 3px;">{source}</span>
+                </td>
+                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #fbbf24;">{rev:,.0f}</td>
+                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8;">{units}</td>
+                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8;">{orders}</td>
+                <td style="padding: 7px 10px; text-align: center;">
+                    <a href="{bl_url}" target="_blank"
+                       style="color: #3b82f6; font-family: monospace; font-size: 0.7rem; text-decoration: none;
+                              background: rgba(59,130,246,0.08); padding: 3px 8px; border-radius: 3px;
+                              border: 1px solid rgba(59,130,246,0.2);">
+                        Edit &#8594;
+                    </a>
+                </td>
+            </tr>
+            """
+
+        st.markdown(f"""
+        <div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 500px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: #111827;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">
+                        <th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">SKU</th>
+                        <th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Name</th>
+                        <th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Source</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Revenue (PLN)</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Units</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Orders</th>
+                        <th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.6rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>{rows_html}</tbody>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Copyable SKU list for bulk operations
+        with st.expander("Export SKU list (copy-paste)"):
+            sku_list = "\n".join(gap_df["sku"].tolist())
+            st.code(sku_list, language=None)
+    else:
+        st.markdown("""
+        <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399; padding: 16px 0;">
+            All products with revenue have COGS assigned.
+        </div>
+        """, unsafe_allow_html=True)

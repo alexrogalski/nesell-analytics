@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms
+from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage
 from lib.metrics import calc_period_kpis, daily_summary, product_profitability, platform_summary
 from lib.charts import area_chart, multi_line, bar_chart
 from lib.signals import generate_signals
@@ -80,6 +80,106 @@ if kpis:
         f"{kpis.get('units', 0):,}",
         delta=f"{kpis.get('units_delta', 0):+.1f}%" if kpis.get("units_prev", 0) > 0 else None,
     )
+
+# --- COGS Gap Alert ---
+cogs_gaps = load_cogs_gaps(days=days)
+if not cogs_gaps.empty:
+    total_gap_rev = cogs_gaps["revenue_pln"].sum()
+    total_gap_skus = len(cogs_gaps)
+    total_rev = df["revenue_pln"].sum() if "revenue_pln" in df.columns else 1
+    gap_pct = (total_gap_rev / total_rev * 100) if total_rev > 0 else 0
+
+    st.markdown(f"""
+    <div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b;
+                border-radius: 6px; padding: 16px 20px; margin: 16px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
+                            letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 6px;">
+                    COGS DATA GAP
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 1.1rem; color: #fbbf24; font-weight: 600;">
+                    {total_gap_skus} products missing costs &mdash; {total_gap_rev:,.0f} PLN unaccounted
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #92400e; margin-top: 4px;">
+                    {gap_pct:.1f}% of revenue has no COGS. Margins are overstated. Add costs in Baselinker to fix.
+                </div>
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 2rem; color: #92400e; opacity: 0.4;
+                        line-height: 1; padding-left: 16px;">
+                &#9888;
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Top missing products table (show top 15)
+    with st.expander(f"Top {min(15, total_gap_skus)} products missing COGS (by revenue impact)", expanded=total_gap_skus <= 20):
+        top_gaps = cogs_gaps.head(15)
+        rows_html = ""
+        for idx, row in top_gaps.iterrows():
+            sku = row.get("sku", "unknown")
+            rev = row.get("revenue_pln", 0)
+            units = int(row.get("units", 0))
+            orders = int(row.get("orders_count", 0))
+            bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
+            row_bg = "#111827" if idx % 2 == 0 else "#0f1729"
+            rows_html += f"""
+            <tr style="background: {row_bg};">
+                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0;
+                           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{sku}</td>
+                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24;">{rev:,.0f}</td>
+                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{units}</td>
+                <td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{orders}</td>
+                <td style="padding: 8px 10px; text-align: center;">
+                    <a href="{bl_url}" target="_blank"
+                       style="color: #3b82f6; font-family: monospace; font-size: 0.75rem; text-decoration: none;
+                              background: rgba(59,130,246,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">
+                        Edit in BL &#8594;
+                    </a>
+                </td>
+            </tr>
+            """
+
+        st.markdown(f"""
+        <div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">
+            <table style="width: 100%; border-collapse: collapse; background: #111827;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">
+                        <th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.65rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">SKU</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Revenue (PLN)</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Units</th>
+                        <th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Orders</th>
+                        <th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.65rem;
+                                   text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>{rows_html}</tbody>
+            </table>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --- Data Coverage Indicators ---
+coverage = load_data_coverage(days=days)
+cov1, cov2, cov3 = st.columns(3)
+cov1.metric(
+    "COGS COVERAGE",
+    f"{coverage['cogs_coverage']:.0f}%",
+    delta=f"{coverage.get('revenue_without_cogs', 0):,.0f} PLN uncovered" if coverage['cogs_coverage'] < 100 else "Full coverage",
+    delta_color="inverse" if coverage['cogs_coverage'] < 90 else "normal",
+)
+cov2.metric(
+    "FEE COVERAGE",
+    f"{coverage['fee_coverage']:.0f}%",
+)
+cov3.metric(
+    "DATA FRESHNESS",
+    str(coverage['last_date']),
+)
 
 # --- Daily chart + Signals ---
 daily = daily_summary(df)
