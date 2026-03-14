@@ -1343,7 +1343,7 @@ def task_trucker_propagate(dry_run=False):
 def main():
     parser = argparse.ArgumentParser(description="Amazon Listings Management")
     parser.add_argument("--task", required=True,
-                       choices=["propagate_se", "create_parents", "trucker_propagate", "all"],
+                       choices=["propagate_se", "create_parents", "trucker_propagate", "fix_variations", "all"],
                        help="Task to run")
     parser.add_argument("--dry-run", action="store_true", help="Don't actually create listings")
     args = parser.parse_args()
@@ -1363,6 +1363,14 @@ def main():
 
     if args.task in ("trucker_propagate", "all"):
         task_trucker_propagate(dry_run=args.dry_run)
+        print()
+
+    if args.task == "fix_variations":
+        from .fix_variations import main as fix_variations_main
+        sys.argv = [sys.argv[0]]
+        if args.dry_run:
+            sys.argv.append("--dry-run")
+        fix_variations_main()
         print()
 
     print("\nAll tasks complete!")
