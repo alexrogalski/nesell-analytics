@@ -124,13 +124,17 @@ def upsert_order_items(conn, items):
 
 
 def upsert_products(conn, products):
-    """Upsert products from catalog."""
+    """Upsert products from catalog (deduplicated by SKU within batch)."""
     if not products:
         return 0
-    rows = []
+    # Deduplicate by SKU — keep last occurrence (later entries overwrite earlier)
+    seen = {}
     for p in products:
+        sku = p.get("sku", "")
+        if not sku:
+            continue
         row = {
-            "sku": p["sku"],
+            "sku": sku,
             "name": p["name"],
             "brand": p.get("brand"),
             "source": p.get("source"),
@@ -141,10 +145,22 @@ def upsert_products(conn, products):
             "parent_sku": p.get("parent_sku"),
             "ean": p.get("ean"),
             "active": p.get("active", True),
+            "image_url": p.get("image_url"),
         }
-        if p.get("image_url"):
-            row["image_url"] = p["image_url"]
-        rows.append(row)
+        # Prefer entries with better data (non-empty name, non-null cost)
+        existing = seen.get(sku)
+        if existing:
+            # Keep the one with a real name (not barcode), or with cost
+            existing_name = existing.get("name", "")
+            new_name = row.get("name", "")
+            if (not existing_name or existing_name == sku or existing_name.isdigit()) and new_name and new_name != sku:
+                seen[sku] = row
+            elif not existing.get("cost_pln") and row.get("cost_pln"):
+                seen[sku] = row
+        else:
+            seen[sku] = row
+
+    rows = list(seen.values())
     total = 0
     for i in range(0, len(rows), 500):
         chunk = rows[i:i+500]

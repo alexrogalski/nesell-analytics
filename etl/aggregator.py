@@ -203,7 +203,11 @@ def aggregate_daily(conn, days_back: int = 90):
     cost_map = {p["sku"]: float(p["cost_pln"] or 0) for p in products}
 
     # Build SKU normalization cache for all order-item SKUs
-    raw_skus = set(item.get("sku") or "unknown" for item in all_items)
+    raw_skus = set()
+    for item in all_items:
+        s = (item.get("sku") or "").strip()
+        if s:
+            raw_skus.add(s)
     sku_norm_map = {}
     normalized_count = 0
     for raw in raw_skus:
@@ -266,7 +270,13 @@ def aggregate_daily(conn, days_back: int = 90):
             continue
         day = order["order_date"][:10]  # YYYY-MM-DD
         plat_id = order["platform_id"]
-        sku = item.get("sku") or "unknown"
+        raw_sku = (item.get("sku") or "").strip()
+        if not raw_sku:
+            continue  # skip items with no SKU entirely
+        # Normalize SKU: strip leading zeros, trailing dashes/special chars
+        sku = raw_sku.lstrip('0').rstrip('-').strip()
+        if not sku:
+            sku = raw_sku  # fallback if stripping removed everything (e.g. "000")
         key = (day, plat_id, sku)
         qty = int(item["quantity"] or 1)
 

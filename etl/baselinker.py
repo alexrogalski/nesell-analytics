@@ -255,8 +255,20 @@ def _map_bl_status(status_id) -> str:
     return "confirmed"
 
 
-def sync_products(conn, inventory_id: int = 52954):
-    """Pull products from Baselinker inventory."""
+def _detect_source(sku: str, inventory_id: int) -> str:
+    """Detect product source from SKU pattern and inventory."""
+    if sku.startswith("PFT-"):
+        return "printful"
+    if inventory_id == 30229:
+        return "wholesale"
+    return "unknown"
+
+
+def _fetch_inventory_products(inventory_id: int, source_label: str) -> list:
+    """Fetch all products from a single Baselinker inventory.
+
+    Returns list of product dicts ready for DB upsert.
+    """
     all_ids = []
     page = 1
     while True:
@@ -269,10 +281,10 @@ def sync_products(conn, inventory_id: int = 52954):
             break
         all_ids.extend(products.keys())
         page += 1
-        print(f"  Product list page {page - 1}: {len(products)} IDs")
+        print(f"  [{source_label}] Product list page {page - 1}: {len(products)} IDs")
         time.sleep(0.3)
 
-    print(f"  Total product IDs: {len(all_ids)}")
+    print(f"  [{source_label}] Total product IDs: {len(all_ids)}")
 
     all_products = []
     for i in range(0, len(all_ids), 100):
@@ -302,7 +314,7 @@ def sync_products(conn, inventory_id: int = 52954):
                 "sku": sku,
                 "name": name,
                 "brand": "nesell",
-                "source": "printful" if sku.startswith("PFT-") else "unknown",
+                "source": _detect_source(sku, inventory_id),
                 "cost_pln": float(p.get("average_cost", 0) or 0) or None,
                 "weight_g": int(float(p.get("weight", 0) or 0) * 1000) or None,
                 "is_parent": "-" not in sku.split("PFT-")[-1] if sku.startswith("PFT-") else False,
@@ -328,7 +340,7 @@ def sync_products(conn, inventory_id: int = 52954):
                     "sku": vsku,
                     "name": v.get("name", ""),
                     "brand": "nesell",
-                    "source": "printful" if vsku.startswith("PFT-") else "unknown",
+                    "source": _detect_source(vsku, inventory_id),
                     "cost_pln": float(v.get("average_cost", 0) or 0) or None,
                     "weight_g": None,
                     "is_parent": False,
@@ -338,9 +350,112 @@ def sync_products(conn, inventory_id: int = 52954):
                     "active": True,
                 })
 
-        print(f"  Batch {i//100 + 1}: {len(products)} products fetched")
+        print(f"  [{source_label}] Batch {i//100 + 1}: {len(products)} products fetched")
         time.sleep(0.3)
 
+    return all_products
+
+
+def _enrich_names_from_orders(conn, products: list) -> int:
+    """Enrich product names that are just EAN/barcodes using order_items.
+
+    Queries order_items for real marketplace listing titles and updates
+    products where name == sku (i.e. name is just a barcode).
+    Returns number of products enriched.
+    """
+    # Find products with barcode-like names (name equals sku, or name is all digits)
+    barcode_skus = set()
+    for p in products:
+        name = (p.get("name") or "").strip()
+        sku = p.get("sku", "")
+        if not name or name == sku or (name.isdigit() and len(name) >= 8):
+            barcode_skus.add(sku)
+
+    if not barcode_skus:
+        return 0
+
+    # Query order_items for real product names
+    # Fetch all order_items that have a name and match our barcode SKUs
+    enriched = 0
+    sku_names = {}
+
+    # Paginated fetch of order_items with names
+    offset = 0
+    batch_size = 1000
+    while True:
+        items = db._get("order_items", {
+            "select": "sku,name",
+            "name": "neq.",
+            "limit": str(batch_size),
+            "offset": str(offset),
+        })
+        for item in items:
+            item_sku = item.get("sku", "")
+            item_name = (item.get("name") or "").strip()
+            if item_sku and item_name and item_sku in barcode_skus:
+                # Prefer longer names (more descriptive marketplace titles)
+                existing = sku_names.get(item_sku, "")
+                if len(item_name) > len(existing):
+                    sku_names[item_sku] = item_name
+        if len(items) < batch_size:
+            break
+        offset += batch_size
+
+    # Update the products list in-place
+    for p in products:
+        sku = p.get("sku", "")
+        if sku in sku_names:
+            p["name"] = sku_names[sku]
+            enriched += 1
+
+    # Also update existing products in DB that have barcode names
+    for sku, name in sku_names.items():
+        try:
+            db._patch("products", {"sku": f"eq.{sku}"}, {"name": name})
+        except Exception:
+            pass  # Skip individual update failures
+
+    return enriched
+
+
+def sync_products(conn):
+    """Pull products from both Baselinker inventories (Printful + wholesale).
+
+    Syncs from:
+    - inventory_id=52954 (Printful) first
+    - inventory_id=30229 (test-exportivo / wholesale) second
+
+    Wholesale products do not overwrite Printful products that already exist.
+    After syncing, enriches barcode-only names from order_items marketplace titles.
+    """
+    # 1. Sync Printful inventory first (higher priority)
+    printful_products = _fetch_inventory_products(52954, "Printful")
+    print(f"  Printful: {len(printful_products)} products fetched")
+
+    # 2. Sync wholesale inventory (test-exportivo)
+    wholesale_products = _fetch_inventory_products(30229, "Wholesale")
+    print(f"  Wholesale: {len(wholesale_products)} products fetched")
+
+    # 3. Merge: Printful products take priority (upsert Printful first, then wholesale)
+    # Track Printful SKUs so we don't overwrite them with worse wholesale data
+    printful_skus = {p["sku"] for p in printful_products}
+
+    # Filter wholesale: skip products that already exist in Printful inventory
+    # (they'll be upserted from Printful with better data)
+    wholesale_new = [p for p in wholesale_products if p["sku"] not in printful_skus]
+    skipped = len(wholesale_products) - len(wholesale_new)
+    if skipped:
+        print(f"  Wholesale: {skipped} SKUs skipped (already in Printful inventory)")
+
+    all_products = printful_products + wholesale_new
+    print(f"  Total unique products to upsert: {len(all_products)}")
+
+    # 4. Enrich barcode-only names from order_items
+    enriched = _enrich_names_from_orders(conn, all_products)
+    if enriched:
+        print(f"  Enriched {enriched} product names from order_items (replaced barcodes)")
+
+    # 5. Upsert all products
     count = db.upsert_products(conn, all_products)
     print(f"  Upserted {count} products")
     return count

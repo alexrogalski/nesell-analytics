@@ -314,9 +314,9 @@ st.markdown('<div class="section-header">SOURCE BREAKDOWN</div>', unsafe_allow_h
 if not prod_df.empty:
     # Classify sources
     prod_df["source_group"] = prod_df["source"].apply(
-        lambda x: "Printful" if str(x).lower() in ["printful", "pft"] else (
-            "Wholesale" if str(x).lower() in ["wholesale", "hurtownia"] else "Other/Arbitrage"
-        )
+        lambda x: "Printful" if str(x).lower() in ["printful", "pft"]
+        else ("Wholesale" if str(x).lower() in ["wholesale", "hurtownia"]
+              else (str(x).capitalize() if x and str(x).lower() != "unknown" else "Other/Arbitrage"))
     )
 
     source_agg = prod_df.groupby("source_group").agg({
@@ -384,7 +384,7 @@ if not prod_df.empty:
         gap_df["source_label"] = gap_df["source"].apply(
             lambda x: "Printful" if str(x).lower() in ["printful", "pft"]
             else ("Wholesale" if str(x).lower() in ["wholesale", "hurtownia"]
-                  else "Unknown")
+                  else (str(x).capitalize() if x and str(x).lower() != "unknown" else "Other/Arbitrage"))
         )
         gap_df = gap_df.sort_values("revenue_pln", ascending=False)
 
