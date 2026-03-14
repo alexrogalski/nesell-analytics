@@ -202,9 +202,14 @@ total_orders = len(filtered)
 total_revenue = filtered["revenue_pln"].sum()
 total_cogs = filtered["cogs_pln"].sum()
 total_fees = filtered["fees_pln"].sum()
+total_shipping = filtered["shipping_pln"].sum() if "shipping_pln" in filtered.columns else 0
 total_profit = filtered["profit_pln"].sum()
 avg_profit = total_profit / total_orders if total_orders > 0 else 0
-avg_margin = filtered["margin_pct"].mean() if total_orders > 0 else 0
+# Revenue-weighted margin (Sellerboard-style): total profit / total revenue
+# NOT simple mean of per-order margins, which would weight all orders equally
+avg_margin = (total_profit / total_revenue * 100) if total_revenue > 0 else 0
+# ROI = Net Profit / COGS (Sellerboard-style)
+total_roi = (total_profit / total_cogs * 100) if total_cogs > 0 else 0
 cancelled_count = len(
     filtered[filtered["status"].isin(["cancelled", "returned"])]
 )
@@ -242,7 +247,7 @@ kpi_html = (
     + '<div class="orders-kpi-value ' + profit_cls + '">'
     + _fmt_pln(total_profit) + '</div>'
     + '<div class="orders-kpi-sub">'
-    + 'COGS ' + _fmt(total_cogs) + ' + Fees ' + _fmt(total_fees)
+    + 'COGS ' + _fmt(total_cogs) + ' + Fees ' + _fmt(total_fees) + ' + Ship ' + _fmt(total_shipping)
     + '</div>'
     + '</div>'
     # Avg Profit/Order
@@ -254,11 +259,11 @@ kpi_html = (
     + f"{cogs_coverage:.0f}%"
     + '</div>'
     + '</div>'
-    # Avg Margin
+    # Net Margin (revenue-weighted, Sellerboard-style)
     + '<div class="orders-kpi-card accent-purple">'
-    + '<div class="orders-kpi-label">Avg Margin</div>'
+    + '<div class="orders-kpi-label">Net Margin</div>'
     + '<div class="orders-kpi-value">' + f"{avg_margin:.1f}%" + '</div>'
-    + '<div class="orders-kpi-sub">target 30%+</div>'
+    + '<div class="orders-kpi-sub">ROI ' + f"{total_roi:.0f}%" + '</div>'
     + '</div>'
     # Cancelled
     + '<div class="orders-kpi-card accent-red">'

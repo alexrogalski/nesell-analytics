@@ -162,21 +162,25 @@ st.markdown('<div class="section-header">PERIOD COMPARISON</div>', unsafe_allow_
 kpis = calc_period_kpis(df, days)
 if kpis:
     comp_data = {
-        "Metric": ["Revenue", "COGS", "Fees", "Profit (CM3)", "Margin %", "Orders", "Units", "AOV"],
+        "Metric": ["Revenue", "COGS", "Fees", "Shipping", "Profit (CM3)", "Margin %", "ROI %", "Orders", "Units", "AOV"],
         f"Current {days}d": [
             f"{kpis['revenue']:,.0f}", f"{kpis['cogs']:,.0f}", f"{kpis['fees']:,.0f}",
-            f"{kpis['profit']:,.0f}", f"{kpis['margin']:.1f}%",
+            f"{kpis.get('shipping', 0):,.0f}",
+            f"{kpis['profit']:,.0f}", f"{kpis['margin']:.1f}%", f"{kpis.get('roi', 0):.1f}%",
             f"{kpis['orders']:,}", f"{kpis['units']:,}", f"{kpis['aov']:,.0f}",
         ],
         f"Previous {days}d": [
             f"{kpis['revenue_prev']:,.0f}", f"{kpis['cogs_prev']:,.0f}", f"{kpis['fees_prev']:,.0f}",
-            f"{kpis['profit_prev']:,.0f}", f"{kpis['margin_prev']:.1f}%",
+            f"{kpis.get('shipping_prev', 0):,.0f}",
+            f"{kpis['profit_prev']:,.0f}", f"{kpis['margin_prev']:.1f}%", f"{kpis.get('roi_prev', 0):.1f}%",
             f"{kpis['orders_prev']:,}", f"{kpis['units_prev']:,}", f"{kpis['aov_prev']:,.0f}",
         ],
         "Change %": [
             f"{kpis['revenue_delta']:+.1f}%", f"{kpis['cogs_delta']:+.1f}%", f"{kpis['fees_delta']:+.1f}%",
+            f"{kpis.get('shipping_delta', 0):+.1f}%",
             f"{kpis['profit_delta']:+.1f}%",
             f"{kpis['margin'] - kpis['margin_prev']:+.1f}pp",
+            f"{kpis.get('roi', 0) - kpis.get('roi_prev', 0):+.1f}pp",
             f"{kpis['orders_delta']:+.1f}%", f"{kpis['units_delta']:+.1f}%", f"{kpis['aov_delta']:+.1f}%",
         ],
     }

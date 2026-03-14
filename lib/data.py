@@ -291,7 +291,7 @@ def load_orders_enriched(days=30):
 
     # Load orders
     order_rows = _get("orders", {
-        "select": "id,external_id,platform_id,platform_order_id,order_date,status,buyer_email,shipping_country,shipping_cost,total_paid,currency,total_paid_pln,platform_fee,platform_fee_pln,notes",
+        "select": "id,external_id,platform_id,platform_order_id,order_date,status,buyer_email,shipping_country,shipping_cost,total_paid,currency,total_paid_pln,platform_fee,platform_fee_pln,seller_shipping_cost_pln,notes",
         "order_date": f"gte.{cutoff}",
         "order": "order_date.desc",
     }, limit=50000)
@@ -391,12 +391,20 @@ def load_orders_enriched(days=30):
     for _, o in orders.iterrows():
         order_currency_lookup[o["id"]] = str(o.get("currency", "EUR"))
 
-    # Platform fee rates
+    # Platform fee rates (non-Amazon platforms only; Amazon uses FBA/FBM detection)
     platform_fee_rates = {
-        "amazon_de": 0.1545, "amazon_fr": 0.1545, "amazon_it": 0.1545,
-        "amazon_es": 0.1545, "amazon_nl": 0.1545, "amazon_se": 0.1545,
-        "amazon_pl": 0.1545, "amazon_be": 0.1545, "amazon_gb": 0.1545,
         "allegro": 0.10, "temu": 0.0, "empik": 0.15,
+    }
+
+    # Amazon fee rates: FBA includes referral + fulfillment (~34%), FBM is referral only (~15.45%)
+    # These match the rates in etl/aggregator.py computed from real Finances API data.
+    AMAZON_FBA_FEE_RATE = 0.3473  # referral (~15%) + FBA fulfillment (~18-19%) + other (~1%)
+    AMAZON_FBM_FEE_RATE = 0.1545  # referral fee only
+
+    # Detect FBA vs FBM: numeric external_id = FBM (from Baselinker), otherwise FBA (from SP-API)
+    amazon_platform_names = {
+        "amazon_de", "amazon_fr", "amazon_it", "amazon_es",
+        "amazon_nl", "amazon_se", "amazon_pl", "amazon_be", "amazon_gb",
     }
 
     # Enrich items with COGS and unit_price_pln
@@ -453,7 +461,7 @@ def load_orders_enriched(days=30):
     orders["cogs_pln"] = pd.to_numeric(orders["cogs_pln"], errors="coerce").fillna(0)
 
     # Convert numeric columns
-    for col in ["total_paid", "total_paid_pln", "shipping_cost", "platform_fee", "platform_fee_pln"]:
+    for col in ["total_paid", "total_paid_pln", "shipping_cost", "platform_fee", "platform_fee_pln", "seller_shipping_cost_pln"]:
         orders[col] = pd.to_numeric(orders[col], errors="coerce").fillna(0)
 
     # Platform name
@@ -479,14 +487,24 @@ def load_orders_enriched(days=30):
         if row["platform_fee"] and row["platform_fee"] > 0:
             date_str = str(row["order_date"])[:10]
             return row["platform_fee"] * get_fx(date_str, row["currency"])
-        # Estimate from platform fee rate
+        # Estimate from platform fee rate (FBA/FBM-aware for Amazon)
         pname = row.get("platform_name", "")
-        rate = platform_fee_rates.get(pname, 0)
+        if pname in amazon_platform_names:
+            ext_id = str(row.get("external_id", ""))
+            is_fbm = ext_id.isdigit()
+            rate = AMAZON_FBM_FEE_RATE if is_fbm else AMAZON_FBA_FEE_RATE
+        else:
+            rate = platform_fee_rates.get(pname, 0)
         return row["revenue_pln"] * rate
     orders["fees_pln"] = orders.apply(calc_fees_pln, axis=1)
 
     # Shipping in PLN
+    # Prefer seller_shipping_cost_pln (actual DPD courier cost, already in PLN)
+    # over shipping_cost (buyer's delivery_price, which is a revenue component)
     def calc_shipping_pln(row):
+        seller_cost = row.get("seller_shipping_cost_pln", 0)
+        if seller_cost and seller_cost > 0:
+            return seller_cost
         if row["shipping_cost"] > 0:
             date_str = str(row["order_date"])[:10]
             return row["shipping_cost"] * get_fx(date_str, row["currency"])
@@ -501,6 +519,19 @@ def load_orders_enriched(days=30):
 
     # Has COGS flag
     orders["has_cogs"] = orders["cogs_pln"] > 0
+
+    # FBA/FBM flag (for display purposes)
+    orders["fulfillment"] = orders.apply(
+        lambda r: "FBA" if (r["platform_name"] in amazon_platform_names
+                           and not str(r.get("external_id", "")).isdigit())
+        else ("FBM" if r["platform_name"] in amazon_platform_names else ""),
+        axis=1,
+    )
+
+    # ROI = profit / COGS * 100 (Sellerboard-style return on investment)
+    orders["roi_pct"] = orders.apply(
+        lambda r: (r["profit_pln"] / r["cogs_pln"] * 100) if r["cogs_pln"] > 0 else 0, axis=1
+    )
 
     # Fill missing item info
     orders["first_sku"] = orders["first_sku"].fillna("")
