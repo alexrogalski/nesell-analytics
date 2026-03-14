@@ -206,3 +206,432 @@ div[data-testid="stPlotlyChart"] {
 div[data-testid="column"] {
     padding: 0 8px;
 }
+
+/* ==============================================
+   ORDERS PAGE - Enhanced Components
+   ============================================== */
+
+/* --- Orders KPI Strip (custom HTML cards) --- */
+.orders-kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.orders-kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+.orders-kpi-card:hover {
+    border-color: #334155;
+}
+.orders-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 8px 8px 0 0;
+}
+.orders-kpi-card.accent-blue::before { background: var(--accent-blue); }
+.orders-kpi-card.accent-green::before { background: var(--accent-green); }
+.orders-kpi-card.accent-red::before { background: var(--accent-red); }
+.orders-kpi-card.accent-yellow::before { background: var(--accent-yellow); }
+.orders-kpi-card.accent-cyan::before { background: #06b6d4; }
+.orders-kpi-card.accent-purple::before { background: #8b5cf6; }
+.orders-kpi-label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    white-space: nowrap;
+}
+.orders-kpi-value {
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.orders-kpi-value.profit-positive { color: var(--accent-green); }
+.orders-kpi-value.profit-negative { color: var(--accent-red); }
+.orders-kpi-sub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.orders-kpi-sub .positive { color: var(--accent-green); }
+.orders-kpi-sub .negative { color: var(--accent-red); }
+
+/* --- Orders Table --- */
+.orders-table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    max-height: 680px;
+    overflow-y: auto;
+    background: var(--bg-card);
+}
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    table-layout: fixed;
+}
+
+/* Column widths */
+.orders-table colgroup .col-date { width: 88px; }
+.orders-table colgroup .col-orderid { width: 170px; }
+.orders-table colgroup .col-platform { width: 90px; }
+.orders-table colgroup .col-country { width: 52px; }
+.orders-table colgroup .col-items { width: auto; }
+.orders-table colgroup .col-revenue { width: 85px; }
+.orders-table colgroup .col-cogs { width: 72px; }
+.orders-table colgroup .col-fees { width: 72px; }
+.orders-table colgroup .col-profit { width: 85px; }
+.orders-table colgroup .col-margin { width: 68px; }
+
+.orders-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+.orders-table thead tr {
+    background: #0d1117;
+    border-bottom: 2px solid var(--border);
+}
+.orders-table thead th {
+    padding: 10px 8px;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 500;
+}
+.orders-table thead th.r { text-align: right; }
+.orders-table thead th.c { text-align: center; }
+
+.orders-table tbody tr {
+    border-bottom: 1px solid #1a2332;
+    transition: background-color 0.15s ease;
+}
+.orders-table tbody tr:nth-child(even) {
+    background: #0f1729;
+}
+.orders-table tbody tr:nth-child(odd) {
+    background: var(--bg-card);
+}
+.orders-table tbody tr:hover {
+    background: var(--bg-hover) !important;
+}
+.orders-table tbody td {
+    padding: 7px 8px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: #94a3b8;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.orders-table tbody td.r {
+    text-align: right;
+}
+.orders-table tbody td.c {
+    text-align: center;
+}
+
+/* Platform badge */
+.plat-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+/* Country badge */
+.country-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: #94a3b8;
+    background: rgba(100, 116, 139, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+}
+
+/* Profit cell */
+.profit-cell {
+    font-weight: 700;
+    font-size: 0.78rem !important;
+    letter-spacing: -0.01em;
+}
+.profit-cell.positive { color: var(--accent-green); }
+.profit-cell.negative { color: var(--accent-red); }
+
+/* Margin pill */
+.margin-pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.margin-pill.high {
+    color: var(--accent-green);
+    background: rgba(16, 185, 129, 0.12);
+}
+.margin-pill.mid {
+    color: var(--accent-yellow);
+    background: rgba(245, 158, 11, 0.12);
+}
+.margin-pill.low {
+    color: var(--accent-red);
+    background: rgba(239, 68, 68, 0.12);
+}
+
+/* COGS missing indicator */
+.cogs-missing {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.68rem !important;
+}
+
+/* Revenue cell */
+.rev-cell {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+}
+
+/* Fees cell */
+.fees-cell {
+    color: var(--accent-yellow) !important;
+}
+
+/* Items name text */
+.items-text {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.items-count {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* --- Orders Profitability Summary --- */
+.orders-profit-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+    margin-top: 6px;
+}
+.profit-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.profit-summary-card .icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.profit-summary-card .icon.green {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--accent-green);
+}
+.profit-summary-card .icon.blue {
+    background: rgba(59, 130, 246, 0.12);
+    color: var(--accent-blue);
+}
+.profit-summary-card .icon.red {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--accent-red);
+}
+.profit-summary-card .content {
+    flex: 1;
+    min-width: 0;
+}
+.profit-summary-card .content .label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+.profit-summary-card .content .value {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+.profit-summary-card .content .sub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* --- Table pagination / count --- */
+.orders-table-footer {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: #475569;
+    padding: 8px 0 2px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* --- Order detail expander --- */
+.order-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.order-detail-cell {
+    background: rgba(15, 23, 41, 0.5);
+    border: 1px solid #1a2332;
+    border-radius: 6px;
+    padding: 10px 14px;
+}
+.order-detail-cell .label {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.order-detail-cell .value {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.order-meta-row {
+    display: flex;
+    gap: 20px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+.order-meta-item {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #94a3b8;
+}
+.order-meta-item .key {
+    color: var(--text-muted);
+    margin-right: 4px;
+}
+
+/* --- Line items sub-table --- */
+.line-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #0d1117;
+    margin-top: 8px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #1a2332;
+}
+.line-items-table thead tr {
+    border-bottom: 1px solid var(--border);
+    background: #080c16;
+}
+.line-items-table thead th {
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    text-align: left;
+    font-weight: 500;
+}
+.line-items-table thead th.r { text-align: right; }
+.line-items-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+.line-items-table tbody tr:nth-child(even) { background: #0a0e1a; }
+.line-items-table tbody tr:nth-child(odd) { background: #0d1117; }
+.line-items-table tbody tr:hover { background: #141e30; }
+.line-items-table tbody td {
+    padding: 6px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #94a3b8;
+    vertical-align: middle;
+}
+.line-items-table tbody td.r { text-align: right; }
+.line-items-table tbody td.primary { color: var(--text-primary); }
+
+/* --- Distribution chart stats row --- */
+.dist-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+}
+.dist-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    text-align: center;
+}
+.dist-stat .label {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+.dist-stat .value {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* --- Show more button styling --- */
+.orders-show-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+}
