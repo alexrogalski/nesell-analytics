@@ -48,9 +48,10 @@ plat_prev = platform_summary(df_prev, platforms) if not df_prev.empty else pd.Da
 
 if not plat_current.empty:
     # Filter out low-activity platforms to prevent misleading percentages
-    # Require at least 5 orders AND 500 PLN revenue in the period
+    # Require at least 2 orders OR 500 PLN revenue in the period
+    # Using OR so high-value but low-frequency platforms (e.g. Allegro) still show
     plat_current = plat_current[
-        (plat_current["orders_count"] >= 5) & (plat_current["revenue_pln"] >= 500)
+        (plat_current["orders_count"] >= 2) | (plat_current["revenue_pln"] >= 500)
     ].copy()
 
 if not plat_current.empty:
@@ -142,6 +143,9 @@ fx_df = load_fx_rates(days=days)
 if not fx_df.empty:
     fx_df["date"] = pd.to_datetime(fx_df["date"])
     # Get available currency pairs
+    # DB column is rate_pln; normalize to "rate" for pivot
+    if "rate_pln" in fx_df.columns:
+        fx_df.rename(columns={"rate_pln": "rate"}, inplace=True)
     if "currency" in fx_df.columns and "rate" in fx_df.columns:
         fx_pivot = fx_df.pivot(index="date", columns="currency", values="rate")
         fx_cols = [c for c in fx_pivot.columns if c in ["EUR", "SEK", "GBP", "USD"]]
