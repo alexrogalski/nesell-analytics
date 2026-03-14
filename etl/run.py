@@ -14,8 +14,10 @@ Usage:
     python3.11 -m etl.run --amzdata      # Amazon live API (BSR, pricing, inventory)
     python3.11 -m etl.run --aggregate    # re-aggregate daily metrics
     python3.11 -m etl.run --images       # fetch missing product images
-    python3.11 -m etl.run --cogs          # fill missing COGS from all sources
-    python3.11 -m etl.run --printful-orders  # process new Printful orders
+    python3.11 -m etl.run --cogs              # fill missing COGS from all sources
+    python3.11 -m etl.run --shipping          # estimate DPD shipping costs
+    python3.11 -m etl.run --dpd-csv file.csv  # import actual costs from DPD invoice CSV
+    python3.11 -m etl.run --printful-orders   # process new Printful orders
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
     python3.11 -m etl.run --days 30      # lookback period (default 90)
 """
@@ -51,13 +53,16 @@ def main():
     parser.add_argument("--tracking-sync", action="store_true", help="Sync Printful tracking info to Baselinker")
     parser.add_argument("--images", action="store_true", help="Fetch missing product images from Baselinker")
     parser.add_argument("--cogs", action="store_true", help="Fill missing COGS from all available sources")
+    parser.add_argument("--shipping", action="store_true", help="Estimate DPD shipping costs for FBM orders")
+    parser.add_argument("--dpd-csv", type=str, default=None, help="Import actual DPD costs from invoice CSV file")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
-                 args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images, args.cogs]
+                 args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
+                 args.cogs, args.shipping]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
-    run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync
+    run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync and not args.dpd_csv
 
     print(f"{'='*60}")
     print(f"nesell-analytics ETL — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -136,6 +141,20 @@ def main():
         if not _run_step(step, total_steps, "Filling missing COGS",
                          cogs_filler.fill_cogs, conn):
             failures.append("COGS filler")
+
+    if run_all or args.shipping:
+        step += 1
+        from . import shipping_costs
+        if not _run_step(step, total_steps, "Estimating DPD shipping costs",
+                         shipping_costs.sync_shipping_costs, conn, days_back=args.days):
+            failures.append("Shipping costs")
+
+    if args.dpd_csv:
+        step += 1
+        from . import shipping_costs
+        if not _run_step(step, total_steps, f"Importing DPD costs from CSV: {args.dpd_csv}",
+                         shipping_costs.import_dpd_csv, conn, args.dpd_csv):
+            failures.append("DPD CSV import")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:

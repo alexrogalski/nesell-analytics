@@ -131,8 +131,10 @@ def aggregate_daily(conn, days_back: int = 90):
     cutoff = str(date.today() - timedelta(days=days_back))
 
     # Get all non-cancelled orders in period (paginated)
+    # seller_shipping_cost = actual courier cost (from shipping_costs module)
+    # shipping_cost = buyer's delivery_price (revenue side, from Baselinker)
     orders = _get_all("orders", {
-        "select": "id,external_id,platform_id,order_date,currency,status,platform_fee,total_paid,shipping_cost",
+        "select": "id,external_id,platform_id,order_date,currency,status,platform_fee,total_paid,shipping_cost,seller_shipping_cost,seller_shipping_cost_pln",
         "order_date": f"gte.{cutoff}",
         "status": "neq.cancelled",
         "order": "order_date.desc",
@@ -162,14 +164,26 @@ def aggregate_daily(conn, days_back: int = 90):
     # Build per-order fee map (real fees from Finances API)
     order_fee_map = {}
     order_shipping_map = {}
+    seller_shipping_count = 0
     for o in orders:
         fee = float(o.get("platform_fee", 0) or 0)
         order_fee_map[o["id"]] = fee
-        order_shipping_map[o["id"]] = float(o.get("shipping_cost", 0) or 0)
+        # Prefer seller_shipping_cost_pln (actual DPD cost) over shipping_cost (buyer's delivery_price)
+        # For P&L: shipping_cost column = what buyer paid (revenue, already in total_paid)
+        # seller_shipping_cost = actual courier cost to seller (expense)
+        seller_cost_pln = float(o.get("seller_shipping_cost_pln", 0) or 0)
+        if seller_cost_pln > 0:
+            # Use seller cost directly in PLN (already converted by shipping_costs module)
+            order_shipping_map[o["id"]] = seller_cost_pln
+            seller_shipping_count += 1
+        else:
+            # Fallback: use buyer's delivery_price as rough proxy for FBM shipping cost
+            order_shipping_map[o["id"]] = float(o.get("shipping_cost", 0) or 0)
 
     # Count how many have real fees vs zero
     real_fees = sum(1 for f in order_fee_map.values() if f > 0)
     print(f"  Orders with real fees: {real_fees}/{len(orders)}")
+    print(f"  Orders with seller shipping cost: {seller_shipping_count}/{len(orders)}")
 
     # Get all order items for these orders (batch by 100 IDs)
     all_items = []
@@ -234,7 +248,9 @@ def aggregate_daily(conn, days_back: int = 90):
     agg = defaultdict(lambda: {
         "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
         "real_fees": 0.0,  # sum of real per-order fees allocated to this group
-        "shipping": 0.0,   # sum of shipping costs allocated to this group
+        "shipping_pln": 0.0,   # sum of seller shipping costs in PLN (already converted)
+        "shipping_orig": 0.0,  # sum of buyer delivery_price in original currency (fallback)
+        "has_seller_cost": False,  # whether any order in group has seller_shipping_cost
         "fba_units": 0,    # units from FBA orders (for fee fallback selection)
         "fbm_units": 0,    # units from FBM orders (for fee fallback selection)
     })
@@ -273,11 +289,18 @@ def aggregate_daily(conn, days_back: int = 90):
             agg[key]["real_fees"] += fee_share
 
         # Allocate shipping cost proportionally by quantity
+        # order_shipping_map contains seller_shipping_cost_pln (already in PLN) if available,
+        # otherwise buyer's delivery_price (in original currency) as fallback
         order_shipping = order_shipping_map.get(item["order_id"], 0)
+        seller_cost_pln = float(order_map[item["order_id"]].get("seller_shipping_cost_pln", 0) or 0)
         if order_shipping > 0:
             total_items_in_order = items_per_order.get(item["order_id"], 1)
             ship_share = order_shipping * qty / total_items_in_order
-            agg[key]["shipping"] += ship_share
+            if seller_cost_pln > 0:
+                agg[key]["shipping_pln"] += ship_share
+                agg[key]["has_seller_cost"] = True
+            else:
+                agg[key]["shipping_orig"] += ship_share
 
     # Build metrics
     metrics = []
@@ -322,9 +345,13 @@ def aggregate_daily(conn, days_back: int = 90):
             return_ratio = returned_units / data["units"]
             revenue_pln = round(revenue_pln * (1 - return_ratio), 2)
             revenue = round(revenue * (1 - return_ratio), 2)
-        # Shipping costs (in original currency, convert to PLN)
-        shipping_orig = data["shipping"]
-        shipping = round(shipping_orig * rate, 2) if currency != "PLN" else round(shipping_orig, 2)
+        # Shipping costs:
+        # shipping_pln = seller's actual DPD cost (already in PLN from shipping_costs module)
+        # shipping_orig = buyer's delivery_price fallback (needs FX conversion)
+        shipping = round(data["shipping_pln"], 2)
+        if data["shipping_orig"] > 0:
+            fallback_ship = round(data["shipping_orig"] * rate, 2) if currency != "PLN" else round(data["shipping_orig"], 2)
+            shipping += fallback_ship
         gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
         margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
 
