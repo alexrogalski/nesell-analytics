@@ -189,6 +189,69 @@ def load_amazon_returns(days=90):
 
 
 @st.cache_data(ttl=300)
+def load_refund_summary(days=90):
+    """Load refund/return summary aggregated by date for P&L integration.
+
+    Returns a dict with:
+      - total_returns: number of return records
+      - total_units_returned: total units returned
+      - refund_by_date: DataFrame with (date, units_returned) aggregated daily
+      - refund_by_sku: DataFrame with (sku, product_name, units_returned) aggregated by SKU
+      - estimated_refund_cost_pln: estimated revenue lost (units_returned * avg revenue per unit)
+    """
+    rets = load_amazon_returns(days=days)
+    dm = load_daily_metrics(days=days)
+
+    result = {
+        "total_returns": 0,
+        "total_units_returned": 0,
+        "refund_by_date": pd.DataFrame(columns=["date", "units_returned"]),
+        "refund_by_sku": pd.DataFrame(columns=["sku", "product_name", "units_returned"]),
+        "estimated_refund_cost_pln": 0.0,
+        "refund_rate_pct": 0.0,
+    }
+
+    if rets.empty:
+        return result
+
+    rets["quantity"] = pd.to_numeric(rets["quantity"], errors="coerce").fillna(0).astype(int)
+    result["total_returns"] = len(rets)
+    result["total_units_returned"] = int(rets["quantity"].sum())
+
+    # Aggregate by date
+    rets_dated = rets[rets["return_date"].notna()].copy()
+    if not rets_dated.empty:
+        rets_dated["date"] = pd.to_datetime(rets_dated["return_date"]).dt.date.astype(str)
+        by_date = rets_dated.groupby("date").agg(units_returned=("quantity", "sum")).reset_index()
+        result["refund_by_date"] = by_date
+
+    # Aggregate by SKU
+    by_sku = rets.groupby(["sku", "product_name"]).agg(units_returned=("quantity", "sum")).reset_index()
+    by_sku = by_sku.sort_values("units_returned", ascending=False)
+    result["refund_by_sku"] = by_sku
+
+    # Estimate refund cost: use average revenue per unit from daily_metrics
+    if not dm.empty:
+        for col in ["revenue_pln", "units"]:
+            if col not in dm.columns:
+                if col == "units" and "units_sold" in dm.columns:
+                    dm["units"] = dm["units_sold"]
+                else:
+                    dm[col] = 0
+        dm["revenue_pln"] = pd.to_numeric(dm["revenue_pln"], errors="coerce").fillna(0)
+        dm["units"] = pd.to_numeric(dm["units"], errors="coerce").fillna(0)
+        total_revenue = dm["revenue_pln"].sum()
+        total_units = dm["units"].sum()
+        if total_units > 0:
+            avg_rev_per_unit = total_revenue / total_units
+            result["estimated_refund_cost_pln"] = round(avg_rev_per_unit * result["total_units_returned"], 2)
+            # Refund rate: returned units / total units sold
+            result["refund_rate_pct"] = round(result["total_units_returned"] / total_units * 100, 2)
+
+    return result
+
+
+@st.cache_data(ttl=300)
 def load_amazon_bsr():
     """Load Amazon Best Seller Rank data."""
     rows = _get(
@@ -563,6 +626,52 @@ def load_orders_enriched(days=30):
     orders = orders.sort_values("order_date", ascending=False).reset_index(drop=True)
 
     return orders, items_df
+
+
+@st.cache_data(ttl=300)
+def load_amazon_ad_spend(days=90):
+    """Load Amazon advertising/PPC spend data."""
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    rows = _get(
+        "amazon_ad_spend",
+        {
+            "select": "date,campaign_type,spend,sales,impressions,clicks,orders,acos,roas,currency",
+            "date": f"gte.{cutoff}",
+            "order": "date.asc",
+        },
+    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    for col in ["spend", "sales", "acos", "roas"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
+    for col in ["impressions", "clicks", "orders"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+    return df
+
+
+@st.cache_data(ttl=300)
+def load_amazon_storage_fees():
+    """Load Amazon FBA storage fee data (monthly).
+
+    Returns DataFrame with columns: month, asin, estimated_storage_fee, currency
+    """
+    rows = _get(
+        "amazon_storage_fees",
+        {
+            "select": "month,asin,fnsku,product_name,avg_qty,estimated_storage_fee,currency,product_size_tier",
+            "order": "month.desc",
+        },
+        limit=5000,
+    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    df["estimated_storage_fee"] = pd.to_numeric(df["estimated_storage_fee"], errors="coerce").fillna(0)
+    df["avg_qty"] = pd.to_numeric(df["avg_qty"], errors="coerce").fillna(0).astype(int)
+    return df
 
 
 def get_marketplace_names():

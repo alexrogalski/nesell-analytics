@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_products
+from lib.data import load_daily_metrics, load_platforms, load_products, load_refund_summary
 from lib.metrics import calc_period_kpis, daily_summary, calc_contribution_margins, platform_summary
 from lib.charts import waterfall_chart, multi_line
 
@@ -46,6 +46,12 @@ df_current = df[df["date_parsed"] >= current_start]
 # --- 1. Waterfall Chart ---
 st.markdown('<div class="section-header">P&L WATERFALL</div>', unsafe_allow_html=True)
 
+# Load refund data
+refund_data = load_refund_summary(days=days)
+total_refunds = refund_data.get("estimated_refund_cost_pln", 0)
+refund_units = refund_data.get("total_units_returned", 0)
+refund_rate = refund_data.get("refund_rate_pct", 0)
+
 total_revenue = df_current["revenue_pln"].sum()
 total_cogs = df_current["cogs"].sum()
 total_fees = df_current["fees"].sum()
@@ -54,39 +60,65 @@ total_profit = df_current["profit"].sum()
 
 cm1 = total_revenue - total_cogs
 cm2 = cm1 - total_fees
+cm3 = cm2 - total_shipping
+net_profit_adjusted = cm3 - total_refunds
 
-labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3"]
-values = [total_revenue, -total_cogs, cm1, -total_fees, cm2, -total_shipping, total_profit]
-
-# Adjust waterfall measures: CM1 and CM2 are intermediate totals
+# Waterfall: Revenue -> COGS -> CM1 -> Fees -> CM2 -> Shipping -> CM3 -> Refunds -> Net Profit
 import plotly.graph_objects as go
-fig_wf = go.Figure(go.Waterfall(
-    x=labels,
-    y=[total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0],
-    measure=["absolute", "relative", "total", "relative", "total", "relative", "total"],
-    connector=dict(line=dict(color=COLORS["border"])),
-    increasing=dict(marker=dict(color=COLORS["success"])),
-    decreasing=dict(marker=dict(color=COLORS["danger"])),
-    totals=dict(marker=dict(color=COLORS["primary"])),
-    textposition="outside",
-    text=[f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
-          f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{total_profit:,.0f}"],
-    textfont=dict(size=10),
-))
+
+if total_refunds > 0:
+    labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3", "Refunds", "Net Profit"]
+    fig_wf = go.Figure(go.Waterfall(
+        x=labels,
+        y=[total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0, -total_refunds, 0],
+        measure=["absolute", "relative", "total", "relative", "total", "relative", "total", "relative", "total"],
+        connector=dict(line=dict(color=COLORS["border"])),
+        increasing=dict(marker=dict(color=COLORS["success"])),
+        decreasing=dict(marker=dict(color=COLORS["danger"])),
+        totals=dict(marker=dict(color=COLORS["primary"])),
+        textposition="outside",
+        text=[f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
+              f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{cm3:,.0f}",
+              f"-{total_refunds:,.0f}", f"{net_profit_adjusted:,.0f}"],
+        textfont=dict(size=10),
+    ))
+else:
+    labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3"]
+    fig_wf = go.Figure(go.Waterfall(
+        x=labels,
+        y=[total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0],
+        measure=["absolute", "relative", "total", "relative", "total", "relative", "total"],
+        connector=dict(line=dict(color=COLORS["border"])),
+        increasing=dict(marker=dict(color=COLORS["success"])),
+        decreasing=dict(marker=dict(color=COLORS["danger"])),
+        totals=dict(marker=dict(color=COLORS["primary"])),
+        textposition="outside",
+        text=[f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
+              f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{total_profit:,.0f}"],
+        textfont=dict(size=10),
+    ))
+
 fig_wf.update_layout(title="", height=420, showlegend=False)
 st.plotly_chart(fig_wf, use_container_width=True)
 
 # KPI summary under waterfall
-w1, w2, w3, w4 = st.columns(4)
-w1.metric("CM1 (Revenue - COGS)", f"{cm1:,.0f} PLN", delta=f"{cm1/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
+w1, w2, w3, w4, w5 = st.columns(5)
+w1.metric("CM1 (Rev - COGS)", f"{cm1:,.0f} PLN", delta=f"{cm1/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
 w2.metric("CM2 (CM1 - Fees)", f"{cm2:,.0f} PLN", delta=f"{cm2/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
-w3.metric("CM3 (Net Profit)", f"{total_profit:,.0f} PLN", delta=f"{total_profit/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
-w4.metric("COGS Coverage", f"{df_current[df_current['cogs']>0]['revenue_pln'].sum()/total_revenue*100:.0f}%" if total_revenue > 0 else "N/A")
+w3.metric(
+    "Refunds",
+    f"-{total_refunds:,.0f} PLN",
+    delta=f"{refund_units} units ({refund_rate:.1f}%)" if refund_units > 0 else "0 returns",
+    delta_color="inverse",
+)
+w4.metric("CM3 (Net Profit)", f"{total_profit:,.0f} PLN", delta=f"{total_profit/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
+w5.metric("COGS Coverage", f"{df_current[df_current['cogs']>0]['revenue_pln'].sum()/total_revenue*100:.0f}%" if total_revenue > 0 else "N/A")
 
 # --- 2. Daily CM1/CM2/CM3 trend ---
 st.markdown('<div class="section-header">DAILY CONTRIBUTION MARGINS</div>', unsafe_allow_html=True)
 
-daily = daily_summary(df)
+refund_by_date = refund_data.get("refund_by_date", pd.DataFrame())
+daily = daily_summary(df, refund_by_date=refund_by_date)
 if not daily.empty:
     daily["date"] = pd.to_datetime(daily["date"])
     chart_cutoff = datetime.now() - timedelta(days=days)
@@ -94,8 +126,15 @@ if not daily.empty:
 
     if not daily_chart.empty and all(c in daily_chart.columns for c in ["cm1", "cm2", "cm3"]):
         y_cols = ["cm1", "cm2", "cm3"]
-        names = ["CM1 (Rev-COGS)", "CM2 (CM1-Fees)", "CM3 (Net)"]
+        names = ["CM1 (Rev-COGS)", "CM2 (CM1-Fees)", "CM3 (CM2-Ship)"]
         colors = [COLORS["cm1"], COLORS["cm2"], COLORS["cm3"]]
+
+        # Add net_profit line if refund data causes a meaningful difference
+        if "net_profit" in daily_chart.columns and "refunds" in daily_chart.columns:
+            if daily_chart["refunds"].sum() > 0:
+                y_cols.append("net_profit")
+                names.append("Net (CM3-Refunds)")
+                colors.append("#f97316")  # orange for refund-adjusted line
 
         # Add 7d MA for CM3
         if "cm3_7d" not in daily_chart.columns:
@@ -159,24 +198,27 @@ if not plat_summary.empty:
 # --- 5. Period comparison table ---
 st.markdown('<div class="section-header">PERIOD COMPARISON</div>', unsafe_allow_html=True)
 
-kpis = calc_period_kpis(df, days)
+kpis = calc_period_kpis(df, days, refund_summary=refund_data)
 if kpis:
     comp_data = {
-        "Metric": ["Revenue", "COGS", "Fees", "Shipping", "Profit (CM3)", "Margin %", "ROI %", "Orders", "Units", "AOV"],
+        "Metric": ["Revenue", "COGS", "Fees", "Refunds", "Shipping", "Profit (CM3)", "Margin %", "ROI %", "Orders", "Units", "AOV"],
         f"Current {days}d": [
             f"{kpis['revenue']:,.0f}", f"{kpis['cogs']:,.0f}", f"{kpis['fees']:,.0f}",
+            f"{kpis.get('refunds', 0):,.0f}",
             f"{kpis.get('shipping', 0):,.0f}",
             f"{kpis['profit']:,.0f}", f"{kpis['margin']:.1f}%", f"{kpis.get('roi', 0):.1f}%",
             f"{kpis['orders']:,}", f"{kpis['units']:,}", f"{kpis['aov']:,.0f}",
         ],
         f"Previous {days}d": [
             f"{kpis['revenue_prev']:,.0f}", f"{kpis['cogs_prev']:,.0f}", f"{kpis['fees_prev']:,.0f}",
+            f"{kpis.get('refunds_prev', 0):,.0f}",
             f"{kpis.get('shipping_prev', 0):,.0f}",
             f"{kpis['profit_prev']:,.0f}", f"{kpis['margin_prev']:.1f}%", f"{kpis.get('roi_prev', 0):.1f}%",
             f"{kpis['orders_prev']:,}", f"{kpis['units_prev']:,}", f"{kpis['aov_prev']:,.0f}",
         ],
         "Change %": [
             f"{kpis['revenue_delta']:+.1f}%", f"{kpis['cogs_delta']:+.1f}%", f"{kpis['fees_delta']:+.1f}%",
+            f"{kpis.get('refunds_delta', 0):+.1f}%",
             f"{kpis.get('shipping_delta', 0):+.1f}%",
             f"{kpis['profit_delta']:+.1f}%",
             f"{kpis['margin'] - kpis['margin_prev']:+.1f}pp",

@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from lib.theme import setup_page, COLORS
-from lib.data import load_orders_enriched
+from lib.data import load_orders_enriched, load_amazon_returns
 
 setup_page("Orders")
 
@@ -56,6 +56,16 @@ else:
 if orders_df.empty:
     st.warning("No order data available. Run ETL: python3.11 -m etl.run --orders --fba")
     st.stop()
+
+# Load returns data and match to orders
+returns_df = load_amazon_returns(days=days)
+returned_order_ids = set()
+if not returns_df.empty:
+    returned_order_ids = set(returns_df["order_id"].dropna().unique())
+    # Add refund flag to orders
+    orders_df["has_return"] = orders_df["platform_order_id"].isin(returned_order_ids)
+else:
+    orders_df["has_return"] = False
 
 # Platform filter
 all_platforms = sorted(orders_df["platform_name"].unique())
@@ -213,6 +223,7 @@ total_roi = (total_profit / total_cogs * 100) if total_cogs > 0 else 0
 cancelled_count = len(
     filtered[filtered["status"].isin(["cancelled", "returned"])]
 )
+refund_count = int(filtered["has_return"].sum()) if "has_return" in filtered.columns else 0
 profitable_count = len(filtered[filtered["profit_pln"] > 0])
 unprofitable_count = len(filtered[filtered["profit_pln"] <= 0])
 cogs_coverage = (
@@ -265,7 +276,7 @@ kpi_html = (
     + '<div class="orders-kpi-value">' + f"{avg_margin:.1f}%" + '</div>'
     + '<div class="orders-kpi-sub">ROI ' + f"{total_roi:.0f}%" + '</div>'
     + '</div>'
-    # Cancelled
+    # Cancelled / Returned
     + '<div class="orders-kpi-card accent-red">'
     + '<div class="orders-kpi-label">Cancelled / Returned</div>'
     + '<div class="orders-kpi-value">' + _fmt(cancelled_count) + '</div>'
@@ -273,6 +284,15 @@ kpi_html = (
     + (f"{cancelled_count / total_orders * 100:.1f}%"
        if total_orders > 0 else "0%")
     + ' of total</div>'
+    + '</div>'
+    # Refunds (from amazon_returns)
+    + '<div class="orders-kpi-card accent-red">'
+    + '<div class="orders-kpi-label">Refunded Orders</div>'
+    + '<div class="orders-kpi-value">' + _fmt(refund_count) + '</div>'
+    + '<div class="orders-kpi-sub">'
+    + (f"{refund_count / total_orders * 100:.1f}%"
+       if total_orders > 0 else "0%")
+    + ' refund rate</div>'
     + '</div>'
     + '</div>'
 )
@@ -348,6 +368,7 @@ colgroup = (
     + '<col class="col-fees"/>'
     + '<col class="col-profit"/>'
     + '<col class="col-margin"/>'
+    + '<col style="width: 50px;"/>'
     + '</colgroup>'
 )
 
@@ -363,6 +384,7 @@ header_html = (
     + '<th class="r">Fees</th>'
     + '<th class="r">Profit</th>'
     + '<th class="r">Margin</th>'
+    + '<th class="c">Refund</th>'
     + '</tr></thead>'
 )
 
@@ -402,6 +424,15 @@ for _, row in visible.iterrows():
         + first_name
     ) if unit_count > 0 else "0"
 
+    # Refund indicator
+    has_return = bool(row.get("has_return", False))
+    refund_badge = (
+        '<span style="color: #ef4444; font-size: 0.7rem; font-weight: 600; '
+        'background: rgba(239,68,68,0.12); padding: 2px 6px; border-radius: 3px; '
+        'border: 1px solid rgba(239,68,68,0.25);">RET</span>'
+        if has_return else ''
+    )
+
     rows_html += (
         '<tr>'
         + '<td>' + order_date + '</td>'
@@ -418,6 +449,7 @@ for _, row in visible.iterrows():
         + '<td class="r profit-cell ' + profit_cls + '">'
         + _fmt(profit) + '</td>'
         + '<td class="r">' + _margin_pill_html(margin) + '</td>'
+        + '<td class="c">' + refund_badge + '</td>'
         + '</tr>'
     )
 

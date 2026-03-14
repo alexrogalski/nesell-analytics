@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage, load_products
+from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage, load_products, load_refund_summary
 from lib.metrics import calc_period_kpis, daily_summary, product_profitability, platform_summary
 from lib.charts import area_chart, multi_line, bar_chart
 from lib.signals import generate_signals
@@ -47,9 +47,10 @@ st.markdown(
 )
 
 # --- KPI Strip ---
-kpis = calc_period_kpis(df, days)
+refund_data = load_refund_summary(days=days)
+kpis = calc_period_kpis(df, days, refund_summary=refund_data)
 if kpis:
-    k1, k2, k3, k4, k5, k6 = st.columns(6)
+    k1, k2, k3, k4, k5, k6, k7 = st.columns(7)
     k1.metric(
         "REVENUE",
         f"{kpis.get('revenue', 0):,.0f} PLN",
@@ -79,6 +80,14 @@ if kpis:
         "UNITS",
         f"{kpis.get('units', 0):,}",
         delta=f"{kpis.get('units_delta', 0):+.1f}%" if kpis.get("units_prev", 0) > 0 else None,
+    )
+    refund_units = refund_data.get("total_units_returned", 0)
+    refund_rate = refund_data.get("refund_rate_pct", 0)
+    k7.metric(
+        "REFUNDS",
+        f"{refund_units} units",
+        delta=f"{refund_rate:.1f}% rate" if refund_units > 0 else "0%",
+        delta_color="inverse",
     )
 
 # --- COGS Gap Alert ---

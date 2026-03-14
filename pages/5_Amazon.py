@@ -7,6 +7,7 @@ from lib.theme import setup_page, COLORS
 from lib.data import (
     load_amazon_traffic, load_amazon_inventory, load_amazon_returns,
     load_amazon_bsr, load_amazon_pricing, get_marketplace_names,
+    load_refund_summary,
 )
 
 setup_page("Amazon")
@@ -174,11 +175,18 @@ elif section == "Returns":
 
     rets["quantity"] = pd.to_numeric(rets["quantity"], errors="coerce").fillna(0).astype(int)
 
-    # KPIs
-    k1, k2, k3 = st.columns(3)
+    # Load financial impact data
+    refund_summary = load_refund_summary(days=days)
+    est_refund_cost = refund_summary.get("estimated_refund_cost_pln", 0)
+    refund_rate = refund_summary.get("refund_rate_pct", 0)
+
+    # KPIs (expanded with financial impact)
+    k1, k2, k3, k4, k5 = st.columns(5)
     k1.metric("RETURNS", f"{len(rets)}")
     k2.metric("UNITS RETURNED", f"{rets['quantity'].sum():,}")
     k3.metric("UNIQUE SKUs", f"{rets['sku'].nunique()}")
+    k4.metric("EST. REVENUE LOST", f"{est_refund_cost:,.0f} PLN")
+    k5.metric("REFUND RATE", f"{refund_rate:.1f}%")
 
     # Returns by reason
     by_reason = rets.groupby("reason").agg(count=("quantity", "sum")).reset_index()
@@ -192,12 +200,29 @@ elif section == "Returns":
     fig_ret.update_layout(height=max(250, len(by_reason) * 30), title="Return Reasons")
     st.plotly_chart(fig_ret, use_container_width=True)
 
-    # Returns by SKU
+    # Returns by SKU with estimated financial impact
     st.markdown('<div class="section-header">TOP RETURNED SKUs</div>', unsafe_allow_html=True)
     by_sku = rets.groupby(["sku", "product_name"]).agg(count=("quantity", "sum")).reset_index()
     by_sku = by_sku.sort_values("count", ascending=False).head(20)
-    by_sku.columns = ["SKU", "Product", "Returns"]
+
+    # Calculate per-SKU estimated revenue lost
+    total_returned_units = rets["quantity"].sum()
+    if total_returned_units > 0 and est_refund_cost > 0:
+        avg_cost_per_returned_unit = est_refund_cost / total_returned_units
+        by_sku["est_revenue_lost"] = by_sku["count"] * avg_cost_per_returned_unit
+        by_sku.columns = ["SKU", "Product", "Returns", "Est. Revenue Lost (PLN)"]
+        by_sku["Est. Revenue Lost (PLN)"] = by_sku["Est. Revenue Lost (PLN)"].map(lambda x: f"{x:,.0f}")
+    else:
+        by_sku.columns = ["SKU", "Product", "Returns"]
     st.dataframe(by_sku, use_container_width=True, hide_index=True)
+
+    # Financial impact summary
+    if est_refund_cost > 0:
+        st.markdown('<div class="section-header">FINANCIAL IMPACT</div>', unsafe_allow_html=True)
+        fi1, fi2, fi3 = st.columns(3)
+        fi1.metric("Estimated Revenue Lost", f"{est_refund_cost:,.0f} PLN")
+        fi2.metric("Avg Cost per Return", f"{est_refund_cost / max(total_returned_units, 1):,.0f} PLN")
+        fi3.metric("Refund Rate", f"{refund_rate:.1f}%")
 
     # Returns timeline
     rets_dated = rets[rets["return_date"].notna()].copy()
