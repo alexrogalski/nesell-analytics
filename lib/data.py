@@ -4,6 +4,7 @@ Uses Supabase PostgREST API with caching via st.cache_data.
 Credentials loaded from st.secrets (Streamlit Cloud) or etl.config (local).
 """
 import os
+import re
 import requests
 import streamlit as st
 import pandas as pd
@@ -46,7 +47,7 @@ def _get(table, params=None, limit=10000):
             )
         except requests.exceptions.RequestException:
             break
-        if resp.status_code != 200:
+        if resp.status_code not in (200, 206):
             break
         rows = resp.json()
         all_rows.extend(rows)
@@ -259,7 +260,11 @@ def load_data_coverage(days=90):
 
 @st.cache_data(ttl=300)
 def load_order_items(order_ids=None):
-    """Load order items, optionally filtered by order IDs."""
+    """Load order items, optionally filtered by order IDs.
+
+    Deduplicates by (order_id, sku) keeping the row with the lowest id,
+    because the ETL may insert duplicate rows across multiple runs.
+    """
     params = {
         "select": "id,order_id,sku,product_id,name,quantity,unit_price,currency,unit_price_pln,unit_cost,unit_cost_pln,asin",
     }
@@ -267,7 +272,12 @@ def load_order_items(order_ids=None):
         ids_str = ",".join(str(i) for i in order_ids)
         params["order_id"] = f"in.({ids_str})"
     rows = _get("order_items", params, limit=50000)
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    # Deduplicate: keep the first (lowest id) row per (order_id, sku)
+    df = df.sort_values("id").drop_duplicates(subset=["order_id", "sku"], keep="first").reset_index(drop=True)
+    return df
 
 
 @st.cache_data(ttl=300)
@@ -331,6 +341,56 @@ def load_orders_enriched(days=30):
                 "product_name": p.get("name", ""),
             }
 
+    def _find_product_cost(sku):
+        """Look up product cost with SKU fallback strategies.
+
+        Tries: exact match, then strip size suffix (-S, -M, -L, -XL),
+        then strip trailing dashes, then base SKU (before first dash
+        for non-PFT/non-EAN SKUs).
+        """
+        sku = str(sku).strip()
+        if not sku:
+            return 0, 0
+
+        # 1) Exact match
+        prod = prod_lookup.get(sku)
+        if prod and (prod["cost_pln"] > 0 or prod["cost_eur"] > 0):
+            return prod["cost_pln"], prod["cost_eur"]
+
+        # 2) Strip trailing size suffix: -S, -M, -L, -XL, -XXL, -XXXL
+        stripped = re.sub(r'-(XXX?L|XL|L|M|S)$', '', sku)
+        if stripped != sku:
+            prod = prod_lookup.get(stripped)
+            if prod and (prod["cost_pln"] > 0 or prod["cost_eur"] > 0):
+                return prod["cost_pln"], prod["cost_eur"]
+
+        # 3) Strip trailing dashes (e.g., "888408282750--" -> "888408282750-" -> "888408282750")
+        s = sku.rstrip('-')
+        while s != sku:
+            prod = prod_lookup.get(s)
+            if prod and (prod["cost_pln"] > 0 or prod["cost_eur"] > 0):
+                return prod["cost_pln"], prod["cost_eur"]
+            sku = s
+            s = sku.rstrip('-')
+
+        # 4) Add trailing dash variants (some products stored with extra dashes)
+        for suffix in ['-', '--', '---']:
+            prod = prod_lookup.get(sku + suffix)
+            if prod and (prod["cost_pln"] > 0 or prod["cost_eur"] > 0):
+                return prod["cost_pln"], prod["cost_eur"]
+
+        return 0, 0
+
+    # Build order_id -> order_date lookup for FX conversion
+    order_date_lookup = {}
+    for _, o in orders.iterrows():
+        order_date_lookup[o["id"]] = str(o["order_date"])[:10]
+
+    # Build order_id -> currency lookup
+    order_currency_lookup = {}
+    for _, o in orders.iterrows():
+        order_currency_lookup[o["id"]] = str(o.get("currency", "EUR"))
+
     # Platform fee rates
     platform_fee_rates = {
         "amazon_de": 0.1545, "amazon_fr": 0.1545, "amazon_it": 0.1545,
@@ -339,7 +399,7 @@ def load_orders_enriched(days=30):
         "allegro": 0.10, "temu": 0.0, "empik": 0.15,
     }
 
-    # Enrich items with COGS
+    # Enrich items with COGS and unit_price_pln
     if not items_df.empty:
         items_df["unit_cost_pln"] = pd.to_numeric(items_df["unit_cost_pln"], errors="coerce").fillna(0)
         items_df["unit_cost"] = pd.to_numeric(items_df["unit_cost"], errors="coerce").fillna(0)
@@ -347,15 +407,23 @@ def load_orders_enriched(days=30):
         items_df["unit_price_pln"] = pd.to_numeric(items_df["unit_price_pln"], errors="coerce").fillna(0)
         items_df["quantity"] = pd.to_numeric(items_df["quantity"], errors="coerce").fillna(1).astype(int)
 
-        # Fill missing unit_cost_pln from products table
         for idx, item in items_df.iterrows():
+            oid = item["order_id"]
+            date_str = order_date_lookup.get(oid, "2026-03-01")
+            item_currency = str(item.get("currency", "")) or order_currency_lookup.get(oid, "EUR")
+
+            # Fill missing unit_price_pln from unit_price * fx_rate
+            if item["unit_price_pln"] == 0 and item["unit_price"] > 0:
+                items_df.at[idx, "unit_price_pln"] = item["unit_price"] * get_fx(date_str, item_currency)
+
+            # Fill missing unit_cost_pln from products table (with SKU fallback)
             if item["unit_cost_pln"] == 0:
                 sku = str(item.get("sku", ""))
-                prod = prod_lookup.get(sku, {})
-                cost_pln = prod.get("cost_pln", 0)
-                if cost_pln == 0 and prod.get("cost_eur", 0) > 0:
-                    cost_pln = prod["cost_eur"] * get_fx("2026-03-01", "EUR")
-                items_df.at[idx, "unit_cost_pln"] = cost_pln
+                cost_pln, cost_eur = _find_product_cost(sku)
+                if cost_pln > 0:
+                    items_df.at[idx, "unit_cost_pln"] = cost_pln
+                elif cost_eur > 0:
+                    items_df.at[idx, "unit_cost_pln"] = cost_eur * get_fx(date_str, "EUR")
 
         items_df["line_cost_pln"] = items_df["unit_cost_pln"] * items_df["quantity"]
         items_df["line_revenue_pln"] = items_df["unit_price_pln"] * items_df["quantity"]
@@ -381,7 +449,7 @@ def load_orders_enriched(days=30):
     # Merge items aggregation into orders
     orders = orders.merge(items_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_items"))
     for col in ["item_count", "unit_count"]:
-        orders[col] = orders[col].fillna(0).astype(int)
+        orders[col] = pd.to_numeric(orders[col], errors="coerce").fillna(0).astype(int)
     orders["cogs_pln"] = pd.to_numeric(orders["cogs_pln"], errors="coerce").fillna(0)
 
     # Convert numeric columns

@@ -126,25 +126,47 @@ if not filtered.empty:
 # --- KPI Strip ---
 total_orders = len(filtered)
 total_revenue = filtered["revenue_pln"].sum()
+total_cogs = filtered["cogs_pln"].sum()
+total_fees = filtered["fees_pln"].sum()
 total_profit = filtered["profit_pln"].sum()
 avg_profit = total_profit / total_orders if total_orders > 0 else 0
 avg_margin = filtered["margin_pct"].mean() if total_orders > 0 else 0
 cancelled_count = len(filtered[filtered["status"].isin(["cancelled", "returned"])])
 profitable_count = len(filtered[filtered["profit_pln"] > 0])
 unprofitable_count = len(filtered[filtered["profit_pln"] <= 0])
+cogs_coverage = len(filtered[filtered["has_cogs"]]) / total_orders * 100 if total_orders > 0 else 0
 
-k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("ORDERS", f"{total_orders:,}")
-k2.metric("REVENUE", f"{total_revenue:,.0f} PLN")
-k3.metric("AVG PROFIT/ORDER", f"{avg_profit:,.0f} PLN")
-k4.metric("AVG MARGIN", f"{avg_margin:.1f}%")
-k5.metric("CANCELLED/RETURNED", f"{cancelled_count:,}")
+def _fmt_pln(val):
+    """Format PLN values: use K suffix for large numbers to prevent truncation."""
+    if abs(val) >= 10000:
+        return f"{val/1000:,.1f}K PLN"
+    return f"{val:,.0f} PLN"
 
-# --- Profitability summary strip ---
-p1, p2, p3 = st.columns(3)
-p1.metric("TOTAL PROFIT", f"{total_profit:,.0f} PLN")
-p2.metric("PROFITABLE", f"{profitable_count:,}", delta=f"{profitable_count / total_orders * 100:.0f}%" if total_orders > 0 else "0%")
-p3.metric("UNPROFITABLE", f"{unprofitable_count:,}", delta=f"{unprofitable_count / total_orders * 100:.0f}%" if total_orders > 0 else "0%", delta_color="inverse")
+# Use custom HTML KPI strip for reliable layout
+kpi_data = [
+    ("ORDERS", f"{total_orders:,}", "", "accent-blue"),
+    ("REVENUE", _fmt_pln(total_revenue), "", "accent-blue"),
+    ("TOTAL PROFIT", _fmt_pln(total_profit), f"margin {avg_margin:.1f}%", "accent-green" if total_profit > 0 else "accent-red"),
+    ("AVG PROFIT/ORDER", _fmt_pln(avg_profit), f"COGS coverage {cogs_coverage:.0f}%", "accent-green" if avg_profit > 0 else "accent-red"),
+    ("PROFITABLE", f"{profitable_count:,}", f"{profitable_count / total_orders * 100:.0f}% of orders" if total_orders > 0 else "", "accent-green"),
+    ("UNPROFITABLE", f"{unprofitable_count:,}", f"{unprofitable_count / total_orders * 100:.0f}% of orders" if total_orders > 0 else "", "accent-red"),
+]
+
+kpi_html = '<div class="orders-kpi-strip">'
+for label, value, sub, accent in kpi_data:
+    profit_cls = ""
+    if "PROFIT" in label and "UN" not in label:
+        profit_cls = " profit-positive" if total_profit > 0 else " profit-negative"
+    kpi_html += (
+        f'<div class="orders-kpi-card {accent}">'
+        f'<div class="orders-kpi-label">{label}</div>'
+        f'<div class="orders-kpi-value{profit_cls}">{value}</div>'
+    )
+    if sub:
+        kpi_html += f'<div class="orders-kpi-sub">{sub}</div>'
+    kpi_html += '</div>'
+kpi_html += '</div>'
+st.markdown(kpi_html, unsafe_allow_html=True)
 
 # --- Orders Table (HTML) ---
 st.markdown('<div class="section-header">ORDER LIST</div>', unsafe_allow_html=True)
@@ -200,7 +222,7 @@ for i, (_, row) in enumerate(visible.iterrows()):
     profit_color = COLORS["success"] if profit > 0 else COLORS["danger"]
     margin_color = COLORS["success"] if margin > 30 else (COLORS["warning"] if margin > 10 else COLORS["danger"])
     cogs_display = f"{cogs:,.0f}" if has_cogs else "?"
-    cogs_color = COLORS["danger"] if has_cogs else COLORS["muted"]
+    cogs_color = "#94a3b8" if has_cogs else COLORS["muted"]
 
     # Platform badge
     plat_color = PLATFORM_COLORS.get(platform, "#64748b")
