@@ -52,6 +52,8 @@ st.markdown(
     <span style="color: #3b82f6;">05</span> AMAZON &mdash; Traffic, inventory, returns, BSR, pricing
     <br>
     <span style="color: #3b82f6;">06</span> TRENDS &mdash; MoM, seasonality, growth trajectory
+    <br>
+    <span style="color: #3b82f6;">07</span> ORDERS &mdash; Per-order profit breakdown, Sellerboard-style
 </div>
 """,
     unsafe_allow_html=True,

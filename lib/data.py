@@ -257,6 +257,193 @@ def load_data_coverage(days=90):
     }
 
 
+@st.cache_data(ttl=300)
+def load_order_items(order_ids=None):
+    """Load order items, optionally filtered by order IDs."""
+    params = {
+        "select": "id,order_id,sku,product_id,name,quantity,unit_price,currency,unit_price_pln,unit_cost,unit_cost_pln,asin",
+    }
+    if order_ids:
+        ids_str = ",".join(str(i) for i in order_ids)
+        params["order_id"] = f"in.({ids_str})"
+    rows = _get("order_items", params, limit=50000)
+    return pd.DataFrame(rows)
+
+
+@st.cache_data(ttl=300)
+def load_orders_enriched(days=30):
+    """Load orders enriched with items, products, platforms, and fx_rates.
+
+    Returns a tuple (orders_df, items_df) where orders_df has per-order
+    profit breakdown and items_df has all line items keyed by order_id.
+    """
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    # Load orders
+    order_rows = _get("orders", {
+        "select": "id,external_id,platform_id,platform_order_id,order_date,status,buyer_email,shipping_country,shipping_cost,total_paid,currency,total_paid_pln,platform_fee,platform_fee_pln,notes",
+        "order_date": f"gte.{cutoff}",
+        "order": "order_date.desc",
+    }, limit=50000)
+    orders = pd.DataFrame(order_rows)
+    if orders.empty:
+        return pd.DataFrame(), pd.DataFrame()
+
+    # Load related data
+    order_ids = orders["id"].tolist()
+    items_df = load_order_items(order_ids)
+    products = load_products()
+    platforms = load_platforms()
+    fx_rows = _get("fx_rates", {"order": "date.desc"}, limit=5000)
+    fx_df = pd.DataFrame(fx_rows)
+
+    # Build fx lookup: (date_str, currency) -> rate_pln
+    fx_lookup = {}
+    latest_fx = {}
+    if not fx_df.empty:
+        for _, r in fx_df.iterrows():
+            key = (str(r["date"]), str(r["currency"]).upper())
+            fx_lookup[key] = float(r["rate_pln"])
+            cur = str(r["currency"]).upper()
+            if cur not in latest_fx:
+                latest_fx[cur] = float(r["rate_pln"])
+    latest_fx["PLN"] = 1.0
+    fx_lookup_default = latest_fx
+
+    def get_fx(date_str, currency):
+        cur = str(currency).upper()
+        if cur == "PLN":
+            return 1.0
+        day = str(date_str)[:10]
+        rate = fx_lookup.get((day, cur))
+        if rate:
+            return rate
+        return fx_lookup_default.get(cur, 1.0)
+
+    # Build products cost lookup: sku -> (cost_pln, cost_eur, image_url, name)
+    prod_lookup = {}
+    if not products.empty:
+        for _, p in products.iterrows():
+            prod_lookup[str(p.get("sku", ""))] = {
+                "cost_pln": float(p["cost_pln"]) if pd.notna(p.get("cost_pln")) else 0,
+                "cost_eur": float(p["cost_eur"]) if pd.notna(p.get("cost_eur")) else 0,
+                "image_url": p.get("image_url"),
+                "product_name": p.get("name", ""),
+            }
+
+    # Platform fee rates
+    platform_fee_rates = {
+        "amazon_de": 0.1545, "amazon_fr": 0.1545, "amazon_it": 0.1545,
+        "amazon_es": 0.1545, "amazon_nl": 0.1545, "amazon_se": 0.1545,
+        "amazon_pl": 0.1545, "amazon_be": 0.1545, "amazon_gb": 0.1545,
+        "allegro": 0.10, "temu": 0.0, "empik": 0.15,
+    }
+
+    # Enrich items with COGS
+    if not items_df.empty:
+        items_df["unit_cost_pln"] = pd.to_numeric(items_df["unit_cost_pln"], errors="coerce").fillna(0)
+        items_df["unit_cost"] = pd.to_numeric(items_df["unit_cost"], errors="coerce").fillna(0)
+        items_df["unit_price"] = pd.to_numeric(items_df["unit_price"], errors="coerce").fillna(0)
+        items_df["unit_price_pln"] = pd.to_numeric(items_df["unit_price_pln"], errors="coerce").fillna(0)
+        items_df["quantity"] = pd.to_numeric(items_df["quantity"], errors="coerce").fillna(1).astype(int)
+
+        # Fill missing unit_cost_pln from products table
+        for idx, item in items_df.iterrows():
+            if item["unit_cost_pln"] == 0:
+                sku = str(item.get("sku", ""))
+                prod = prod_lookup.get(sku, {})
+                cost_pln = prod.get("cost_pln", 0)
+                if cost_pln == 0 and prod.get("cost_eur", 0) > 0:
+                    cost_pln = prod["cost_eur"] * get_fx("2026-03-01", "EUR")
+                items_df.at[idx, "unit_cost_pln"] = cost_pln
+
+        items_df["line_cost_pln"] = items_df["unit_cost_pln"] * items_df["quantity"]
+        items_df["line_revenue_pln"] = items_df["unit_price_pln"] * items_df["quantity"]
+    else:
+        items_df = pd.DataFrame(columns=["order_id", "sku", "name", "quantity",
+                                          "unit_price", "unit_price_pln", "unit_cost_pln",
+                                          "line_cost_pln", "line_revenue_pln", "asin",
+                                          "currency", "product_id"])
+
+    # Aggregate items per order
+    if not items_df.empty:
+        items_agg = items_df.groupby("order_id").agg(
+            item_count=("sku", "count"),
+            unit_count=("quantity", "sum"),
+            cogs_pln=("line_cost_pln", "sum"),
+            first_sku=("sku", "first"),
+            first_name=("name", "first"),
+        ).reset_index()
+    else:
+        items_agg = pd.DataFrame(columns=["order_id", "item_count", "unit_count",
+                                           "cogs_pln", "first_sku", "first_name"])
+
+    # Merge items aggregation into orders
+    orders = orders.merge(items_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_items"))
+    for col in ["item_count", "unit_count"]:
+        orders[col] = orders[col].fillna(0).astype(int)
+    orders["cogs_pln"] = pd.to_numeric(orders["cogs_pln"], errors="coerce").fillna(0)
+
+    # Convert numeric columns
+    for col in ["total_paid", "total_paid_pln", "shipping_cost", "platform_fee", "platform_fee_pln"]:
+        orders[col] = pd.to_numeric(orders[col], errors="coerce").fillna(0)
+
+    # Platform name
+    orders["platform_name"] = orders["platform_id"].map(
+        lambda x: platforms.get(x, {}).get("code", f"#{x}")
+    )
+    orders["platform_display"] = orders["platform_id"].map(
+        lambda x: platforms.get(x, {}).get("name", f"#{x}")
+    )
+
+    # Revenue in PLN (use total_paid_pln if available, else convert)
+    def calc_revenue_pln(row):
+        if row["total_paid_pln"] and row["total_paid_pln"] > 0:
+            return row["total_paid_pln"]
+        date_str = str(row["order_date"])[:10]
+        return row["total_paid"] * get_fx(date_str, row["currency"])
+    orders["revenue_pln"] = orders.apply(calc_revenue_pln, axis=1)
+
+    # Fees in PLN
+    def calc_fees_pln(row):
+        if row["platform_fee_pln"] and row["platform_fee_pln"] > 0:
+            return row["platform_fee_pln"]
+        if row["platform_fee"] and row["platform_fee"] > 0:
+            date_str = str(row["order_date"])[:10]
+            return row["platform_fee"] * get_fx(date_str, row["currency"])
+        # Estimate from platform fee rate
+        pname = row.get("platform_name", "")
+        rate = platform_fee_rates.get(pname, 0)
+        return row["revenue_pln"] * rate
+    orders["fees_pln"] = orders.apply(calc_fees_pln, axis=1)
+
+    # Shipping in PLN
+    def calc_shipping_pln(row):
+        if row["shipping_cost"] > 0:
+            date_str = str(row["order_date"])[:10]
+            return row["shipping_cost"] * get_fx(date_str, row["currency"])
+        return 0
+    orders["shipping_pln"] = orders.apply(calc_shipping_pln, axis=1)
+
+    # Profit
+    orders["profit_pln"] = orders["revenue_pln"] - orders["cogs_pln"] - orders["fees_pln"] - orders["shipping_pln"]
+    orders["margin_pct"] = orders.apply(
+        lambda r: (r["profit_pln"] / r["revenue_pln"] * 100) if r["revenue_pln"] > 0 else 0, axis=1
+    )
+
+    # Has COGS flag
+    orders["has_cogs"] = orders["cogs_pln"] > 0
+
+    # Fill missing item info
+    orders["first_sku"] = orders["first_sku"].fillna("")
+    orders["first_name"] = orders["first_name"].fillna("")
+
+    # Sort
+    orders = orders.sort_values("order_date", ascending=False).reset_index(drop=True)
+
+    return orders, items_df
+
+
 def get_marketplace_names():
     """Get marketplace ID to display name mapping."""
     try:
