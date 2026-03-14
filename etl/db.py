@@ -129,7 +129,7 @@ def upsert_products(conn, products):
         return 0
     rows = []
     for p in products:
-        rows.append({
+        row = {
             "sku": p["sku"],
             "name": p["name"],
             "brand": p.get("brand"),
@@ -141,7 +141,10 @@ def upsert_products(conn, products):
             "parent_sku": p.get("parent_sku"),
             "ean": p.get("ean"),
             "active": p.get("active", True),
-        })
+        }
+        if p.get("image_url"):
+            row["image_url"] = p["image_url"]
+        rows.append(row)
     total = 0
     for i in range(0, len(rows), 500):
         chunk = rows[i:i+500]

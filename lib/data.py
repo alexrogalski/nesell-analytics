@@ -108,7 +108,7 @@ def load_products():
     """Load all products."""
     rows = _get(
         "products",
-        {"select": "sku,name,cost_pln,cost_eur,source,is_parent,parent_sku"},
+        {"select": "sku,name,cost_pln,cost_eur,source,is_parent,parent_sku,image_url"},
     )
     return pd.DataFrame(rows)
 

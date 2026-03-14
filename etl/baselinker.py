@@ -292,6 +292,12 @@ def sync_products(conn, inventory_id: int = 52954):
             if isinstance(tf, dict):
                 name = tf.get("name", "") or tf.get("name|pl", "")
 
+            # Extract main product image (key "1" is the primary image)
+            images = p.get("images", {})
+            image_url = None
+            if isinstance(images, dict) and images:
+                image_url = images.get("1") or next(iter(images.values()), None)
+
             all_products.append({
                 "sku": sku,
                 "name": name,
@@ -302,6 +308,7 @@ def sync_products(conn, inventory_id: int = 52954):
                 "is_parent": "-" not in sku.split("PFT-")[-1] if sku.startswith("PFT-") else False,
                 "parent_sku": None,
                 "ean": p.get("ean", ""),
+                "image_url": image_url,
                 "active": True,
             })
 
@@ -309,6 +316,14 @@ def sync_products(conn, inventory_id: int = 52954):
                 vsku = v.get("sku", "")
                 if not vsku:
                     continue
+                # Variants may have their own images; fall back to parent image
+                v_images = v.get("images", {})
+                v_image_url = None
+                if isinstance(v_images, dict) and v_images:
+                    v_image_url = v_images.get("1") or next(iter(v_images.values()), None)
+                if not v_image_url:
+                    v_image_url = image_url  # inherit parent image
+
                 all_products.append({
                     "sku": vsku,
                     "name": v.get("name", ""),
@@ -319,6 +334,7 @@ def sync_products(conn, inventory_id: int = 52954):
                     "is_parent": False,
                     "parent_sku": sku,
                     "ean": v.get("ean", ""),
+                    "image_url": v_image_url,
                     "active": True,
                 })
 

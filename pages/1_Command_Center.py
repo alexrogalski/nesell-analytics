@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage
+from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage, load_products
 from lib.metrics import calc_period_kpis, daily_summary, product_profitability, platform_summary
 from lib.charts import area_chart, multi_line, bar_chart
 from lib.signals import generate_signals
@@ -113,6 +113,14 @@ if not cogs_gaps.empty:
     </div>
     """, unsafe_allow_html=True)
 
+    # Merge image URLs from products
+    products_for_images = load_products()
+    if not products_for_images.empty and "image_url" in products_for_images.columns:
+        cogs_gaps = cogs_gaps.merge(
+            products_for_images[["sku", "image_url"]],
+            on="sku", how="left",
+        )
+
     # Top missing products table (show top 15)
     with st.expander(f"Top {min(15, total_gap_skus)} products missing COGS (by revenue impact)", expanded=total_gap_skus <= 20):
         top_gaps = cogs_gaps.head(15)
@@ -122,28 +130,39 @@ if not cogs_gaps.empty:
             rev = row.get("revenue_pln", 0)
             units = int(row.get("units", 0))
             orders = int(row.get("orders_count", 0))
+            img_url = row.get("image_url", None)
             bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
             row_bg = "#111827" if i % 2 == 0 else "#0f1729"
+
+            # Thumbnail
+            if img_url and str(img_url) != "None" and str(img_url).startswith("http"):
+                img_cell = f'<td style="padding: 5px 8px; vertical-align: middle;"><img src="{img_url}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #1e293b;" loading="lazy" /></td>'
+            else:
+                img_cell = '<td style="padding: 5px 8px; vertical-align: middle;"><div style="width:36px;height:36px;background:#1e293b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.45rem;color:#475569;">N/A</div></td>'
+
             rows_html += (
                 f'<tr style="background: {row_bg};">'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">{sku}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24;">{rev:,.0f}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{units}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8;">{orders}</td>'
-                f'<td style="padding: 8px 10px; text-align: center;">'
+                f'{img_cell}'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; vertical-align: middle;">{sku}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24; vertical-align: middle;">{rev:,.0f}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
+                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8; vertical-align: middle;">{orders}</td>'
+                f'<td style="padding: 8px 10px; text-align: center; vertical-align: middle;">'
                 f'<a href="{bl_url}" target="_blank" style="color: #3b82f6; font-family: monospace; font-size: 0.75rem; text-decoration: none; background: rgba(59,130,246,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">Edit in BL &#8594;</a>'
                 f'</td></tr>'
             )
 
+        cc_th = 'padding: 10px; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
         table_html = (
             '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">'
             '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
             '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">'
-            '<th style="padding: 10px; text-align: left; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">SKU</th>'
-            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Revenue (PLN)</th>'
-            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Units</th>'
-            '<th style="padding: 10px; text-align: right; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Orders</th>'
-            '<th style="padding: 10px; text-align: center; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;">Action</th>'
+            f'<th style="{cc_th} text-align: left; width: 46px;"></th>'
+            f'<th style="{cc_th} text-align: left;">SKU</th>'
+            f'<th style="{cc_th} text-align: right;">Revenue (PLN)</th>'
+            f'<th style="{cc_th} text-align: right;">Units</th>'
+            f'<th style="{cc_th} text-align: right;">Orders</th>'
+            f'<th style="{cc_th} text-align: center;">Action</th>'
             '</tr></thead>'
             f'<tbody>{rows_html}</tbody>'
             '</table></div>'

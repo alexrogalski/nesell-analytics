@@ -44,6 +44,7 @@ CREATE TABLE products (
     parent_sku TEXT,
     asin TEXT,
     ean TEXT,
+    image_url TEXT,
     active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
