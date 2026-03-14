@@ -5,6 +5,7 @@ Credentials loaded from st.secrets (Streamlit Cloud) or etl.config (local).
 """
 import os
 import re
+import time
 import requests
 import streamlit as st
 import pandas as pd
@@ -29,8 +30,8 @@ HEADERS = {
 }
 
 
-def _get(table, params=None, limit=10000):
-    """Generic PostgREST GET with pagination."""
+def _get(table, params=None, limit=10000, retries=2):
+    """Generic PostgREST GET with pagination and retry on transient errors."""
     if not SUPABASE_URL:
         return []
     url = f"{SUPABASE_URL}/rest/v1/{table}"
@@ -41,13 +42,24 @@ def _get(table, params=None, limit=10000):
         p = dict(params or {})
         p["limit"] = batch
         p["offset"] = offset
-        try:
-            resp = requests.get(
-                url, headers={**HEADERS, "Prefer": "count=exact"}, params=p
-            )
-        except requests.exceptions.RequestException:
-            break
-        if resp.status_code not in (200, 206):
+        resp = None
+        for attempt in range(retries + 1):
+            try:
+                resp = requests.get(
+                    url, headers={**HEADERS, "Prefer": "count=exact"}, params=p,
+                    timeout=15,
+                )
+                if resp.status_code in (200, 206):
+                    break
+                if resp.status_code >= 500 and attempt < retries:
+                    time.sleep(1)
+                    continue
+            except requests.exceptions.RequestException:
+                if attempt < retries:
+                    time.sleep(1)
+                    continue
+                return all_rows
+        if resp is None or resp.status_code not in (200, 206):
             break
         rows = resp.json()
         all_rows.extend(rows)
@@ -106,12 +118,22 @@ def load_orders(days=90):
 
 @st.cache_data(ttl=300)
 def load_products():
-    """Load all products."""
+    """Load all products.
+
+    Uses a longer retry budget because an empty result here causes all
+    product images and names to show as N/A for the cache TTL.
+    """
     rows = _get(
         "products",
         {"select": "sku,name,cost_pln,cost_eur,source,is_parent,parent_sku,image_url"},
+        retries=3,
     )
-    return pd.DataFrame(rows)
+    df = pd.DataFrame(rows)
+    # Guard: if the API returned data but image_url column is missing
+    # (e.g. schema changed), add it to prevent downstream KeyErrors.
+    if not df.empty and "image_url" not in df.columns:
+        df["image_url"] = None
+    return df
 
 
 @st.cache_data(ttl=300)
