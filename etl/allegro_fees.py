@@ -164,22 +164,36 @@ def _get_payment_operations(token, since_date, limit=100):
 
 # ── Fee type classification ─────────────────────────────────────────
 
-# Billing entry type IDs:
-# SUC = commission (prowizja od sprzedazy)
-# HB4, DPB, HLB = Allegro Delivery shipping fees
-# REF = refund
+# Billing entry type IDs (from GET /billing/billing-types):
+# SUC = Prowizja od sprzedazy (sales commission)
+# FSF = Prowizja od sprzedazy oferty wyrooznionej (featured listing commission)
+# BC1-BC5 = Prowizja od sprzedazy w kampanii (campaign commission)
+# HB4 = Oplata za dostawe InPost
+# DPB = Oplata za dostawe DPD Allegro Delivery
+# HLB = Oplata za dostawe DHL Allegro Delivery
+# ORB = Oplata za dostawe ORLEN Paczka Allegro Delivery
+# DHR = Oplata dodatkowa za dostawe DHL
+# REF = Zwrot kosztow (refund)
 # ADS, PRO = promoted offers / ads
-# SUB = subscription
+# PAD = Pobranie oplat z wplywow (fee collection from proceeds - accounting entry, skip)
+# PS1 = Wyrownanie w programie Allegro Ceny (price match adjustment)
+# SUM = Podsumowanie miesiaca (monthly summary, skip)
 
-COMMISSION_TYPES = {"SUC"}
-SHIPPING_TYPES = {"HB4", "DPB", "HLB"}
+COMMISSION_TYPES = {"SUC", "FSF", "BC1", "BC2", "BC3", "BC4", "BC5", "ASC"}
+SHIPPING_TYPES = {"HB4", "DPB", "HLB", "ORB", "DHR"}
 REFUND_TYPES = {"REF"}
 AD_TYPES = {"ADS", "PRO"}
+PRICE_ADJUSTMENT_TYPES = {"PS1"}
+# These are accounting/summary entries, not per-order fees - skip them
+SKIP_TYPES = {"PAD", "SUM"}
 
 
 def _classify_entry(entry):
-    """Classify a billing entry by its type ID."""
+    """Classify a billing entry by its type ID.
+    Returns None for entries that should be skipped (accounting/summary entries)."""
     type_id = entry.get("type", {}).get("id", "")
+    if type_id in SKIP_TYPES:
+        return None  # skip accounting entries
     if type_id in COMMISSION_TYPES:
         return "commission"
     elif type_id in SHIPPING_TYPES:
@@ -188,6 +202,8 @@ def _classify_entry(entry):
         return "refund"
     elif type_id in AD_TYPES:
         return "ads"
+    elif type_id in PRICE_ADJUSTMENT_TYPES:
+        return "price_adjustment"
     else:
         return "other"
 
@@ -197,11 +213,18 @@ def _classify_entry(entry):
 def _aggregate_fees_by_order(entries):
     """Group billing entries by order ID and sum fees.
 
-    Returns dict: {allegro_order_id: {commission, shipping, refund, ads, other, total, currency}}
+    Returns dict: {allegro_order_id: {commission, shipping, refund, ads, price_adjustment, other, total, currency}}
+    Skips accounting/summary entries (PAD, SUM) that have no order association or are not real fees.
     """
     order_fees = {}
+    skipped = 0
 
     for entry in entries:
+        category = _classify_entry(entry)
+        if category is None:
+            skipped += 1
+            continue
+
         order_info = entry.get("order", {})
         order_id = order_info.get("id") if order_info else None
         if not order_id:
@@ -210,7 +233,6 @@ def _aggregate_fees_by_order(entries):
         value = entry.get("value", {})
         amount = abs(float(value.get("amount", 0)))
         currency = value.get("currency", "PLN")
-        category = _classify_entry(entry)
 
         if order_id not in order_fees:
             order_fees[order_id] = {
@@ -218,14 +240,19 @@ def _aggregate_fees_by_order(entries):
                 "shipping": 0.0,
                 "refund": 0.0,
                 "ads": 0.0,
+                "price_adjustment": 0.0,
                 "other": 0.0,
                 "total": 0.0,
                 "currency": currency,
             }
 
         order_fees[order_id][category] += amount
+        # Total = commission + shipping + other (the actual fees the seller pays)
         if category in ("commission", "shipping", "other"):
             order_fees[order_id]["total"] += amount
+
+    if skipped:
+        print(f"    Skipped {skipped} accounting/summary entries (PAD, SUM)")
 
     return order_fees
 
@@ -398,6 +425,7 @@ def _update_orders_with_fees(token, order_fees, since_date):
             "shipping_fee": round(fees["shipping"], 2),
             "refund": round(fees.get("refund", 0), 2),
             "ads": round(fees.get("ads", 0), 2),
+            "price_adjustment": round(fees.get("price_adjustment", 0), 2),
             "other": round(fees.get("other", 0), 2),
             "source": "allegro_billing_api",
         }
@@ -477,6 +505,7 @@ def sync_allegro_fees(conn=None, days_back=90):
     total_shipping = sum(f["shipping"] for f in order_fees.values())
     total_refund = sum(f["refund"] for f in order_fees.values())
     total_ads = sum(f["ads"] for f in order_fees.values())
+    total_price_adj = sum(f.get("price_adjustment", 0) for f in order_fees.values())
     total_other = sum(f["other"] for f in order_fees.values())
     total_all = sum(f["total"] for f in order_fees.values())
 
@@ -484,6 +513,7 @@ def sync_allegro_fees(conn=None, days_back=90):
     print(f"    Commission:     {total_commission:>10,.2f} PLN")
     print(f"    Shipping fees:  {total_shipping:>10,.2f} PLN")
     print(f"    Ads/promoted:   {total_ads:>10,.2f} PLN")
+    print(f"    Price adj (PS1):{total_price_adj:>10,.2f} PLN")
     print(f"    Refunds:        {total_refund:>10,.2f} PLN")
     print(f"    Other:          {total_other:>10,.2f} PLN")
     print(f"    Total fees:     {total_all:>10,.2f} PLN")
