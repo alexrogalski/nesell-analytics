@@ -30,6 +30,8 @@ HEADERS = {
 
 def _get(table, params=None, limit=10000):
     """Generic PostgREST GET with pagination."""
+    if not SUPABASE_URL:
+        return []
     url = f"{SUPABASE_URL}/rest/v1/{table}"
     all_rows = []
     offset = 0
@@ -38,9 +40,12 @@ def _get(table, params=None, limit=10000):
         p = dict(params or {})
         p["limit"] = batch
         p["offset"] = offset
-        resp = requests.get(
-            url, headers={**HEADERS, "Prefer": "count=exact"}, params=p
-        )
+        try:
+            resp = requests.get(
+                url, headers={**HEADERS, "Prefer": "count=exact"}, params=p
+            )
+        except requests.exceptions.RequestException:
+            break
         if resp.status_code != 200:
             break
         rows = resp.json()
