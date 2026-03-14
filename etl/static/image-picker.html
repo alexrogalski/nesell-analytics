@@ -9,21 +9,19 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#1a1a2e;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;padding:20px}
 h1{font-size:1.4rem;font-weight:600;color:#fff}
+.subtitle{font-size:.8rem;color:#888;margin-left:12px}
 .toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px;padding:16px;background:#16213e;border-radius:10px}
 select,button{font-size:.9rem;padding:8px 14px;border-radius:6px;border:1px solid #334;background:#0f3460;color:#e0e0e0;cursor:pointer}
-select{max-width:260px}
+select{max-width:280px}
 select:focus,button:focus{outline:2px solid #e94560}
 button{background:#e94560;color:#fff;border:none;font-weight:600;transition:background .2s}
 button:hover{background:#c73550}
 button:disabled{opacity:.5;cursor:not-allowed}
 .btn-save{background:#27ae60}
 .btn-save:hover{background:#219a52}
-.btn-secondary{background:#0f3460;border:1px solid #334}
-.btn-secondary:hover{background:#1a4a8a}
 
 .section-label{font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:#888;margin:16px 0 8px;padding-left:4px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;min-height:60px;padding:8px;border-radius:8px;border:2px dashed transparent}
-.grid.drag-over{border-color:#e94560}
 .card{background:#16213e;border-radius:10px;overflow:hidden;cursor:grab;position:relative;border:2px solid transparent;transition:border-color .2s,transform .15s}
 .card:hover{border-color:#e94560}
 .card.sortable-chosen{transform:scale(1.04);border-color:#e94560;box-shadow:0 8px 30px rgba(233,69,96,.3)}
@@ -32,7 +30,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .card-info{padding:10px 12px}
 .card-slot{font-size:.75rem;font-weight:700;color:#e94560;text-transform:uppercase;margin-bottom:2px}
 .card-label{font-size:.85rem;color:#ccc}
-.card-id{font-size:.7rem;color:#555;margin-top:2px}
 
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.active{display:flex}
@@ -54,17 +51,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <div class="toolbar">
   <h1>Image Picker</h1>
+  <span class="subtitle">Set mockup order per product type (applies to all designs & colors)</span>
+  <div style="flex-grow:1"></div>
   <select id="productSelect"></select>
-  <select id="templateSelect"><option value="">-- select template --</option></select>
-  <select id="variantSelect"><option value="">-- select color --</option></select>
-  <button id="btnGenerate" disabled>Generate Mockups</button>
+  <button id="btnLoad">Load Preview</button>
   <button id="btnSave" class="btn-save" disabled>Save Order</button>
 </div>
 
-<div class="spinner" id="spinner">Generating mockups via Printful API (can take up to 2 min)...</div>
+<div class="spinner" id="spinner">Loading mockup previews from Printful...</div>
 
 <div class="section-label">Amazon Slots (drag to reorder)</div>
-<div class="grid" id="activeGrid"><div class="empty">Generate mockups to see images here</div></div>
+<div class="grid" id="activeGrid"><div class="empty">Select a product and click "Load Preview"</div></div>
 
 <div class="section-label" id="unusedLabel" style="display:none">Unused (drag up to include)</div>
 <div class="grid" id="unusedGrid"></div>
@@ -83,9 +80,7 @@ let currentMockups = {};
 
 const $ = id => document.getElementById(id);
 const productSel = $('productSelect');
-const templateSel = $('templateSelect');
-const variantSel = $('variantSelect');
-const btnGen = $('btnGenerate');
+const btnLoad = $('btnLoad');
 const btnSave = $('btnSave');
 const activeGrid = $('activeGrid');
 const unusedGrid = $('unusedGrid');
@@ -118,70 +113,42 @@ async function loadConfig() {
   }
 }
 
-async function loadTemplates() {
+async function loadPreview() {
   const pt = productSel.value;
   if (!pt) return;
-  templateSel.innerHTML = '<option value="">Loading...</option>';
-  try {
-    const templates = await api(`/api/templates/${pt}`);
-    templateSel.innerHTML = '<option value="">-- select template --</option>';
-    for (const t of templates) {
-      const o = document.createElement('option');
-      o.value = t.id;
-      o.textContent = t.title || `Template ${t.id}`;
-      templateSel.appendChild(o);
-    }
-  } catch (e) {
-    templateSel.innerHTML = '<option value="">Error loading templates</option>';
-    toast('Failed to load templates: ' + e.message, true);
-  }
-}
 
-async function loadVariants() {
-  const pt = productSel.value;
-  if (!pt) return;
-  variantSel.innerHTML = '<option value="">Loading...</option>';
-  try {
-    const variants = await api(`/api/variants/${pt}`);
-    variantSel.innerHTML = '<option value="">-- select color --</option>';
-    for (const v of variants) {
-      const o = document.createElement('option');
-      o.value = v.variant_id;
-      o.textContent = v.color || v.name;
-      variantSel.appendChild(o);
-    }
-  } catch (e) {
-    variantSel.innerHTML = '<option value="">Error</option>';
-    toast('Failed to load variants: ' + e.message, true);
-  }
-}
-
-function checkReady() {
-  btnGen.disabled = !(templateSel.value && variantSel.value);
-}
-
-async function generateMockups() {
-  const pt = productSel.value;
-  const vid = variantSel.value;
-  const tid = templateSel.value;
-  if (!pt || !vid) return;
-  btnGen.disabled = true;
+  btnLoad.disabled = true;
+  btnLoad.textContent = 'Loading...';
   spinner.classList.add('active');
+
   try {
-    const opts = {method:'POST'};
-    if (tid) {
-      opts.headers = {'Content-Type': 'application/json'};
-      opts.body = JSON.stringify({template_id: parseInt(tid)});
-    }
-    const resp = await api(`/api/generate/${pt}/${vid}`, opts);
+    // Get first template and first color variant automatically
+    const [templates, variants] = await Promise.all([
+      api(`/api/templates/${pt}`),
+      api(`/api/variants/${pt}`),
+    ]);
+
+    if (!templates.length) throw new Error('No templates found for this product');
+    if (!variants.length) throw new Error('No color variants found for this product');
+
+    const templateId = templates[0].id;
+    const variantId = variants[0].variant_id;
+
+    const resp = await api(`/api/generate/${pt}/${variantId}`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({template_id: templateId}),
+    });
+
     currentMockups = resp.mockups || {};
-    if (resp.cached) toast('Loaded from cache (< 24h old)');
+    if (resp.cached) toast('Loaded from cache');
     renderGrid(pt);
     btnSave.disabled = false;
   } catch (e) {
-    toast('Generation failed: ' + e.message, true);
+    toast(e.message, true);
   } finally {
-    btnGen.disabled = false;
+    btnLoad.disabled = false;
+    btnLoad.textContent = 'Load Preview';
     spinner.classList.remove('active');
   }
 }
@@ -192,73 +159,54 @@ function renderGrid(pt) {
 
   const entry = config[pt] || {};
   const configOrder = entry.image_order || [];
-
-  // Build label lookup from config (placement_id -> label)
-  const configLabels = {};
-  for (const e of configOrder) configLabels[String(e.placement_id)] = e.label || '';
-
-  // Merge labels from mockups
-  const allLabels = {...configLabels};
-  for (const [mid, data] of Object.entries(currentMockups)) {
-    if (!allLabels[mid] && data.label) allLabels[mid] = data.label;
-  }
-
-  // Ordered: config IDs that have mockups, then remaining mockups
-  const configIds = configOrder.map(e => String(e.placement_id));
   const mockupIds = Object.keys(currentMockups);
-  const activeIds = configIds.filter(id => currentMockups[id]);
-  const extraIds = mockupIds.filter(id => !activeIds.includes(id));
 
-  // Active slots (up to 8)
-  const slotted = activeIds.slice(0, MAX_SLOTS);
-  slotted.forEach((mid, i) => {
-    activeGrid.appendChild(makeCard(mid, SLOT_LABELS[i], allLabels[mid]));
-  });
-
-  if (!slotted.length && !extraIds.length) {
-    activeGrid.innerHTML = '<div class="empty">No mockups generated yet</div>';
-    return;
+  // Build label lookup
+  const labels = {};
+  for (const e of configOrder) labels[String(e.placement_id)] = e.label || '';
+  for (const [mid, data] of Object.entries(currentMockups)) {
+    if (!labels[mid] && data.label) labels[mid] = data.label;
   }
-  if (!slotted.length) {
-    // No config order yet, put all in active
-    const allMockupIds = mockupIds.slice(0, MAX_SLOTS);
-    allMockupIds.forEach((mid, i) => {
-      activeGrid.appendChild(makeCard(mid, SLOT_LABELS[i], allLabels[mid]));
-    });
-    const overflow = mockupIds.slice(MAX_SLOTS);
-    if (overflow.length) {
-      $('unusedLabel').style.display = '';
-      overflow.forEach(mid => {
-        unusedGrid.appendChild(makeCard(mid, 'UNUSED', allLabels[mid]));
-      });
-    }
-    initSortable();
+
+  // If config has existing order, use it. Otherwise show all mockups.
+  const configIds = configOrder.map(e => String(e.placement_id));
+  const orderedWithMockup = configIds.filter(id => currentMockups[id]);
+  const extraIds = mockupIds.filter(id => !orderedWithMockup.includes(id));
+
+  let activeIds, unusedIds;
+  if (orderedWithMockup.length) {
+    activeIds = orderedWithMockup.slice(0, MAX_SLOTS);
+    unusedIds = [...orderedWithMockup.slice(MAX_SLOTS), ...extraIds];
+  } else {
+    activeIds = mockupIds.slice(0, MAX_SLOTS);
+    unusedIds = mockupIds.slice(MAX_SLOTS);
+  }
+
+  if (!activeIds.length) {
+    activeGrid.innerHTML = '<div class="empty">No mockups available</div>';
     return;
   }
 
-  // Unused: overflow from active + extras
-  const overflow = activeIds.slice(MAX_SLOTS);
-  const unused = [...overflow, ...extraIds];
-  $('unusedLabel').style.display = unused.length ? '' : 'none';
-  unused.forEach(mid => {
-    unusedGrid.appendChild(makeCard(mid, 'UNUSED', allLabels[mid]));
-  });
+  activeIds.forEach((mid, i) => activeGrid.appendChild(makeCard(mid, SLOT_LABELS[i], labels[mid])));
+
+  $('unusedLabel').style.display = unusedIds.length ? '' : 'none';
+  unusedIds.forEach(mid => unusedGrid.appendChild(makeCard(mid, 'UNUSED', labels[mid])));
 
   initSortable();
 }
 
 function makeCard(mid, slotLabel, styleLabel) {
   const data = currentMockups[mid] || {};
+  const label = styleLabel || data.label || 'Unknown';
   const card = document.createElement('div');
   card.className = 'card';
   card.dataset.mid = mid;
-  card.dataset.label = styleLabel || data.label || '';
+  card.dataset.label = label;
   card.innerHTML = `
-    <img src="${data.url || ''}" alt="${styleLabel || mid}" loading="lazy">
+    <img src="${data.url || ''}" alt="${label}" loading="lazy">
     <div class="card-info">
       <div class="card-slot">${slotLabel}</div>
-      <div class="card-label">${styleLabel || data.label || 'Unknown'}</div>
-      <div class="card-id">ID: ${mid}</div>
+      <div class="card-label">${label}</div>
     </div>
   `;
   card.querySelector('img').addEventListener('click', e => {
@@ -283,8 +231,7 @@ function initSortable() {
 
 function updateSlotLabels() {
   activeGrid.querySelectorAll('.card').forEach((card, i) => {
-    const el = card.querySelector('.card-slot');
-    el.textContent = i < MAX_SLOTS ? SLOT_LABELS[i] : 'OVERFLOW';
+    card.querySelector('.card-slot').textContent = i < MAX_SLOTS ? SLOT_LABELS[i] : 'OVERFLOW';
   });
   unusedGrid.querySelectorAll('.card').forEach(card => {
     card.querySelector('.card-slot').textContent = 'UNUSED';
@@ -298,12 +245,12 @@ async function saveOrder() {
     id: parseInt(c.dataset.mid),
     label: c.dataset.label || '',
   }));
-  if (!items.length) { toast('No images to save', true); return; }
+  if (!items.length) { toast('Nothing to save', true); return; }
   btnSave.disabled = true;
   try {
     const resp = await api(`/api/config/${pt}/order`, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(items),
     });
     config[pt].image_order = resp.image_order;
@@ -316,23 +263,13 @@ async function saveOrder() {
 }
 
 // Events
-productSel.addEventListener('change', () => {
-  loadTemplates();
-  loadVariants();
-  checkReady();
-});
-templateSel.addEventListener('change', checkReady);
-variantSel.addEventListener('change', checkReady);
-btnGen.addEventListener('click', generateMockups);
+btnLoad.addEventListener('click', loadPreview);
 btnSave.addEventListener('click', saveOrder);
 modal.addEventListener('click', () => modal.classList.remove('active'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('active'); });
 
 // Init
-loadConfig().then(() => {
-  loadTemplates();
-  loadVariants();
-});
+loadConfig();
 </script>
 </body>
 </html>

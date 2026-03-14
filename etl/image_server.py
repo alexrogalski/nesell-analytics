@@ -137,18 +137,44 @@ def _get_variants(printful_product_id: int) -> list:
     return variants
 
 
+AMAZON_OPTION_GROUPS = [
+    "Flat",
+    "Flat, Premium",
+    "Production",
+    "Product details",
+]
+
+
+def _get_option_groups(printful_product_id: int) -> list[str]:
+    """Return available option_groups for a product from Printful printfiles API."""
+    import requests
+    headers = _pf_headers()
+    r = requests.get(
+        f"https://api.printful.com/mockup-generator/printfiles/{printful_product_id}",
+        headers=headers, timeout=30,
+    )
+    r.raise_for_status()
+    return r.json().get("result", {}).get("option_groups", [])
+
+
 def _generate_mockups(
     printful_product_id: int,
     variant_id: int,
     template_id: int | None = None,
 ) -> dict:
-    """Generate mockups via Printful. Returns {generator_mockup_id: {url, label}}."""
+    """Generate mockups via Printful. Returns {generator_mockup_id: {url, label, group}}."""
     import requests
     headers = _pf_headers()
+
+    # Get available groups and filter to Amazon-useful ones
+    available = _get_option_groups(printful_product_id)
+    groups = [g for g in AMAZON_OPTION_GROUPS if g in available]
 
     payload: dict = {"variant_ids": [variant_id]}
     if template_id:
         payload["product_template_id"] = template_id
+    if groups:
+        payload["option_groups"] = groups
 
     url = f"https://api.printful.com/mockup-generator/create-task/{printful_product_id}"
     resp = requests.post(url, json=payload, headers=headers, timeout=30)
@@ -173,13 +199,19 @@ def _generate_mockups(
                     out[str(gid)] = {
                         "url": murl,
                         "label": placement.replace("_", " ").title(),
+                        "group": "Main",
                     }
                 for ex in m.get("extra", []):
                     egid = ex.get("generator_mockup_id")
                     eurl = ex.get("url")
                     title = ex.get("title") or ex.get("option") or ""
+                    group = ex.get("option_group", "")
                     if egid and eurl:
-                        out[str(egid)] = {"url": eurl, "label": title}
+                        out[str(egid)] = {
+                            "url": eurl,
+                            "label": f"{title} ({group})" if group else title,
+                            "group": group,
+                        }
             return out
 
         elif status == "failed":
