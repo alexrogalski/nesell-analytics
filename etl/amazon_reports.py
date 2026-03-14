@@ -14,6 +14,21 @@ from datetime import datetime, timedelta
 from . import amazon_api, db, config
 
 
+def _safe_float(val, default=0.0):
+    """Parse a float value, handling European comma decimals (e.g. '18,39' -> 18.39)."""
+    if not val and val != 0:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        try:
+            return float(str(val).replace(",", "."))
+        except (ValueError, TypeError):
+            return default
+
+
 # ── Sales & Traffic Report ───────────────────────────────────────────
 
 def sync_traffic(conn, days_back=30):
@@ -142,35 +157,152 @@ def sync_inventory_report(conn):
 
 # ── Storage Fees Report ──────────────────────────────────────────────
 
-def sync_storage_fees(conn):
+def _find_existing_report(report_type, status="DONE", page_size=20, prefer_widest=False):
+    """Find an existing DONE report of the given type. Returns document ID or None.
+
+    If prefer_widest=True, returns the report with the widest date range
+    (useful for reimbursements where we want maximum coverage).
+    Otherwise returns the most recent DONE report.
+    """
+    data = amazon_api.api_get("/reports/2021-06-30/reports", {
+        "reportTypes": report_type,
+        "pageSize": page_size,
+        "processingStatuses": status,
+    })
+    reports = data.get("reports", [])
+
+    if prefer_widest:
+        # Find report with widest date range
+        best = None
+        best_range = 0
+        for r in reports:
+            doc_id = r.get("reportDocumentId")
+            if not doc_id:
+                continue
+            try:
+                s = datetime.fromisoformat(r["dataStartTime"].replace("+00:00", "").replace("Z", ""))
+                e = datetime.fromisoformat(r["dataEndTime"].replace("+00:00", "").replace("Z", ""))
+                rng = (e - s).days
+                if rng > best_range:
+                    best_range = rng
+                    best = r
+            except (KeyError, ValueError):
+                pass
+        if best:
+            print(f"    Found existing report: {best.get('reportId')} "
+                  f"(range: {best_range}d, created {best.get('createdTime', '?')[:16]})")
+            return best.get("reportDocumentId")
+    else:
+        for r in reports:
+            doc_id = r.get("reportDocumentId")
+            if doc_id:
+                print(f"    Found existing {status} report: {r.get('reportId')} "
+                      f"(created {r.get('createdTime', '?')[:16]})")
+                return doc_id
+    return None
+
+
+def sync_storage_fees(conn, months_back=3):
     """Fetch FBA Monthly Storage Fee charges (TSV).
 
     GET_FBA_STORAGE_FEE_CHARGES_DATA: estimated monthly storage fees per ASIN.
+    This report requires a monthly date range (dataStartTime/dataEndTime).
+    TSV columns use underscores (e.g. month_of_charge, not month-of-charge).
+    Same ASIN can appear across multiple fulfillment centers, so we aggregate
+    per (month, asin) since DB has UNIQUE(month, asin).
     """
     print("  [Storage] Fetching FBA Storage Fees...")
-    rows = amazon_api.fetch_report_tsv("GET_FBA_STORAGE_FEE_CHARGES_DATA")
 
-    records = []
-    for r in rows:
-        month_str = r.get("month-of-charge", "")
-        records.append({
-            "month": month_str,
-            "asin": r.get("asin", ""),
-            "fnsku": r.get("fnsku", ""),
-            "product_name": (r.get("product-name") or "")[:200],
-            "fulfillment_center": r.get("fulfillment-center", ""),
-            "country_code": r.get("country-code", ""),
-            "avg_qty": int(r.get("average-quantity-on-hand", 0) or 0),
-            "avg_qty_pending_removal": int(r.get("average-quantity-pending-removal", 0) or 0),
-            "estimated_storage_fee": float(r.get("estimated-monthly-storage-fee", 0) or 0),
-            "currency": r.get("currency", "EUR"),
-            "product_size_tier": r.get("product-size-tier", ""),
-        })
+    all_records = []
 
-    if records:
-        count = db.upsert_amazon_storage_fees(conn, records)
+    # Fetch storage fees month by month (report requires monthly range)
+    now = datetime.utcnow()
+    for i in range(months_back):
+        # Calculate month boundaries
+        month_end = now.replace(day=1) - timedelta(days=i * 1)
+        if i > 0:
+            month_end = month_end.replace(day=1) - timedelta(days=1)
+            month_end = month_end.replace(day=1)
+            # Go back to first of target month
+            for _ in range(i - 1):
+                month_end = month_end - timedelta(days=1)
+                month_end = month_end.replace(day=1)
+
+        # Simpler: just compute first/last of each past month
+        year = now.year
+        month = now.month - 1 - i  # previous months (storage fees are for completed months)
+        while month <= 0:
+            month += 12
+            year -= 1
+        # Last day of that month
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1) - timedelta(days=1)
+        else:
+            end_date = datetime(year, month + 1, 1) - timedelta(days=1)
+        start_date = datetime(year, month, 1)
+
+        month_label = start_date.strftime("%Y-%m")
+        print(f"    Requesting storage fees for {month_label}...")
+
+        # First try to find an existing DONE report for this period
+        rows = []
+        existing_doc = _find_existing_report("GET_FBA_STORAGE_FEE_CHARGES_DATA")
+        if existing_doc:
+            rows = amazon_api.download_report_tsv(existing_doc)
+            # Filter to the month we want
+            rows = [r for r in rows if r.get("month_of_charge", "") == month_label]
+            if rows:
+                print(f"    Reusing existing report: {len(rows)} rows for {month_label}")
+
+        if not rows:
+            # Create a new report with the required date range
+            rows = amazon_api.fetch_report_tsv(
+                "GET_FBA_STORAGE_FEE_CHARGES_DATA",
+                start_date=start_date,
+                end_date=end_date,
+            )
+
+        if not rows:
+            print(f"    No storage fee data for {month_label}")
+            continue
+
+        # Aggregate per (month, asin) since same ASIN may appear across
+        # multiple fulfillment centers, but DB has UNIQUE(month, asin)
+        asin_data = {}
+        for r in rows:
+            month_str = r.get("month_of_charge", "")
+            asin = r.get("asin", "")
+            if not month_str or not asin:
+                continue
+            key = (month_str, asin)
+            if key not in asin_data:
+                asin_data[key] = {
+                    "month": month_str,
+                    "asin": asin,
+                    "fnsku": r.get("fnsku", ""),
+                    "product_name": (r.get("product_name") or "")[:200],
+                    "fulfillment_center": "AGGREGATED",
+                    "country_code": r.get("country_code", ""),
+                    "avg_qty": 0,
+                    "avg_qty_pending_removal": 0,
+                    "estimated_storage_fee": 0.0,
+                    "currency": r.get("currency", "EUR"),
+                    "product_size_tier": r.get("product_size_tier", ""),
+                }
+            entry = asin_data[key]
+            entry["avg_qty"] += int(float(r.get("average_quantity_on_hand", 0) or 0))
+            entry["avg_qty_pending_removal"] += int(float(r.get("average_quantity_pending_removal", 0) or 0))
+            entry["estimated_storage_fee"] += float(r.get("estimated_monthly_storage_fee", 0) or 0)
+
+        all_records.extend(asin_data.values())
+        time.sleep(3)  # rate limit between month requests
+
+    if all_records:
+        count = db.upsert_amazon_storage_fees(conn, all_records)
         print(f"  [Storage] Upserted {count} storage fee records")
-    return len(records)
+    else:
+        print("  [Storage] No storage fee data received")
+    return len(all_records)
 
 
 # ── Estimated FBA Fees Report ────────────────────────────────────────
@@ -257,16 +389,32 @@ def sync_reimbursements(conn, days_back=90):
     """Fetch FBA Reimbursements report (TSV).
 
     GET_FBA_REIMBURSEMENTS_DATA: reimbursements for lost/damaged inventory.
+    Strategy: first try to find existing DONE reports, then create new if needed.
+    Report creation is heavily rate-limited so reusing existing reports is preferred.
     """
     print("  [Reimburse] Fetching FBA Reimbursements...")
-    start = datetime.utcnow() - timedelta(days=days_back)
-    end = datetime.utcnow()
+    rows = []
 
-    rows = amazon_api.fetch_report_tsv(
-        "GET_FBA_REIMBURSEMENTS_DATA",
-        start_date=start,
-        end_date=end,
-    )
+    # Strategy 1: Try to find and download an existing DONE report (widest date range)
+    existing_doc = _find_existing_report("GET_FBA_REIMBURSEMENTS_DATA", prefer_widest=True)
+    if existing_doc:
+        rows = amazon_api.download_report_tsv(existing_doc)
+        if rows:
+            print(f"    Reusing existing report: {len(rows)} rows")
+
+    # Strategy 2: If no existing report, create a new one with longer wait
+    if not rows:
+        print("    No existing DONE report found, creating new...")
+        start = datetime.utcnow() - timedelta(days=days_back)
+        end = datetime.utcnow()
+
+        # Use longer retry delay for report creation (rate limits are strict)
+        time.sleep(10)  # pre-wait to avoid hitting rate limits from previous calls
+        rows = amazon_api.fetch_report_tsv(
+            "GET_FBA_REIMBURSEMENTS_DATA",
+            start_date=start,
+            end_date=end,
+        )
 
     records = []
     for r in rows:
@@ -291,64 +439,120 @@ def sync_reimbursements(conn, days_back=90):
 
     if records:
         count = db.upsert_amazon_reimbursements(conn, records)
-        print(f"  [Reimburse] Inserted {count} reimbursement records")
+        print(f"  [Reimburse] Upserted {count} reimbursement records")
+    else:
+        print("  [Reimburse] No reimbursement data available")
     return len(records)
 
 
 # ── Settlement Report ────────────────────────────────────────────────
 
 def sync_settlements(conn):
-    """Fetch latest settlement report.
+    """Fetch ALL available settlement reports (not just the latest).
 
     GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2: complete settlement data.
-    Settlement reports are auto-generated, we just need to list and download.
+    Settlement reports are auto-generated by Amazon (~biweekly), we list all
+    available DONE reports and download each one. Uses pagination to get all.
+    Deduplication is handled by checking settlement_id in DB before inserting.
     """
-    print("  [Settlement] Fetching latest settlement reports...")
+    print("  [Settlement] Fetching all settlement reports...")
 
-    # List available settlement reports (Amazon auto-generates these)
-    data = amazon_api.api_get("/reports/2021-06-30/reports", {
-        "reportTypes": "GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2",
-        "pageSize": 10,
-    })
-    reports = data.get("reports", [])
-    if not reports:
+    # Collect all settlement report IDs with pagination
+    all_reports = []
+    next_token = None
+    page = 0
+    while True:
+        params = {
+            "reportTypes": "GET_V2_SETTLEMENT_REPORT_DATA_FLAT_FILE_V2",
+            "pageSize": 100,
+            "processingStatuses": "DONE",
+        }
+        if next_token:
+            params["nextToken"] = next_token
+
+        data = amazon_api.api_get("/reports/2021-06-30/reports", params)
+        reports = data.get("reports", [])
+        all_reports.extend(reports)
+        page += 1
+        print(f"    Page {page}: found {len(reports)} reports")
+
+        next_token = data.get("nextToken")
+        if not next_token or not reports:
+            break
+        time.sleep(2)
+
+    if not all_reports:
         print("    No settlement reports available")
         return 0
 
-    # Download the most recent one
-    latest = reports[0]
-    doc_id = latest.get("reportDocumentId")
-    if not doc_id:
-        print("    No document ID in latest settlement report")
-        return 0
+    print(f"    Total DONE settlement reports: {len(all_reports)}")
 
-    rows = amazon_api.download_report_tsv(doc_id)
-    print(f"  [Settlement] Got {len(rows)} settlement rows")
-
-    # Parse and store key settlement data
-    records = []
-    for r in rows:
-        amount_type = r.get("amount-type", "")
-        if not amount_type:
-            continue
-        records.append({
-            "settlement_id": r.get("settlement-id", ""),
-            "settlement_start_date": r.get("settlement-start-date", ""),
-            "settlement_end_date": r.get("settlement-end-date", ""),
-            "order_id": r.get("order-id", ""),
-            "sku": r.get("sku", ""),
-            "amount_type": amount_type,
-            "amount_description": r.get("amount-description", ""),
-            "amount": float(r.get("amount", 0) or 0),
-            "currency": r.get("currency", "EUR"),
-            "marketplace_name": r.get("marketplace-name", ""),
+    # Get already-imported settlement IDs to avoid re-downloading
+    existing_ids = set()
+    try:
+        existing = db._get("amazon_settlements", {
+            "select": "settlement_id",
+            "limit": "10000",
         })
+        existing_ids = {r["settlement_id"] for r in existing if r.get("settlement_id")}
+        if existing_ids:
+            print(f"    Already have data for settlement IDs: {existing_ids}")
+    except Exception:
+        pass
 
-    # Store as raw data for now (settlement analysis)
-    if records:
-        count = db.upsert_amazon_settlements(conn, records)
-        print(f"  [Settlement] Stored {count} settlement records")
-    return len(records)
+    # Download and parse each report
+    total_records = 0
+    for report in all_reports:
+        doc_id = report.get("reportDocumentId")
+        if not doc_id:
+            continue
+
+        rows = amazon_api.download_report_tsv(doc_id)
+        if not rows:
+            continue
+
+        # Check if we already have this settlement's data
+        first_sid = ""
+        for r in rows:
+            sid = r.get("settlement-id", "")
+            if sid:
+                first_sid = sid
+                break
+
+        if first_sid and first_sid in existing_ids:
+            print(f"    Skipping settlement {first_sid} (already imported)")
+            continue
+
+        # Parse records
+        records = []
+        for r in rows:
+            amount_type = r.get("amount-type", "")
+            if not amount_type:
+                continue
+            records.append({
+                "settlement_id": r.get("settlement-id", ""),
+                "settlement_start_date": r.get("settlement-start-date", ""),
+                "settlement_end_date": r.get("settlement-end-date", ""),
+                "order_id": r.get("order-id", ""),
+                "sku": r.get("sku", ""),
+                "amount_type": amount_type,
+                "amount_description": r.get("amount-description", ""),
+                "amount": _safe_float(r.get("amount")),
+                "currency": r.get("currency", "EUR"),
+                "marketplace_name": r.get("marketplace-name", ""),
+            })
+
+        if records:
+            count = db.upsert_amazon_settlements(conn, records)
+            settlement_id = records[0].get("settlement_id", "?")
+            print(f"    Settlement {settlement_id}: stored {count} records")
+            total_records += count
+            existing_ids.add(settlement_id)
+
+        time.sleep(5)  # rate limit between downloads (SP-API reports are heavily throttled)
+
+    print(f"  [Settlement] Total stored: {total_records} settlement records")
+    return total_records
 
 
 # ── Master sync ──────────────────────────────────────────────────────

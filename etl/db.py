@@ -318,12 +318,18 @@ def upsert_amazon_returns(conn, records):
 
 
 def upsert_amazon_reimbursements(conn, records):
-    """Upsert Amazon reimbursement records."""
+    """Upsert Amazon reimbursement records (deduplicate within batch)."""
     if not records:
         return 0
+    # Deduplicate by (reimbursement_id, sku) within batch
+    seen = {}
+    for r in records:
+        key = (r.get("reimbursement_id", ""), r.get("sku", ""))
+        seen[key] = r
+    deduped = list(seen.values())
     total = 0
-    for i in range(0, len(records), 500):
-        chunk = records[i:i+500]
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
         _post("amazon_reimbursements", chunk, on_conflict="reimbursement_id,sku")
         total += len(chunk)
     return total

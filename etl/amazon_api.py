@@ -67,26 +67,36 @@ def api_get(path, params=None, retries=8):
     return {}
 
 
-def api_post(path, body=None, params=None, retries=5):
-    """POST with retry."""
+def api_post(path, body=None, params=None, retries=8):
+    """POST with retry and longer backoff for rate limits."""
     url = f"{config.AMZ_API_BASE}{path}"
+    last_error = None
     for attempt in range(retries):
         try:
             resp = requests.post(url, headers=headers(), json=body or {}, params=params, timeout=30)
-        except requests.exceptions.ConnectionError:
-            time.sleep(10 * (attempt + 1))
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+            wait = 10 * (attempt + 1)
+            print(f"    [{type(e).__name__}] POST retry in {wait}s ({attempt+1}/{retries})")
+            time.sleep(wait)
             continue
         if resp.status_code == 429:
-            time.sleep(min(5 * (2 ** attempt), 60))
+            wait = min(15 * (2 ** attempt), 120)
+            print(f"    [429] rate limited on POST, waiting {wait}s ({attempt+1}/{retries})")
+            last_error = f"429 QuotaExceeded"
+            time.sleep(wait)
             continue
         if resp.status_code == 403:
             _refresh_token()
             time.sleep(3)
             continue
         if resp.status_code >= 500:
-            time.sleep(5 * (attempt + 1))
+            wait = 5 * (attempt + 1)
+            print(f"    [{resp.status_code}] server error on POST, retry in {wait}s ({attempt+1}/{retries})")
+            time.sleep(wait)
             continue
         return resp.json()
+    print(f"    [WARN] All {retries} POST attempts failed for {path}"
+          f"{f' (last error: {last_error})' if last_error else ''}")
     return {}
 
 
