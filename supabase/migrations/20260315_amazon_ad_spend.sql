@@ -28,7 +28,10 @@ CREATE INDEX IF NOT EXISTS idx_amz_ads_type ON amazon_ad_spend(campaign_type);
 ALTER TABLE amazon_ad_spend ENABLE ROW LEVEL SECURITY;
 
 -- Allow service role full access
-CREATE POLICY "service_all" ON amazon_ad_spend FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+    CREATE POLICY "service_all" ON amazon_ad_spend FOR ALL USING (true) WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- Useful view: daily ad spend totals
 CREATE OR REPLACE VIEW v_daily_ad_spend AS

@@ -17,6 +17,7 @@ Usage:
     python3.11 -m etl.run --cogs              # fill missing COGS from all sources
     python3.11 -m etl.run --shipping          # estimate DPD shipping costs
     python3.11 -m etl.run --dpd-csv file.csv  # import actual costs from DPD invoice CSV
+    python3.11 -m etl.run --dpd-email        # auto-import DPD costs from Gmail (IMAP)
     python3.11 -m etl.run --printful-orders   # process new Printful orders
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
     python3.11 -m etl.run --days 30      # lookback period (default 90)
@@ -55,6 +56,7 @@ def main():
     parser.add_argument("--cogs", action="store_true", help="Fill missing COGS from all available sources")
     parser.add_argument("--shipping", action="store_true", help="Estimate DPD shipping costs for FBM orders")
     parser.add_argument("--dpd-csv", type=str, default=None, help="Import actual DPD costs from invoice CSV file")
+    parser.add_argument("--dpd-email", action="store_true", help="Auto-import DPD costs from Gmail IMAP (Specyfikacja XLSX)")
     parser.add_argument("--ads-csv", type=str, default=None, help="Import Amazon advertising report CSV")
     parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
@@ -62,7 +64,7 @@ def main():
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
-                 args.cogs, args.shipping]
+                 args.cogs, args.shipping, args.dpd_email]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync and not args.dpd_csv
 
@@ -150,6 +152,13 @@ def main():
         if not _run_step(step, total_steps, "Estimating DPD shipping costs",
                          shipping_costs.sync_shipping_costs, conn, days_back=args.days):
             failures.append("Shipping costs")
+
+    if run_all or args.dpd_email:
+        step += 1
+        from . import dpd_invoices
+        if not _run_step(step, total_steps, "Importing DPD costs from Gmail (Specyfikacja XLSX)",
+                         dpd_invoices.sync_dpd_invoices, conn, days_back=min(args.days, 180)):
+            failures.append("DPD email import")
 
     if args.dpd_csv:
         step += 1
