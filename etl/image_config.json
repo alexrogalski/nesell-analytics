@@ -1,0 +1,53 @@
+{
+  "dad_hat": {
+    "printful_product_id": 206,
+    "label": "Dad Hat (Yupoong 6245CM)",
+    "image_order": [
+      {
+        "slot": "main",
+        "placement_id": 41146,
+        "label": "Front (main)"
+      },
+      {
+        "slot": "other_1",
+        "placement_id": 41201,
+        "label": "Right Front (Flat)"
+      },
+      {
+        "slot": "other_2",
+        "placement_id": 41203,
+        "label": "Left Front (Flat)"
+      },
+      {
+        "slot": "other_3",
+        "placement_id": 42897,
+        "label": "Back (Flat)"
+      },
+      {
+        "slot": "other_4",
+        "placement_id": 41190,
+        "label": "Front (Flat, Premium)"
+      },
+      {
+        "slot": "other_5",
+        "placement_id": 25773,
+        "label": "Right (Flat, Premium)"
+      },
+      {
+        "slot": "other_6",
+        "placement_id": 59659,
+        "label": "Front (Production)"
+      },
+      {
+        "slot": "other_7",
+        "placement_id": 81663,
+        "label": "Product details"
+      }
+    ]
+  },
+  "trucker_cap": {
+    "printful_product_id": 252,
+    "label": "Trucker Cap (Yupoong 6506)",
+    "image_order": []
+  }
+}
