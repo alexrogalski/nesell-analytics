@@ -35,7 +35,7 @@ DPD_SECURITY_FEE_EUR = 0.45      # opłata bezpieczeństwa per package
 
 # Fuel surcharge percentage -- check dpd.com.pl for current value
 # Typically 15-20%, set to 17% as default; update when DPD changes it
-DPD_FUEL_SURCHARGE_PCT = 0.17
+DPD_FUEL_SURCHARGE_PCT = 0.217  # 21.70% as of Feb 2026, check dpd.com.pl monthly
 
 # Fallback EUR/PLN rate when fx_rates table has no data
 EUR_PLN_FALLBACK = 4.27
