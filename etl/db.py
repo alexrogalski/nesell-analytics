@@ -371,3 +371,15 @@ def upsert_amazon_settlements(conn, records):
         _post("amazon_settlements", chunk)
         total += len(chunk)
     return total
+
+
+def upsert_amazon_ad_spend(conn, records):
+    """Upsert Amazon advertising/PPC spend data."""
+    if not records:
+        return 0
+    total = 0
+    for i in range(0, len(records), 500):
+        chunk = records[i:i+500]
+        _post("amazon_ad_spend", chunk, on_conflict="date,campaign_name,marketplace_id")
+        total += len(chunk)
+    return total

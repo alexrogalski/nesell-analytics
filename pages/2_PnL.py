@@ -1,12 +1,17 @@
-"""P&L - Waterfall, contribution margins, fee decomposition."""
+"""P&L - Sellerboard-style waterfall, contribution margins, fee decomposition."""
 import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_products, load_refund_summary
+from lib.data import (
+    load_daily_metrics, load_platforms, load_products,
+    load_refund_summary, load_amazon_ad_spend, load_amazon_storage_fees,
+    load_fx_rates,
+)
 from lib.metrics import calc_period_kpis, daily_summary, calc_contribution_margins, platform_summary
-from lib.charts import waterfall_chart, multi_line
+from lib.charts import multi_line
 
 setup_page("P&L")
 
@@ -43,82 +48,216 @@ current_start = now - timedelta(days=days)
 df["date_parsed"] = pd.to_datetime(df["date"]).dt.date
 df_current = df[df["date_parsed"] >= current_start]
 
-# --- 1. Waterfall Chart ---
-st.markdown('<div class="section-header">P&L WATERFALL</div>', unsafe_allow_html=True)
+# --- Load supplementary cost data ---
 
-# Load refund data
+# Refunds
 refund_data = load_refund_summary(days=days)
 total_refunds = refund_data.get("estimated_refund_cost_pln", 0)
 refund_units = refund_data.get("total_units_returned", 0)
 refund_rate = refund_data.get("refund_rate_pct", 0)
+refund_by_date = refund_data.get("refund_by_date", pd.DataFrame())
+
+# FX rate for EUR->PLN conversion
+fx_df = load_fx_rates(days=days)
+eur_rate = 4.30  # fallback
+if not fx_df.empty and "currency" in fx_df.columns:
+    eur_rows = fx_df[fx_df["currency"] == "EUR"]
+    if not eur_rows.empty:
+        eur_rate = float(eur_rows["rate_pln"].iloc[-1])
+
+# PPC / Advertising spend
+ads_df = load_amazon_ad_spend(days=days)
+total_ppc = 0.0
+total_ppc_pln = 0.0
+ads_daily = pd.DataFrame()
+ad_spend_by_date = {}
+if not ads_df.empty:
+    ads_daily = ads_df.groupby("date").agg({"spend": "sum", "sales": "sum"}).reset_index()
+    for _, row in ads_daily.iterrows():
+        d = str(row["date"])[:10]
+        spend_pln = float(row["spend"]) * eur_rate
+        ad_spend_by_date[d] = spend_pln
+    total_ppc = float(ads_df["spend"].sum())
+    total_ppc_pln = sum(ad_spend_by_date.values())
+
+# Storage fees (monthly data)
+storage_df = load_amazon_storage_fees()
+total_storage = 0.0
+total_storage_pln = 0.0
+if not storage_df.empty:
+    month_start = current_start.strftime("%Y-%m")
+    month_end = now.strftime("%Y-%m")
+    storage_period = storage_df[
+        (storage_df["month"] >= month_start) & (storage_df["month"] <= month_end)
+    ]
+    if not storage_period.empty:
+        total_storage = float(storage_period["estimated_storage_fee"].sum())
+        storage_currency = storage_period["currency"].iloc[0] if "currency" in storage_period.columns else "EUR"
+        if storage_currency == "PLN":
+            total_storage_pln = total_storage
+        else:
+            total_storage_pln = total_storage * eur_rate
+
+# --- 1. Sellerboard-style P&L Waterfall ---
+st.markdown('<div class="section-header">P&L WATERFALL</div>', unsafe_allow_html=True)
 
 total_revenue = df_current["revenue_pln"].sum()
 total_cogs = df_current["cogs"].sum()
 total_fees = df_current["fees"].sum()
 total_shipping = df_current["shipping_cost"].sum() if "shipping_cost" in df_current.columns else 0
-total_profit = df_current["profit"].sum()
 
+# Full waterfall:
+# Revenue -> COGS -> CM1 -> Fees -> CM2 -> Shipping -> CM3 -> Storage -> PPC -> Refunds -> Net Profit
 cm1 = total_revenue - total_cogs
 cm2 = cm1 - total_fees
 cm3 = cm2 - total_shipping
-net_profit_adjusted = cm3 - total_refunds
+net_profit = cm3 - total_storage_pln - total_ppc_pln - total_refunds
 
-# Waterfall: Revenue -> COGS -> CM1 -> Fees -> CM2 -> Shipping -> CM3 -> Refunds -> Net Profit
-import plotly.graph_objects as go
+wf_labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3"]
+wf_values = [total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0]
+wf_measures = ["absolute", "relative", "total", "relative", "total", "relative", "total"]
+wf_text = [
+    f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
+    f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{cm3:,.0f}",
+]
 
-if total_refunds > 0:
-    labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3", "Refunds", "Net Profit"]
-    fig_wf = go.Figure(go.Waterfall(
-        x=labels,
-        y=[total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0, -total_refunds, 0],
-        measure=["absolute", "relative", "total", "relative", "total", "relative", "total", "relative", "total"],
-        connector=dict(line=dict(color=COLORS["border"])),
-        increasing=dict(marker=dict(color=COLORS["success"])),
-        decreasing=dict(marker=dict(color=COLORS["danger"])),
-        totals=dict(marker=dict(color=COLORS["primary"])),
-        textposition="outside",
-        text=[f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
-              f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{cm3:,.0f}",
-              f"-{total_refunds:,.0f}", f"{net_profit_adjusted:,.0f}"],
-        textfont=dict(size=10),
-    ))
-else:
-    labels = ["Revenue", "COGS", "CM1", "Fees", "CM2", "Shipping", "CM3"]
-    fig_wf = go.Figure(go.Waterfall(
-        x=labels,
-        y=[total_revenue, -total_cogs, 0, -total_fees, 0, -total_shipping, 0],
-        measure=["absolute", "relative", "total", "relative", "total", "relative", "total"],
-        connector=dict(line=dict(color=COLORS["border"])),
-        increasing=dict(marker=dict(color=COLORS["success"])),
-        decreasing=dict(marker=dict(color=COLORS["danger"])),
-        totals=dict(marker=dict(color=COLORS["primary"])),
-        textposition="outside",
-        text=[f"{total_revenue:,.0f}", f"-{total_cogs:,.0f}", f"{cm1:,.0f}",
-              f"-{total_fees:,.0f}", f"{cm2:,.0f}", f"-{total_shipping:,.0f}", f"{total_profit:,.0f}"],
-        textfont=dict(size=10),
-    ))
+# Always show Storage, PPC, Refunds in waterfall (0 if no data)
+wf_labels.append("Storage")
+wf_values.append(-total_storage_pln)
+wf_measures.append("relative")
+wf_text.append(f"-{total_storage_pln:,.0f}" if total_storage_pln > 0 else "0")
 
-fig_wf.update_layout(title="", height=420, showlegend=False)
+wf_labels.append("PPC/Ads")
+wf_values.append(-total_ppc_pln)
+wf_measures.append("relative")
+wf_text.append(f"-{total_ppc_pln:,.0f}" if total_ppc_pln > 0 else "0")
+
+wf_labels.append("Refunds")
+wf_values.append(-total_refunds)
+wf_measures.append("relative")
+wf_text.append(f"-{total_refunds:,.0f}" if total_refunds > 0 else "0")
+
+wf_labels.append("Net Profit")
+wf_values.append(0)
+wf_measures.append("total")
+wf_text.append(f"{net_profit:,.0f}")
+
+fig_wf = go.Figure(go.Waterfall(
+    x=wf_labels,
+    y=wf_values,
+    measure=wf_measures,
+    connector=dict(line=dict(color=COLORS["border"])),
+    increasing=dict(marker=dict(color=COLORS["success"])),
+    decreasing=dict(marker=dict(color=COLORS["danger"])),
+    totals=dict(marker=dict(color=COLORS["primary"])),
+    textposition="outside",
+    text=wf_text,
+    textfont=dict(size=10),
+))
+fig_wf.update_layout(title="", height=460, showlegend=False)
 st.plotly_chart(fig_wf, use_container_width=True)
 
-# KPI summary under waterfall
-w1, w2, w3, w4, w5 = st.columns(5)
-w1.metric("CM1 (Rev - COGS)", f"{cm1:,.0f} PLN", delta=f"{cm1/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
-w2.metric("CM2 (CM1 - Fees)", f"{cm2:,.0f} PLN", delta=f"{cm2/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
-w3.metric(
+# KPI summary row
+w1, w2, w3, w4, w5, w6 = st.columns(6)
+w1.metric("CM1 (Rev-COGS)", f"{cm1:,.0f} PLN",
+          delta=f"{cm1/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
+w2.metric("CM2 (CM1-Fees)", f"{cm2:,.0f} PLN",
+          delta=f"{cm2/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
+w3.metric("CM3 (CM2-Ship)", f"{cm3:,.0f} PLN",
+          delta=f"{cm3/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
+w4.metric("Net Profit", f"{net_profit:,.0f} PLN",
+          delta=f"{net_profit/total_revenue*100:.1f}% margin" if total_revenue > 0 else None)
+w5.metric(
     "Refunds",
     f"-{total_refunds:,.0f} PLN",
     delta=f"{refund_units} units ({refund_rate:.1f}%)" if refund_units > 0 else "0 returns",
     delta_color="inverse",
 )
-w4.metric("CM3 (Net Profit)", f"{total_profit:,.0f} PLN", delta=f"{total_profit/total_revenue*100:.1f}% of rev" if total_revenue > 0 else None)
-w5.metric("COGS Coverage", f"{df_current[df_current['cogs']>0]['revenue_pln'].sum()/total_revenue*100:.0f}%" if total_revenue > 0 else "N/A")
+w6.metric("COGS Coverage",
+          f"{df_current[df_current['cogs']>0]['revenue_pln'].sum()/total_revenue*100:.0f}%" if total_revenue > 0 else "N/A")
 
-# --- 2. Daily CM1/CM2/CM3 trend ---
+# --- Cost breakdown detail ---
+st.markdown('<div class="section-header">COST BREAKDOWN</div>', unsafe_allow_html=True)
+
+cost_items = {
+    "COGS": total_cogs,
+    "Platform Fees": total_fees,
+    "Shipping": total_shipping,
+    "FBA Storage": total_storage_pln,
+    "PPC / Ads": total_ppc_pln,
+    "Refunds": total_refunds,
+}
+total_costs = sum(cost_items.values())
+
+c1, c2 = st.columns([2, 1])
+
+with c1:
+    cost_df = pd.DataFrame([
+        {"Cost Type": k, "Amount (PLN)": v, "% of Revenue": v / total_revenue * 100 if total_revenue > 0 else 0}
+        for k, v in cost_items.items() if v > 0
+    ])
+    if not cost_df.empty:
+        cost_df = cost_df.sort_values("Amount (PLN)", ascending=True)
+        cost_colors = {
+            "COGS": COLORS["danger"],
+            "Platform Fees": COLORS["warning"],
+            "Shipping": COLORS["info"],
+            "FBA Storage": "#8b5cf6",
+            "PPC / Ads": "#ec4899",
+            "Refunds": "#f97316",
+        }
+        fig_costs = go.Figure()
+        fig_costs.add_trace(go.Bar(
+            y=cost_df["Cost Type"],
+            x=cost_df["Amount (PLN)"],
+            orientation="h",
+            marker_color=[cost_colors.get(ct, COLORS["muted"]) for ct in cost_df["Cost Type"]],
+            text=cost_df.apply(
+                lambda r: f'{r["Amount (PLN)"]:,.0f} PLN ({r["% of Revenue"]:.1f}%)', axis=1
+            ),
+            textposition="outside",
+        ))
+        fig_costs.update_layout(height=max(200, len(cost_df) * 50), showlegend=False, title="")
+        st.plotly_chart(fig_costs, use_container_width=True)
+    else:
+        st.info("No cost data to display.")
+
+with c2:
+    st.markdown("**P&L Summary**")
+    summary_data = {
+        "Line Item": ["Revenue", "Total Costs", "Net Profit"],
+        "PLN": [f"{total_revenue:,.0f}", f"-{total_costs:,.0f}", f"{net_profit:,.0f}"],
+        "% Rev": [
+            "100.0%",
+            f"{total_costs/total_revenue*100:.1f}%" if total_revenue > 0 else "0%",
+            f"{net_profit/total_revenue*100:.1f}%" if total_revenue > 0 else "0%",
+        ],
+    }
+    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+
+    # Data availability notes
+    missing = []
+    if total_ppc_pln == 0:
+        missing.append("PPC/Ads: No data. Import CSV via `--ads-csv`")
+    if total_storage_pln == 0:
+        missing.append("Storage: No data in `amazon_storage_fees` table")
+    if total_refunds == 0:
+        missing.append("Refunds: No return data in `amazon_returns`")
+    if missing:
+        with st.expander("Missing data sources", expanded=False):
+            for m in missing:
+                st.caption(m)
+
+# --- 2. Daily CM trend ---
 st.markdown('<div class="section-header">DAILY CONTRIBUTION MARGINS</div>', unsafe_allow_html=True)
 
-refund_by_date = refund_data.get("refund_by_date", pd.DataFrame())
-daily = daily_summary(df, refund_by_date=refund_by_date)
+daily = daily_summary(
+    df,
+    refund_by_date=refund_by_date,
+    ad_spend_by_date=ad_spend_by_date if ad_spend_by_date else None,
+    storage_fees_total=total_storage_pln,
+    period_days=days,
+)
 if not daily.empty:
     daily["date"] = pd.to_datetime(daily["date"])
     chart_cutoff = datetime.now() - timedelta(days=days)
@@ -129,18 +268,25 @@ if not daily.empty:
         names = ["CM1 (Rev-COGS)", "CM2 (CM1-Fees)", "CM3 (CM2-Ship)"]
         colors = [COLORS["cm1"], COLORS["cm2"], COLORS["cm3"]]
 
-        # Add net_profit line if refund data causes a meaningful difference
-        if "net_profit" in daily_chart.columns and "refunds" in daily_chart.columns:
-            if daily_chart["refunds"].sum() > 0:
+        # Add Net Profit line if it differs from CM3
+        if "net_profit" in daily_chart.columns:
+            has_extra_costs = False
+            for extra_col in ["ppc_cost", "storage_cost", "refunds"]:
+                if extra_col in daily_chart.columns and daily_chart[extra_col].sum() > 0:
+                    has_extra_costs = True
+                    break
+            if has_extra_costs:
                 y_cols.append("net_profit")
-                names.append("Net (CM3-Refunds)")
-                colors.append("#f97316")  # orange for refund-adjusted line
+                names.append("Net Profit")
+                colors.append("#f97316")
 
-        # Add 7d MA for CM3
-        if "cm3_7d" not in daily_chart.columns:
-            daily_chart["cm3_7d"] = daily_chart["cm3"].rolling(7, min_periods=1).mean()
-        y_cols.append("cm3_7d")
-        names.append("CM3 7d MA")
+        # Add 7d MA for the bottom line
+        bottom_col = "net_profit" if "net_profit" in daily_chart.columns else "cm3"
+        ma_col = f"{bottom_col}_7d"
+        if ma_col not in daily_chart.columns:
+            daily_chart[ma_col] = daily_chart[bottom_col].rolling(7, min_periods=1).mean()
+        y_cols.append(ma_col)
+        names.append(f"7d MA")
         colors.append(COLORS["muted"])
 
         fig_cm = multi_line(daily_chart, "date", y_cols, colors=colors, names=names, height=380)
@@ -155,7 +301,6 @@ if not products_df.empty and not df_current.empty:
     df_with_source = df_current.copy()
     df_with_source["source"] = df_with_source["sku"].map(source_map).fillna("unknown")
 
-    # Classify: printful vs everything else
     df_with_source["source_group"] = df_with_source["source"].apply(
         lambda x: "Printful" if str(x).lower() in ["printful", "pft"] else "Resell/Other"
     )
@@ -185,7 +330,6 @@ if not plat_summary.empty:
     plat_fees["fees_pct"] = np.where(plat_fees["revenue_pln"] > 0, plat_fees["fees"] / plat_fees["revenue_pln"] * 100, 0)
     plat_fees = plat_fees.sort_values("fees", ascending=True)
 
-    import plotly.graph_objects as go
     fig_fees = go.Figure()
     fig_fees.add_trace(go.Bar(
         y=plat_fees["platform"], x=plat_fees["fees"],
@@ -195,31 +339,102 @@ if not plat_summary.empty:
     fig_fees.update_layout(height=max(250, len(plat_fees) * 40), showlegend=False, title="")
     st.plotly_chart(fig_fees, use_container_width=True)
 
-# --- 5. Period comparison table ---
+# --- 5. PPC / Advertising detail ---
+if not ads_df.empty:
+    st.markdown('<div class="section-header">PPC / ADVERTISING</div>', unsafe_allow_html=True)
+
+    ppc1, ppc2, ppc3, ppc4 = st.columns(4)
+    total_impressions = int(ads_df["impressions"].sum())
+    total_clicks = int(ads_df["clicks"].sum())
+    total_ad_sales = float(ads_df["sales"].sum())
+    total_ad_orders = int(ads_df["orders"].sum()) if "orders" in ads_df.columns else 0
+    overall_acos = (total_ppc / total_ad_sales * 100) if total_ad_sales > 0 else 0
+    overall_roas = (total_ad_sales / total_ppc) if total_ppc > 0 else 0
+    ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
+
+    ppc1.metric("Ad Spend", f"{total_ppc:,.2f} EUR", delta=f"{total_ppc_pln:,.0f} PLN")
+    ppc2.metric("Ad Sales", f"{total_ad_sales:,.2f} EUR")
+    ppc3.metric("ACOS", f"{overall_acos:.1f}%", delta=f"ROAS: {overall_roas:.2f}x")
+    ppc4.metric("CTR", f"{ctr:.2f}%", delta=f"{total_clicks:,} clicks / {total_impressions:,} impr.")
+
+    # Daily PPC trend
+    if not ads_daily.empty and len(ads_daily) > 1:
+        ads_daily_chart = ads_daily.copy()
+        ads_daily_chart["date"] = pd.to_datetime(ads_daily_chart["date"])
+        fig_ppc = go.Figure()
+        fig_ppc.add_trace(go.Bar(
+            x=ads_daily_chart["date"], y=ads_daily_chart["spend"],
+            name="Spend", marker_color=COLORS["danger"], opacity=0.7,
+        ))
+        fig_ppc.add_trace(go.Bar(
+            x=ads_daily_chart["date"], y=ads_daily_chart["sales"],
+            name="Sales", marker_color=COLORS["success"], opacity=0.7,
+        ))
+        fig_ppc.update_layout(
+            height=300, barmode="group", title="Daily PPC Spend vs Sales (EUR)",
+            legend=dict(orientation="h", y=-0.15),
+        )
+        st.plotly_chart(fig_ppc, use_container_width=True)
+
+# --- 6. Storage fees detail ---
+if not storage_df.empty and total_storage > 0:
+    st.markdown('<div class="section-header">FBA STORAGE FEES</div>', unsafe_allow_html=True)
+
+    st1, st2, st3 = st.columns(3)
+    st1.metric("Total Storage Fees", f"{total_storage:,.2f} EUR", delta=f"{total_storage_pln:,.0f} PLN")
+    st2.metric("% of Revenue", f"{total_storage_pln/total_revenue*100:.2f}%" if total_revenue > 0 else "N/A")
+    st3.metric("ASINs with Storage", f"{storage_df['asin'].nunique()}")
+
+    top_storage = storage_df.groupby(["asin", "product_name"]).agg(
+        total_fee=("estimated_storage_fee", "sum"),
+        avg_qty=("avg_qty", "mean"),
+    ).reset_index().sort_values("total_fee", ascending=False).head(10)
+
+    if not top_storage.empty:
+        st.dataframe(
+            top_storage.rename(columns={
+                "asin": "ASIN", "product_name": "Product",
+                "total_fee": "Storage Fee (EUR)", "avg_qty": "Avg Qty",
+            }),
+            use_container_width=True, hide_index=True,
+        )
+
+# --- 7. Period comparison table ---
 st.markdown('<div class="section-header">PERIOD COMPARISON</div>', unsafe_allow_html=True)
 
-kpis = calc_period_kpis(df, days, refund_summary=refund_data)
+kpis = calc_period_kpis(df, days, refund_summary=refund_data,
+                        ppc_total=total_ppc_pln, storage_total=total_storage_pln)
 if kpis:
     comp_data = {
-        "Metric": ["Revenue", "COGS", "Fees", "Refunds", "Shipping", "Profit (CM3)", "Margin %", "ROI %", "Orders", "Units", "AOV"],
+        "Metric": [
+            "Revenue", "COGS", "Platform Fees", "Shipping",
+            "FBA Storage", "PPC / Ads", "Refunds",
+            "Net Profit", "Margin %", "ROI %", "Orders", "Units", "AOV",
+        ],
         f"Current {days}d": [
             f"{kpis['revenue']:,.0f}", f"{kpis['cogs']:,.0f}", f"{kpis['fees']:,.0f}",
-            f"{kpis.get('refunds', 0):,.0f}",
             f"{kpis.get('shipping', 0):,.0f}",
+            f"{kpis.get('storage', 0):,.0f}",
+            f"{kpis.get('ppc', 0):,.0f}",
+            f"{kpis.get('refunds', 0):,.0f}",
             f"{kpis['profit']:,.0f}", f"{kpis['margin']:.1f}%", f"{kpis.get('roi', 0):.1f}%",
             f"{kpis['orders']:,}", f"{kpis['units']:,}", f"{kpis['aov']:,.0f}",
         ],
         f"Previous {days}d": [
             f"{kpis['revenue_prev']:,.0f}", f"{kpis['cogs_prev']:,.0f}", f"{kpis['fees_prev']:,.0f}",
-            f"{kpis.get('refunds_prev', 0):,.0f}",
             f"{kpis.get('shipping_prev', 0):,.0f}",
+            f"{kpis.get('storage_prev', 0):,.0f}",
+            f"{kpis.get('ppc_prev', 0):,.0f}",
+            f"{kpis.get('refunds_prev', 0):,.0f}",
             f"{kpis['profit_prev']:,.0f}", f"{kpis['margin_prev']:.1f}%", f"{kpis.get('roi_prev', 0):.1f}%",
             f"{kpis['orders_prev']:,}", f"{kpis['units_prev']:,}", f"{kpis['aov_prev']:,.0f}",
         ],
         "Change %": [
             f"{kpis['revenue_delta']:+.1f}%", f"{kpis['cogs_delta']:+.1f}%", f"{kpis['fees_delta']:+.1f}%",
-            f"{kpis.get('refunds_delta', 0):+.1f}%",
             f"{kpis.get('shipping_delta', 0):+.1f}%",
+            f"{kpis.get('storage_delta', 0):+.1f}%",
+            f"{kpis.get('ppc_delta', 0):+.1f}%",
+            f"{kpis.get('refunds_delta', 0):+.1f}%",
             f"{kpis['profit_delta']:+.1f}%",
             f"{kpis['margin'] - kpis['margin_prev']:+.1f}pp",
             f"{kpis.get('roi', 0) - kpis.get('roi_prev', 0):+.1f}pp",

@@ -55,6 +55,8 @@ def main():
     parser.add_argument("--cogs", action="store_true", help="Fill missing COGS from all available sources")
     parser.add_argument("--shipping", action="store_true", help="Estimate DPD shipping costs for FBM orders")
     parser.add_argument("--dpd-csv", type=str, default=None, help="Import actual DPD costs from invoice CSV file")
+    parser.add_argument("--ads-csv", type=str, default=None, help="Import Amazon advertising report CSV")
+    parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
@@ -155,6 +157,13 @@ def main():
         if not _run_step(step, total_steps, f"Importing DPD costs from CSV: {args.dpd_csv}",
                          shipping_costs.import_dpd_csv, conn, args.dpd_csv):
             failures.append("DPD CSV import")
+
+    if args.ads_csv:
+        step += 1
+        from . import amazon_ads
+        if not _run_step(step, total_steps, f"Importing Amazon ads CSV: {args.ads_csv}",
+                         amazon_ads.import_ads_csv, conn, args.ads_csv, args.ads_marketplace):
+            failures.append("Amazon ads CSV import")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:
