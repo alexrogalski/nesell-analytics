@@ -121,8 +121,7 @@ th_style = 'padding: 8px; text-align: left; font-family: monospace; font-size: 0
 th_r = th_style.replace("text-align: left", "text-align: right")
 th_c = th_style.replace("text-align: left", "text-align: center")
 
-prof_table_html = (
-    '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 550px; overflow-y: auto;">'
+prof_table_inner = (
     '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
     '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
     f'<th style="{th_style} width: 50px;"></th>'
@@ -139,9 +138,17 @@ prof_table_html = (
     f'<th style="{th_r}">Margin%</th>'
     '</tr></thead>'
     f'<tbody>{prof_rows_html}</tbody>'
-    '</table></div>'
+    '</table>'
 )
-st.markdown(prof_table_html, unsafe_allow_html=True)
+
+_prof_row_count = len(prod_sorted)
+_prof_table_height = min(550, 42 + _prof_row_count * 45)
+st.html(f'''<style>
+html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+</style>
+<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: {_prof_table_height}px; overflow-y: auto;">
+{prof_table_inner}
+</div>''')
 
 # --- 2. Quadrant scatter ---
 st.markdown('<div class="section-header">PORTFOLIO QUADRANT</div>', unsafe_allow_html=True)
@@ -319,8 +326,7 @@ if not prod_df.empty:
             )
 
         gap_th = 'padding: 10px; font-family: monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-        gap_table_html = (
-            '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 500px; overflow-y: auto;">'
+        gap_table_inner = (
             '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
             '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
             f'<th style="{gap_th} text-align: left; width: 46px;"></th>'
@@ -333,9 +339,19 @@ if not prod_df.empty:
             f'<th style="{gap_th} text-align: center;">Action</th>'
             '</tr></thead>'
             f'<tbody>{rows_html}</tbody>'
-            '</table></div>'
+            '</table>'
         )
-        st.markdown(gap_table_html, unsafe_allow_html=True)
+
+        _gap_row_count = len(gap_df)
+        _gap_table_height = min(500, 46 + _gap_row_count * 44)
+        st.html(f'''<style>
+html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+a {{ color: #3b82f6; text-decoration: none; }}
+a:hover {{ text-decoration: underline; }}
+</style>
+<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: {_gap_table_height}px; overflow-y: auto;">
+{gap_table_inner}
+</div>''')
 
         # Copyable SKU list for bulk operations
         with st.expander("Export SKU list (copy-paste)"):

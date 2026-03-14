@@ -162,8 +162,7 @@ if not cogs_gaps.empty:
             )
 
         cc_th = 'padding: 10px; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-        table_html = (
-            '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">'
+        cc_table_inner = (
             '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
             '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">'
             f'<th style="{cc_th} text-align: left; width: 46px;"></th>'
@@ -174,9 +173,19 @@ if not cogs_gaps.empty:
             f'<th style="{cc_th} text-align: center;">Action</th>'
             '</tr></thead>'
             f'<tbody>{rows_html}</tbody>'
-            '</table></div>'
+            '</table>'
         )
-        st.markdown(table_html, unsafe_allow_html=True)
+
+        _cc_row_count = len(top_gaps)
+        _cc_table_height = min(500, 46 + _cc_row_count * 44)
+        st.html(f'''<style>
+html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
+a {{ color: #3b82f6; text-decoration: none; }}
+a:hover {{ text-decoration: underline; }}
+</style>
+<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">
+{cc_table_inner}
+</div>''')
 
 # --- Data Coverage Indicators ---
 coverage = load_data_coverage(days=days)
