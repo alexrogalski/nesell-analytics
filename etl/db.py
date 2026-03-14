@@ -98,7 +98,7 @@ def upsert_orders(conn, orders):
 
 
 def upsert_order_items(conn, items):
-    """Insert order items (no upsert — append only)."""
+    """Upsert order items (dedup by order_id + sku)."""
     if not items:
         return 0
     rows = []
@@ -118,7 +118,7 @@ def upsert_order_items(conn, items):
     total = 0
     for i in range(0, len(rows), 500):
         chunk = rows[i:i+500]
-        _post("order_items", chunk)
+        _post("order_items", chunk, on_conflict="order_id,sku")
         total += len(chunk)
     return total
 
