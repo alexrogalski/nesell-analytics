@@ -13,6 +13,7 @@ Usage:
     python3.11 -m etl.run --reports      # Amazon reports (traffic, inventory, etc.)
     python3.11 -m etl.run --amzdata      # Amazon live API (BSR, pricing, inventory)
     python3.11 -m etl.run --aggregate    # re-aggregate daily metrics
+    python3.11 -m etl.run --images       # fetch missing product images
     python3.11 -m etl.run --printful-orders  # process new Printful orders
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
     python3.11 -m etl.run --days 30      # lookback period (default 90)
@@ -47,11 +48,12 @@ def main():
     parser.add_argument("--aggregate", action="store_true", help="Aggregate daily metrics")
     parser.add_argument("--printful-orders", action="store_true", help="Process new Printful auto-fulfillment orders")
     parser.add_argument("--tracking-sync", action="store_true", help="Sync Printful tracking info to Baselinker")
+    parser.add_argument("--images", action="store_true", help="Fetch missing product images from Baselinker")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
-                 args.allegro_fees, args.reports, args.amzdata, args.aggregate]
+                 args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync
 
@@ -118,6 +120,13 @@ def main():
         if not _run_step(step, total_steps, "Aggregating daily metrics",
                          aggregator.aggregate_daily, conn, days_back=args.days):
             failures.append("Aggregation")
+
+    if args.images:
+        step += 1
+        from . import fetch_images
+        if not _run_step(step, total_steps, "Fetching missing product images",
+                         fetch_images.run):
+            failures.append("Product images")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:
