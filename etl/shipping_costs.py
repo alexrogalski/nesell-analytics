@@ -25,71 +25,121 @@ from .baselinker import bl_api
 
 
 # ---------------------------------------------------------------------------
-# DPD contract rate table (EUR, net)
-# These are typical DPD PL contract rates for e-commerce sellers.
-# UPDATE these values to match your actual DPD contract.
-# Rates are per-parcel, domestic and international, up to 31.5 kg standard.
+# DPD Classic Export contract rates (EUR netto, per package)
+# Source: "DPD POLSKA oferta Export" -- Nesell actual contract rates
+# Last updated: 2026-03-14
 # ---------------------------------------------------------------------------
 
-# Rate structure: destination_country -> cost_eur_net per parcel
-# Based on DPD PL standard e-commerce contract zones:
-#   Zone 0: Poland (domestic)
-#   Zone 1: DE, AT, CZ, SK (neighboring)
-#   Zone 2: FR, BE, NL, LU, DK (Western EU)
-#   Zone 3: IT, ES, SE, HU, RO, BG, HR, SI, LT, LV, EE, FI (further EU)
-#   Zone 4: GR, PT, IE (periphery EU)
-#   Zone 5: GB, NO, CH (non-EU Europe)
+# Per-package fixed fees (EUR netto)
+DPD_SECURITY_FEE_EUR = 0.45      # opłata bezpieczeństwa per package
 
-DPD_ZONE_RATES_EUR_NET = {
-    0: 2.50,   # Poland domestic (PLN ~10-12, but billed in EUR if contract is EUR)
-    1: 4.50,   # DE, AT, CZ, SK
-    2: 6.50,   # FR, BE, NL, LU, DK
-    3: 8.50,   # IT, ES, SE, HU, RO, BG, HR, SI, LT, LV, EE, FI
-    4: 10.50,  # GR, PT, IE
-    5: 12.50,  # GB, NO, CH
+# Fuel surcharge percentage -- check dpd.com.pl for current value
+# Typically 15-20%, set to 17% as default; update when DPD changes it
+DPD_FUEL_SURCHARGE_PCT = 0.17
+
+# Fallback EUR/PLN rate when fx_rates table has no data
+EUR_PLN_FALLBACK = 4.27
+
+# Weight brackets in kg (contract columns)
+WEIGHT_BRACKETS = [1.0, 3.0, 10.0, 20.0, 31.5]
+
+# DPD Classic Export rates by country code (EUR netto)
+# Each country maps to: zone, rates by weight bracket [do 1kg, do 3kg, do 10kg, do 20kg, do 31.5kg]
+# Zone surcharges are NOT included by default (edge cases for specific postcodes only)
+DPD_COUNTRY_RATES = {
+    # Zone A
+    "CZ": {"zone": "A", "rates": [2.00, 2.51, 3.73, 4.90, 7.62]},
+    "LT": {"zone": "A", "rates": [2.23, 2.76, 3.98, 5.17, 7.93]},
+    "LV": {"zone": "A", "rates": [2.63, 3.28, 4.76, 6.17, 9.56]},
+    "DE": {"zone": "A", "rates": [2.86, 3.62, 5.30, 6.87, 10.76]},
+    "SK": {"zone": "A", "rates": [1.89, 2.30, 3.28, 4.27, 6.43]},
+    "HU": {"zone": "A", "rates": [1.70, 2.17, 3.31, 4.42, 6.94]},
+    "UA": {"zone": "A", "rates": [1.98, 3.03, 5.31, 7.38, 12.75]},
+    # Zone B
+    "AT": {"zone": "B", "rates": [3.18, 4.02, 5.89, 7.61, 11.96]},
+    "BE": {"zone": "B", "rates": [3.56, 4.46, 6.44, 8.25, 12.88]},
+    "EE": {"zone": "B", "rates": [3.78, 4.50, 6.12, 7.64, 11.37]},
+    "NL": {"zone": "B", "rates": [2.92, 3.86, 5.93, 7.82, 12.68]},
+    "LU": {"zone": "B", "rates": [3.68, 4.87, 7.45, 9.76, 15.88]},
+    "SI": {"zone": "B", "rates": [2.67, 3.65, 5.79, 7.74, 12.77]},
+    # Zone C
+    "BG": {"zone": "C", "rates": [5.13, 5.13, 8.46, 10.85, 13.55]},
+    "DK": {"zone": "C", "rates": [3.99, 5.50, 8.71, 11.57, 19.28]},
+    "FR": {"zone": "C", "rates": [3.65, 4.83, 7.37, 9.65, 15.69]},
+    "RO": {"zone": "C", "rates": [4.33, 4.68, 5.54, 7.00, 8.27]},
+    "GB": {"zone": "C", "rates": [3.29, 4.80, 7.99, 10.82, 18.49]},
+    "IT": {"zone": "C", "rates": [3.72, 4.79, 7.09, 9.18, 14.63]},
+    "CH": {"zone": "C", "rates": [4.47, 5.33, 7.21, 8.95, 13.35]},
+    # Zone D
+    "HR": {"zone": "D", "rates": [2.46, 3.41, 5.50, 7.40, 12.29]},
+    "ES": {"zone": "D", "rates": [3.81, 5.34, 8.60, 11.48, 19.31]},
+    "IE": {"zone": "D", "rates": [3.71, 5.79, 10.13, 13.91, 24.44]},
+    "PT": {"zone": "D", "rates": [2.55, 3.97, 6.99, 9.68, 16.92]},
+    "SE": {"zone": "D", "rates": [5.03, 6.71, 10.24, 13.35, 21.85]},
+    "FI": {"zone": "D", "rates": [6.94, 8.34, 11.32, 13.97, 21.10]},
+    # Zone E
+    "GR": {"zone": "E", "rates": [9.00, 9.00, 12.80, 17.56, 22.31]},
+    "NO": {"zone": "E", "rates": [6.14, 7.86, 11.46, 14.63, 23.33]},
 }
 
-# Poland domestic rate in PLN (net) -- separate because domestic is billed in PLN
-DPD_DOMESTIC_PLN_NET = 10.50
-
-COUNTRY_TO_ZONE = {
-    # Zone 0 - Domestic
-    "PL": 0,
-    # Zone 1 - Neighboring
-    "DE": 1, "AT": 1, "CZ": 1, "SK": 1,
-    # Zone 2 - Western EU
-    "FR": 2, "BE": 2, "NL": 2, "LU": 2, "DK": 2,
-    # Zone 3 - Further EU
-    "IT": 3, "ES": 3, "SE": 3, "HU": 3, "RO": 3, "BG": 3,
-    "HR": 3, "SI": 3, "LT": 3, "LV": 3, "EE": 3, "FI": 3,
-    # Zone 4 - Periphery
-    "GR": 4, "PT": 4, "IE": 4,
-    # Zone 5 - Non-EU
-    "GB": 5, "NO": 5, "CH": 5,
-}
+# Poland domestic: NOT in this DPD Export contract (rates too high)
+# DPD domestic shipments should not go through this module.
+# If a PL order somehow appears, use a high fallback to flag it.
+DPD_DOMESTIC_PLN_NET = 15.00  # fallback only, not real contract rate
 
 # VAT rate for DPD services (Polish VAT on courier services)
 DPD_VAT_RATE = 0.23
 
 
-def _estimate_dpd_cost(country_code: str) -> tuple[float, float, str]:
-    """Estimate DPD shipping cost for a destination country.
+def _get_rate_for_weight(rates: list[float], weight_kg: float) -> float:
+    """Look up the correct rate from the weight bracket list.
 
-    Returns (cost_net, cost_currency, zone_info).
+    Brackets: [do 1kg, do 3kg, do 10kg, do 20kg, do 31.5kg]
+    """
+    for i, bracket_max in enumerate(WEIGHT_BRACKETS):
+        if weight_kg <= bracket_max:
+            return rates[i]
+    # Over 31.5kg: use the highest bracket
+    return rates[-1]
+
+
+def _estimate_dpd_cost(country_code: str, weight_kg: float = 0.8) -> tuple[float, float, str]:
+    """Estimate DPD shipping cost for a destination country and weight.
+
+    Uses actual Nesell DPD Classic Export contract rates.
+    Adds security fee (0.45 EUR) and fuel surcharge (default 17%) on top.
+
+    Args:
+        country_code: ISO 2-letter country code
+        weight_kg: package weight in kg (default 0.8, since 90% of packages < 1kg)
+
+    Returns (cost_net_total_eur, cost_currency, zone_info).
+        cost_net_total_eur includes base rate + security fee + fuel surcharge.
     """
     country = (country_code or "").upper().strip()
-    zone = COUNTRY_TO_ZONE.get(country)
-
-    if zone is None:
-        # Unknown destination -- use Zone 3 as default (mid-range)
-        zone = 3
 
     if country == "PL":
-        # Domestic shipments billed in PLN
-        return DPD_DOMESTIC_PLN_NET, "PLN", f"zone_{zone}_domestic"
+        # Domestic: not in DPD Export contract, use fallback
+        return DPD_DOMESTIC_PLN_NET, "PLN", "domestic_fallback"
+
+    country_data = DPD_COUNTRY_RATES.get(country)
+    if country_data is None:
+        # Unknown destination: use DE rates as mid-range fallback
+        country_data = DPD_COUNTRY_RATES["DE"]
+        zone_info = f"unknown_country_{country}_fallback_DE"
     else:
-        rate = DPD_ZONE_RATES_EUR_NET.get(zone, DPD_ZONE_RATES_EUR_NET[3])
-        return rate, "EUR", f"zone_{zone}"
+        zone_info = f"zone_{country_data['zone']}_{country}"
+
+    # Base rate from weight bracket
+    base_rate = _get_rate_for_weight(country_data["rates"], weight_kg)
+
+    # Add per-package security fee
+    subtotal = base_rate + DPD_SECURITY_FEE_EUR
+
+    # Apply fuel surcharge on the subtotal
+    total_net = round(subtotal * (1 + DPD_FUEL_SURCHARGE_PCT), 2)
+
+    return total_net, "EUR", zone_info
 
 
 def _get_baselinker_orders_with_courier(days_back: int = 90) -> list[dict]:
@@ -265,7 +315,7 @@ def sync_shipping_costs(conn, days_back: int = 90):
             cost_pln = cost_gross
         else:
             fx = fx_rates.convert_to_pln(conn, cost_gross, cost_currency, o["order_date"])
-            cost_pln = round(fx, 2) if fx else round(cost_gross * 4.30, 2)  # fallback EUR/PLN
+            cost_pln = round(fx, 2) if fx else round(cost_gross * EUR_PLN_FALLBACK, 2)
 
         cost_record = {
             "order_id": order_db_id,
@@ -442,7 +492,7 @@ def import_dpd_csv(conn, csv_path: str):
         if currency != "PLN":
             ship_date = cost_data.get("ship_date") or str(date.today())
             fx = fx_rates.convert_to_pln(conn, cost_data["cost_gross"], currency, ship_date)
-            cost_pln = round(fx, 2) if fx else round(cost_data["cost_gross"] * 4.30, 2)
+            cost_pln = round(fx, 2) if fx else round(cost_data["cost_gross"] * EUR_PLN_FALLBACK, 2)
 
         # Update shipping_costs record with real invoice data
         try:
