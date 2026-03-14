@@ -1,9 +1,10 @@
-"""Fetch product images from Baselinker for products missing image_url in DB.
+"""Fetch product images from Baselinker and Amazon SP-API for products missing image_url.
 
 Sources:
 1. Baselinker main warehouse (inv_id=30229) - has Amazon product images
 2. Baselinker Printful warehouse (inv_id=52954) - already synced via sync_products
 3. Fallback: SKU pattern matching against existing DB images (for variant SKUs)
+4. Fallback: Amazon SP-API Catalog Items API - search by EAN/SKU identifier
 
 Usage:
     cd ~/nesell-analytics && python3.11 -m etl.fetch_images
@@ -316,14 +317,188 @@ def match_by_sku_patterns(
     return matched
 
 
+# --- Amazon SP-API image fallback ---
+
+# Marketplace IDs for searching - try DE first (largest), then others
+AMAZON_MARKETPLACE_IDS = [
+    "A1PA6795UKMFR9",  # DE
+    "A13V1IB3VIYZZH",  # FR
+    "APJ6JRA9NG5V4",   # IT
+    "A1RKKUPIHCS9HS",  # ES
+    "A1805IZSGTT6HS",  # NL
+    "A1C3SOZRARQ6R3",  # PL
+    "A2NODRKZP88ZB9",  # SE
+    "AMEN7PMS3EDWL",   # BE
+]
+
+
+def _amz_headers() -> dict:
+    """Get Amazon SP-API request headers with fresh access token."""
+    token = config.get_amazon_token()
+    return {
+        "x-amz-access-token": token,
+        "Content-Type": "application/json",
+    }
+
+
+def _amz_get(path: str, params: dict = None) -> dict:
+    """GET request to Amazon SP-API with retry and backoff."""
+    url = f"{config.AMZ_API_BASE}{path}"
+    for attempt in range(6):
+        try:
+            resp = requests.get(url, headers=_amz_headers(), params=params, timeout=30)
+        except requests.exceptions.ConnectionError:
+            wait = 10 * (attempt + 1)
+            print(f"    [AMZ ConnectionError] retrying in {wait}s (attempt {attempt+1}/6)")
+            time.sleep(wait)
+            continue
+        if resp.status_code == 429:
+            wait = min(5 * (2 ** attempt), 60)
+            print(f"    [AMZ 429] rate limited, waiting {wait}s (attempt {attempt+1}/6)...")
+            time.sleep(wait)
+            continue
+        if resp.status_code == 403:
+            print(f"    [AMZ 403] token may be expired, refreshing (attempt {attempt+1}/6)...")
+            time.sleep(3)
+            continue
+        if resp.status_code >= 500:
+            wait = 5 * (attempt + 1)
+            print(f"    [AMZ {resp.status_code}] server error, retrying in {wait}s")
+            time.sleep(wait)
+            continue
+        if resp.status_code == 200:
+            return resp.json()
+        # Other error (400, 404, etc.) - return empty
+        print(f"    [AMZ {resp.status_code}] {resp.text[:200]}")
+        return {}
+    print(f"    [AMZ WARN] All 6 attempts failed for {path}")
+    return {}
+
+
+def _extract_image_from_catalog_item(item: dict) -> str | None:
+    """Extract the best image URL from an Amazon catalog item response."""
+    images_data = item.get("images", [])
+    if not images_data:
+        return None
+
+    # images is a list of marketplace-specific image sets
+    for img_set in images_data:
+        images_list = img_set.get("images", [])
+        for img in images_list:
+            # Prefer MAIN variant
+            if img.get("variant") == "MAIN":
+                link = img.get("link")
+                if link and link.startswith("http"):
+                    return link
+
+    # Fallback: take any image
+    for img_set in images_data:
+        images_list = img_set.get("images", [])
+        for img in images_list:
+            link = img.get("link")
+            if link and link.startswith("http"):
+                return link
+
+    return None
+
+
+def fetch_images_from_amazon(missing_products: list[dict], dry_run: bool = False) -> dict:
+    """Search Amazon Catalog Items API for product images using EAN/SKU as identifiers.
+
+    For each product without an image, searches by identifier (EAN barcode)
+    across EU marketplaces to find the ASIN, then extracts images.
+
+    Returns: {sku: image_url}
+    """
+    if not config.AMZ_CREDS:
+        print("  [AMZ] No Amazon SP-API credentials found, skipping")
+        return {}
+
+    sku_images = {}
+
+    for idx, product in enumerate(missing_products):
+        sku = product["sku"]
+        ean = product.get("ean") or ""
+
+        # Determine identifier to search with
+        # These SKUs look like EAN barcodes (12-13 digits)
+        identifier = ean if ean else sku
+        if not re.match(r"^\d{10,13}$", identifier):
+            print(f"    [AMZ] Skipping {sku} - not a valid EAN/UPC identifier")
+            continue
+
+        # Determine identifier type
+        id_len = len(identifier)
+        if id_len == 13:
+            id_type = "EAN"
+        elif id_len == 12:
+            id_type = "UPC"
+        else:
+            id_type = "EAN"
+
+        print(f"    [AMZ] ({idx+1}/{len(missing_products)}) Searching {id_type} {identifier}...")
+
+        # searchCatalogItems only accepts 1 marketplaceId at a time with identifiers.
+        # Try each marketplace until we find a result (DE first as largest market).
+        found = False
+        for mkt_id in AMAZON_MARKETPLACE_IDS:
+            params = {
+                "identifiers": identifier,
+                "identifiersType": id_type,
+                "marketplaceIds": mkt_id,
+                "includedData": "images",
+                "pageSize": 1,
+            }
+
+            data = _amz_get("/catalog/2022-04-01/items", params)
+            items = data.get("items", [])
+
+            if items:
+                item = items[0]
+                asin = item.get("asin", "")
+                image_url = _extract_image_from_catalog_item(item)
+                if image_url:
+                    sku_images[sku] = image_url
+                    print(f"      Found ASIN {asin} on {mkt_id}, image OK")
+                    if not dry_run and asin:
+                        _update_product_asin(sku, asin)
+                    found = True
+                    break
+                else:
+                    print(f"      Found ASIN {asin} on {mkt_id}, but no images - trying next marketplace")
+            # Rate limit between marketplace attempts
+            time.sleep(0.8)
+
+        if not found:
+            print(f"      No results found on any Amazon marketplace")
+
+        # Extra delay between products to respect rate limits
+        time.sleep(1.0)
+
+    return sku_images
+
+
+def _update_product_asin(sku: str, asin: str):
+    """Update the ASIN field for a product in Supabase."""
+    url = f"{SUPABASE_URL}/rest/v1/products"
+    resp = requests.patch(
+        url,
+        headers={**HEADERS_DB, "Prefer": "return=representation"},
+        json={"asin": asin},
+        params={"sku": f"eq.{sku}"},
+    )
+    if resp.status_code not in (200, 204):
+        print(f"      [WARN] Failed to update ASIN for {sku}: {resp.status_code}")
+
+
 def run(warehouse_id: int = DEFAULT_WAREHOUSE_ID, dry_run: bool = False):
-    """Main pipeline: find products without images, fetch from BL, update DB."""
+    """Main pipeline: find products without images, fetch from BL + Amazon, update DB."""
     print("=" * 60)
-    print("FETCH PRODUCT IMAGES FROM BASELINKER")
+    print("FETCH PRODUCT IMAGES FROM BASELINKER + AMAZON SP-API")
     print("=" * 60)
 
     # Step 1: Load products without images from DB
-    print("\n[1/4] Loading products without images from DB...")
+    print("\n[1/6] Loading products without images from DB...")
     missing = get_products_without_images()
     print(f"  Found {len(missing)} products without images")
     if not missing:
@@ -333,7 +508,7 @@ def run(warehouse_id: int = DEFAULT_WAREHOUSE_ID, dry_run: bool = False):
     missing_skus = {p["sku"] for p in missing}
 
     # Step 2: Get BL product list to find matching product IDs
-    print(f"\n[2/4] Fetching product list from Baselinker warehouse {warehouse_id}...")
+    print(f"\n[2/6] Fetching product list from Baselinker warehouse {warehouse_id}...")
     bl_sku_to_id = get_bl_product_list(warehouse_id)
     print(f"  Total BL products: {len(bl_sku_to_id)}")
 
@@ -341,53 +516,49 @@ def run(warehouse_id: int = DEFAULT_WAREHOUSE_ID, dry_run: bool = False):
     matched_skus = missing_skus & set(bl_sku_to_id.keys())
     print(f"  Matched {len(matched_skus)} / {len(missing_skus)} missing SKUs in BL")
 
-    if not matched_skus:
-        print("  No matching products found in Baselinker. Nothing to update.")
-        return
-
     # Collect the product IDs to fetch
-    product_ids_to_fetch = [bl_sku_to_id[sku] for sku in matched_skus]
+    product_ids_to_fetch = [bl_sku_to_id[sku] for sku in matched_skus] if matched_skus else []
 
-    # Step 3: Fetch detailed data with images
-    print(f"\n[3/4] Fetching product images from Baselinker ({len(product_ids_to_fetch)} products)...")
-    sku_images = fetch_images_for_ids(warehouse_id, product_ids_to_fetch)
+    # Step 3: Fetch detailed data with images from Baselinker
+    relevant_images = {}
+    if product_ids_to_fetch:
+        print(f"\n[3/6] Fetching product images from Baselinker ({len(product_ids_to_fetch)} products)...")
+        sku_images = fetch_images_for_ids(warehouse_id, product_ids_to_fetch)
 
-    # Filter to only SKUs that are in our missing set
-    relevant_images = {sku: url for sku, url in sku_images.items() if sku in missing_skus}
-    print(f"  Found images for {len(relevant_images)} / {len(matched_skus)} matched products")
+        # Filter to only SKUs that are in our missing set
+        relevant_images = {sku: url for sku, url in sku_images.items() if sku in missing_skus}
+        print(f"  Found images for {len(relevant_images)} / {len(matched_skus)} matched products")
 
-    # Also check: some BL products might have variants whose SKU matches our DB
-    # but the parent product has a different SKU. Fetch ALL products to catch these.
-    unmatched_skus = missing_skus - set(relevant_images.keys())
-    if unmatched_skus:
-        # Check if any variant SKUs from already-fetched data match
-        extra = {sku: url for sku, url in sku_images.items()
-                 if sku in unmatched_skus and sku not in relevant_images}
-        if extra:
-            relevant_images.update(extra)
-            print(f"  Found {len(extra)} additional matches via variant SKUs")
+        # Also check: some BL products might have variants whose SKU matches our DB
+        # but the parent product has a different SKU.
+        unmatched_skus = missing_skus - set(relevant_images.keys())
+        if unmatched_skus:
+            extra = {sku: url for sku, url in sku_images.items()
+                     if sku in unmatched_skus and sku not in relevant_images}
+            if extra:
+                relevant_images.update(extra)
+                print(f"  Found {len(extra)} additional matches via variant SKUs")
+    else:
+        print("\n[3/6] No matching products in Baselinker, skipping...")
 
     still_missing = missing_skus - set(relevant_images.keys())
     if still_missing:
-        print(f"  Still missing images for {len(still_missing)} products")
-        for sku in list(still_missing)[:5]:
-            name = next((p["name"] for p in missing if p["sku"] == sku), "?")
-            print(f"    - {sku}: {name[:50]}")
+        print(f"  Still missing images for {len(still_missing)} products after Baselinker")
 
     # Step 4: Update DB with BL images
     if relevant_images:
         action = "Would update" if dry_run else "Updating"
-        print(f"\n[4/5] {action} {len(relevant_images)} product images from Baselinker...")
+        print(f"\n[4/6] {action} {len(relevant_images)} product images from Baselinker...")
         updated_bl = update_product_images(relevant_images, dry_run=dry_run)
     else:
         updated_bl = 0
-        print("\n[4/5] No Baselinker images to update.")
+        print("\n[4/6] No Baselinker images to update.")
 
     # Step 5: Fallback - match remaining products by SKU patterns
     still_missing = missing_skus - set(relevant_images.keys())
+    fallback_matches = {}
     if still_missing:
-        print(f"\n[5/5] Fallback: matching {len(still_missing)} remaining products by SKU patterns...")
-        # Reload existing images (including newly updated ones)
+        print(f"\n[5/6] Fallback: matching {len(still_missing)} remaining products by SKU patterns...")
         existing_images = get_all_product_images()
         still_missing_products = [p for p in missing if p["sku"] in still_missing]
         fallback_matches = match_by_sku_patterns(still_missing_products, existing_images)
@@ -401,13 +572,31 @@ def run(warehouse_id: int = DEFAULT_WAREHOUSE_ID, dry_run: bool = False):
     else:
         updated_fallback = 0
 
-    total_updated = updated_bl + updated_fallback
-    final_missing = len(missing_skus) - len(relevant_images) - len(fallback_matches if still_missing else {})
+    # Step 6: Amazon SP-API fallback - search by EAN identifier
+    still_missing = missing_skus - set(relevant_images.keys()) - set(fallback_matches.keys())
+    updated_amazon = 0
+    if still_missing:
+        print(f"\n[6/6] Amazon SP-API fallback: searching {len(still_missing)} products by EAN...")
+        still_missing_products = [p for p in missing if p["sku"] in still_missing]
+        amazon_images = fetch_images_from_amazon(still_missing_products, dry_run=dry_run)
+        if amazon_images:
+            action = "Would update" if dry_run else "Updating"
+            print(f"  {action} {len(amazon_images)} products via Amazon Catalog API")
+            updated_amazon = update_product_images(amazon_images, dry_run=dry_run)
+        else:
+            print("  No images found via Amazon SP-API")
+        still_missing = still_missing - set(amazon_images.keys())
+    else:
+        print("\n[6/6] All products have images, skipping Amazon fallback.")
+
+    total_updated = updated_bl + updated_fallback + updated_amazon
+    final_missing = len(still_missing)
     print(f"\n{'=' * 60}")
     print(f"DONE: {'[DRY RUN] ' if dry_run else ''}{total_updated} products updated with images")
     print(f"  From Baselinker: {updated_bl}")
     print(f"  From SKU patterns: {updated_fallback}")
-    print(f"  Products still without images: {max(final_missing, 0)}")
+    print(f"  From Amazon SP-API: {updated_amazon}")
+    print(f"  Products still without images: {final_missing}")
     print(f"{'=' * 60}")
 
 
