@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_products, load_cogs_gaps
+from lib.data import load_daily_metrics, load_platforms, load_products, load_cogs_gaps, load_orders_enriched
 from lib.metrics import product_profitability, calc_contribution_margins
 from lib.charts import scatter_quadrant, bar_chart
 
@@ -149,6 +149,111 @@ html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; 
 <div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: {_prof_table_height}px; overflow-y: auto;">
 {prof_table_inner}
 </div>''')
+
+# --- 1b. SKU Order Drill-Down ---
+st.markdown('<div class="section-header">SKU ORDER DRILL-DOWN</div>', unsafe_allow_html=True)
+
+# Build SKU list from the profitability table (sorted by revenue)
+_sku_list = prod_df.sort_values("revenue_pln", ascending=False)["sku"].tolist()
+_sku_labels = []
+for _s in _sku_list:
+    _row = prod_df[prod_df["sku"] == _s].iloc[0]
+    _label_name = str(_row.get("name", ""))[:30]
+    _label_rev = _row.get("revenue_pln", 0)
+    _sku_labels.append(f"{_s}  |  {_label_name}  |  {_label_rev:,.0f} PLN")
+
+selected_sku_idx = st.selectbox(
+    "Select SKU to view orders",
+    range(len(_sku_list)),
+    format_func=lambda i: _sku_labels[i],
+    index=None,
+    placeholder="Choose a SKU to drill down into its orders...",
+    key="sku_drilldown",
+)
+
+if selected_sku_idx is not None:
+    selected_sku = _sku_list[selected_sku_idx]
+
+    with st.spinner(f"Loading orders for {selected_sku}..."):
+        _orders_result = load_orders_enriched(days=days)
+
+    if isinstance(_orders_result, tuple) and len(_orders_result) == 2:
+        _ord_df, _items_df = _orders_result
+    else:
+        _ord_df, _items_df = pd.DataFrame(), pd.DataFrame()
+
+    if not _items_df.empty and not _ord_df.empty:
+        # Filter items for the selected SKU
+        _sku_items = _items_df[_items_df["sku"] == selected_sku].copy()
+
+        if not _sku_items.empty:
+            # Get order IDs that contain this SKU
+            _sku_order_ids = _sku_items["order_id"].unique()
+            _sku_orders = _ord_df[_ord_df["id"].isin(_sku_order_ids)].copy()
+
+            # Merge item-level data (quantity, unit_price, cost for THIS sku) into orders
+            _item_agg = _sku_items.groupby("order_id").agg(
+                sku_qty=("quantity", "sum"),
+                sku_unit_price_pln=("unit_price_pln", "first"),
+                sku_unit_cost_pln=("unit_cost_pln", "first"),
+                sku_revenue_pln=("line_revenue_pln", "sum"),
+                sku_cogs_pln=("line_cost_pln", "sum"),
+            ).reset_index()
+
+            _sku_orders = _sku_orders.merge(_item_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_sku"))
+
+            # Calculate per-SKU profit and margin within each order
+            # Allocate fees proportionally: (sku_revenue / order_revenue) * order_fees
+            _sku_orders["fee_share"] = np.where(
+                _sku_orders["revenue_pln"] > 0,
+                (_sku_orders["sku_revenue_pln"] / _sku_orders["revenue_pln"]) * _sku_orders["fees_pln"],
+                0,
+            )
+            _sku_orders["sku_profit"] = _sku_orders["sku_revenue_pln"] - _sku_orders["sku_cogs_pln"] - _sku_orders["fee_share"]
+            _sku_orders["sku_margin"] = np.where(
+                _sku_orders["sku_revenue_pln"] > 0,
+                _sku_orders["sku_profit"] / _sku_orders["sku_revenue_pln"] * 100,
+                0,
+            )
+
+            # Summary stats
+            _total_orders = len(_sku_orders)
+            _total_units = int(_sku_orders["sku_qty"].sum())
+            _total_revenue = _sku_orders["sku_revenue_pln"].sum()
+            _total_cogs = _sku_orders["sku_cogs_pln"].sum()
+            _total_fees = _sku_orders["fee_share"].sum()
+            _total_profit = _sku_orders["sku_profit"].sum()
+            _avg_margin = (_total_profit / _total_revenue * 100) if _total_revenue > 0 else 0
+
+            # Display summary KPIs
+            k1, k2, k3, k4, k5 = st.columns(5)
+            k1.metric("Orders", f"{_total_orders}")
+            k2.metric("Units Sold", f"{_total_units}")
+            k3.metric("Revenue", f"{_total_revenue:,.0f} PLN")
+            k4.metric("Profit", f"{_total_profit:,.0f} PLN")
+            k5.metric("Avg Margin", f"{_avg_margin:.1f}%")
+
+            # Build display table
+            _display = _sku_orders[["order_date", "platform_order_id", "platform_name", "fulfillment",
+                                     "sku_qty", "sku_unit_price_pln", "sku_revenue_pln",
+                                     "sku_cogs_pln", "fee_share", "sku_profit", "sku_margin"]].copy()
+            _display.columns = ["Date", "Order ID", "Marketplace", "Channel",
+                                "Qty", "Unit Price", "Revenue",
+                                "COGS", "Fees", "Profit", "Margin %"]
+            _display["Date"] = pd.to_datetime(_display["Date"]).dt.strftime("%Y-%m-%d")
+            _display = _display.sort_values("Date", ascending=False).reset_index(drop=True)
+
+            # Format numeric columns
+            for _col in ["Unit Price", "Revenue", "COGS", "Fees", "Profit"]:
+                _display[_col] = _display[_col].map(lambda x: f"{x:,.2f}")
+            _display["Margin %"] = _display["Margin %"].map(lambda x: f"{x:.1f}%")
+
+            with st.expander(f"All {_total_orders} orders for {selected_sku}", expanded=True):
+                st.dataframe(_display, use_container_width=True, hide_index=True, height=min(400, 38 + _total_orders * 35))
+        else:
+            st.info(f"No order items found for SKU: {selected_sku} in the selected {days}-day period.")
+    else:
+        st.warning("Could not load enriched order data. Make sure ETL has been run.")
 
 # --- 2. Quadrant scatter ---
 st.markdown('<div class="section-header">PORTFOLIO QUADRANT</div>', unsafe_allow_html=True)
