@@ -97,56 +97,51 @@ for i, (_, row) in enumerate(prod_sorted.iterrows()):
     # Margin color
     margin_color = "#10b981" if margin > 30 else ("#fbbf24" if margin > 10 else "#ef4444")
 
-    prof_rows_html += f"""
-    <tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">
-        <td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; color: #e2e8f0;
-                   white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.72rem; color: #94a3b8;
-                   max-width: 160px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>
-        <td style="padding: 5px 8px; text-align: center; vertical-align: middle;">
-            <span style="font-family: monospace; font-size: 0.6rem; color: {source_color};
-                         background: rgba({','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0,2,4))},0.1);
-                         padding: 2px 5px; border-radius: 3px;">{source}</span>
-        </td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{avg_price:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{unit_cost:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #e2e8f0; vertical-align: middle;">{revenue:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #ef4444; vertical-align: middle;">{cogs_val:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #fbbf24; vertical-align: middle;">{fees_val:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #10b981; font-weight: 600; vertical-align: middle;">{cm3_val:,.0f}</td>
-        <td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: {margin_color}; font-weight: 600; vertical-align: middle;">{margin:.1f}%</td>
-    </tr>
-    """
+    source_rgba = ','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0, 2, 4))
+    prof_rows_html += (
+        f'<tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">'
+        f'<td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; color: #e2e8f0; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.72rem; color: #94a3b8; max-width: 160px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>'
+        f'<td style="padding: 5px 8px; text-align: center; vertical-align: middle;">'
+        f'<span style="font-family: monospace; font-size: 0.6rem; color: {source_color}; background: rgba({source_rgba},0.1); padding: 2px 5px; border-radius: 3px;">{source}</span>'
+        f'</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{avg_price:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{unit_cost:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #e2e8f0; vertical-align: middle;">{revenue:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #ef4444; vertical-align: middle;">{cogs_val:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #fbbf24; vertical-align: middle;">{fees_val:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #10b981; font-weight: 600; vertical-align: middle;">{cm3_val:,.0f}</td>'
+        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: {margin_color}; font-weight: 600; vertical-align: middle;">{margin:.1f}%</td>'
+        f'</tr>'
+    )
 
 th_style = 'padding: 8px; text-align: left; font-family: monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
 th_r = th_style.replace("text-align: left", "text-align: right")
 th_c = th_style.replace("text-align: left", "text-align: center")
 
-st.markdown(f"""
-<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 550px; overflow-y: auto;">
-    <table style="width: 100%; border-collapse: collapse; background: #111827;">
-        <thead>
-            <tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">
-                <th style="{th_style} width: 50px;"></th>
-                <th style="{th_style}">SKU</th>
-                <th style="{th_style}">Name</th>
-                <th style="{th_c}">Source</th>
-                <th style="{th_r}">Units</th>
-                <th style="{th_r}">Avg Price</th>
-                <th style="{th_r}">Unit Cost</th>
-                <th style="{th_r}">Revenue</th>
-                <th style="{th_r}">COGS</th>
-                <th style="{th_r}">Fees</th>
-                <th style="{th_r}">CM3</th>
-                <th style="{th_r}">Margin%</th>
-            </tr>
-        </thead>
-        <tbody>{prof_rows_html}</tbody>
-    </table>
-</div>
-""", unsafe_allow_html=True)
+prof_table_html = (
+    '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 550px; overflow-y: auto;">'
+    '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
+    '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
+    f'<th style="{th_style} width: 50px;"></th>'
+    f'<th style="{th_style}">SKU</th>'
+    f'<th style="{th_style}">Name</th>'
+    f'<th style="{th_c}">Source</th>'
+    f'<th style="{th_r}">Units</th>'
+    f'<th style="{th_r}">Avg Price</th>'
+    f'<th style="{th_r}">Unit Cost</th>'
+    f'<th style="{th_r}">Revenue</th>'
+    f'<th style="{th_r}">COGS</th>'
+    f'<th style="{th_r}">Fees</th>'
+    f'<th style="{th_r}">CM3</th>'
+    f'<th style="{th_r}">Margin%</th>'
+    '</tr></thead>'
+    f'<tbody>{prof_rows_html}</tbody>'
+    '</table></div>'
+)
+st.markdown(prof_table_html, unsafe_allow_html=True)
 
 # --- 2. Quadrant scatter ---
 st.markdown('<div class="section-header">PORTFOLIO QUADRANT</div>', unsafe_allow_html=True)
@@ -252,28 +247,20 @@ if not prod_df.empty:
 
     # Coverage status banner
     if coverage_pct < 90:
-        st.markdown(f"""
-        <div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b;
-                    border-radius: 6px; padding: 14px 18px; margin: 12px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
-                        letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 4px;">
-                LOW COGS COVERAGE
-            </div>
-            <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #fbbf24;">
-                {coverage_pct:.0f}% of revenue has COGS data. Reported margins are overstated by ~{100 - coverage_pct:.0f}pp.
-                Add product costs in Baselinker to get accurate P&L.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        low_cogs_html = (
+            '<div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 12px 0;">'
+            '<div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 4px;">LOW COGS COVERAGE</div>'
+            f'<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #fbbf24;">{coverage_pct:.0f}% of revenue has COGS data. Reported margins are overstated by ~{100 - coverage_pct:.0f}pp. Add product costs in Baselinker to get accurate P&L.</div>'
+            '</div>'
+        )
+        st.markdown(low_cogs_html, unsafe_allow_html=True)
     else:
-        st.markdown(f"""
-        <div style="background: #0b1a12; border: 1px solid #065f46; border-left: 4px solid #10b981;
-                    border-radius: 6px; padding: 14px 18px; margin: 12px 0;">
-            <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399;">
-                COGS coverage is good: {coverage_pct:.1f}% of revenue covered.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        good_cogs_html = (
+            '<div style="background: #0b1a12; border: 1px solid #065f46; border-left: 4px solid #10b981; border-radius: 6px; padding: 14px 18px; margin: 12px 0;">'
+            f'<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399;">COGS coverage is good: {coverage_pct:.1f}% of revenue covered.</div>'
+            '</div>'
+        )
+        st.markdown(good_cogs_html, unsafe_allow_html=True)
 
     # Full COGS gaps table
     if not without_cogs.empty:
@@ -289,11 +276,8 @@ if not prod_df.empty:
         )
         gap_df = gap_df.sort_values("revenue_pln", ascending=False)
 
-        st.markdown(f"""
-        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; margin: 8px 0 16px 0;">
-            {len(gap_df)} products with revenue but no COGS. Total impact: {uncovered_rev:,.0f} PLN.
-        </div>
-        """, unsafe_allow_html=True)
+        gap_count_html = f'<div style="font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; margin: 8px 0 16px 0;">{len(gap_df)} products with revenue but no COGS. Total impact: {uncovered_rev:,.0f} PLN.</div>'
+        st.markdown(gap_count_html, unsafe_allow_html=True)
 
         # Build HTML table with Baselinker links and thumbnails
         rows_html = ""
@@ -317,60 +301,45 @@ if not prod_df.empty:
             # Source badge color
             source_color = "#10b981" if source == "Printful" else ("#3b82f6" if source == "Wholesale" else "#64748b")
 
-            rows_html += f"""
-            <tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">
-                <td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>
-                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; color: #e2e8f0;
-                           white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>
-                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.75rem; color: #94a3b8;
-                           max-width: 200px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>
-                <td style="padding: 7px 10px; text-align: center; vertical-align: middle;">
-                    <span style="font-family: monospace; font-size: 0.65rem; color: {source_color};
-                                 background: rgba({','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0,2,4))},0.1);
-                                 padding: 2px 6px; border-radius: 3px;">{source}</span>
-                </td>
-                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #fbbf24; vertical-align: middle;">{rev:,.0f}</td>
-                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>
-                <td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{orders}</td>
-                <td style="padding: 7px 10px; text-align: center; vertical-align: middle;">
-                    <a href="{bl_url}" target="_blank"
-                       style="color: #3b82f6; font-family: monospace; font-size: 0.7rem; text-decoration: none;
-                              background: rgba(59,130,246,0.08); padding: 3px 8px; border-radius: 3px;
-                              border: 1px solid rgba(59,130,246,0.2);">
-                        Edit &#8594;
-                    </a>
-                </td>
-            </tr>
-            """
+            source_rgba = ','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0, 2, 4))
+            rows_html += (
+                f'<tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">'
+                f'<td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>'
+                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; color: #e2e8f0; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>'
+                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.75rem; color: #94a3b8; max-width: 200px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>'
+                f'<td style="padding: 7px 10px; text-align: center; vertical-align: middle;">'
+                f'<span style="font-family: monospace; font-size: 0.65rem; color: {source_color}; background: rgba({source_rgba},0.1); padding: 2px 6px; border-radius: 3px;">{source}</span>'
+                f'</td>'
+                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #fbbf24; vertical-align: middle;">{rev:,.0f}</td>'
+                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
+                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{orders}</td>'
+                f'<td style="padding: 7px 10px; text-align: center; vertical-align: middle;">'
+                f'<a href="{bl_url}" target="_blank" style="color: #3b82f6; font-family: monospace; font-size: 0.7rem; text-decoration: none; background: rgba(59,130,246,0.08); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">Edit &#8594;</a>'
+                f'</td></tr>'
+            )
 
         gap_th = 'padding: 10px; font-family: monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-        st.markdown(f"""
-        <div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 500px; overflow-y: auto;">
-            <table style="width: 100%; border-collapse: collapse; background: #111827;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">
-                        <th style="{gap_th} text-align: left; width: 46px;"></th>
-                        <th style="{gap_th} text-align: left;">SKU</th>
-                        <th style="{gap_th} text-align: left;">Name</th>
-                        <th style="{gap_th} text-align: center;">Source</th>
-                        <th style="{gap_th} text-align: right;">Revenue (PLN)</th>
-                        <th style="{gap_th} text-align: right;">Units</th>
-                        <th style="{gap_th} text-align: right;">Orders</th>
-                        <th style="{gap_th} text-align: center;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>{rows_html}</tbody>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
+        gap_table_html = (
+            '<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: 500px; overflow-y: auto;">'
+            '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
+            '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
+            f'<th style="{gap_th} text-align: left; width: 46px;"></th>'
+            f'<th style="{gap_th} text-align: left;">SKU</th>'
+            f'<th style="{gap_th} text-align: left;">Name</th>'
+            f'<th style="{gap_th} text-align: center;">Source</th>'
+            f'<th style="{gap_th} text-align: right;">Revenue (PLN)</th>'
+            f'<th style="{gap_th} text-align: right;">Units</th>'
+            f'<th style="{gap_th} text-align: right;">Orders</th>'
+            f'<th style="{gap_th} text-align: center;">Action</th>'
+            '</tr></thead>'
+            f'<tbody>{rows_html}</tbody>'
+            '</table></div>'
+        )
+        st.markdown(gap_table_html, unsafe_allow_html=True)
 
         # Copyable SKU list for bulk operations
         with st.expander("Export SKU list (copy-paste)"):
             sku_list = "\n".join(gap_df["sku"].tolist())
             st.code(sku_list, language=None)
     else:
-        st.markdown("""
-        <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399; padding: 16px 0;">
-            All products with revenue have COGS assigned.
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399; padding: 16px 0;">All products with revenue have COGS assigned.</div>', unsafe_allow_html=True)
