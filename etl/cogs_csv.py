@@ -58,7 +58,7 @@ def export_missing_cogs_csv(output_path: str, top_n: int = 100) -> dict:
     offset = 0
     while True:
         rows = db._get("daily_metrics", {
-            "select": "sku,revenue_pln,units",
+            "select": "sku,revenue_pln,units_sold",
             "limit": "1000",
             "offset": str(offset),
         })
@@ -66,7 +66,7 @@ def export_missing_cogs_csv(output_path: str, top_n: int = 100) -> dict:
             sku = row.get("sku", "")
             if sku in missing_set:
                 sku_revenue[sku]["revenue_pln"] += float(row.get("revenue_pln") or 0)
-                sku_revenue[sku]["units"] += int(row.get("units") or 0)
+                sku_revenue[sku]["units"] += int(row.get("units_sold") or 0)
         if len(rows) < 1000:
             break
         offset += 1000
