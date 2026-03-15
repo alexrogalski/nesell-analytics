@@ -18,6 +18,8 @@ Usage:
     python3.11 -m etl.run --shipping          # estimate DPD shipping costs
     python3.11 -m etl.run --dpd-csv file.csv  # import actual costs from DPD invoice CSV
     python3.11 -m etl.run --dpd-email        # auto-import DPD costs from Gmail (IMAP)
+    python3.11 -m etl.run --cogs-export out.csv  # export top-100 missing COGS to CSV template
+    python3.11 -m etl.run --cogs-csv filled.csv  # import COGS from filled CSV
     python3.11 -m etl.run --printful-orders   # process new Printful orders
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
     python3.11 -m etl.run --days 30      # lookback period (default 90)
@@ -59,6 +61,8 @@ def main():
     parser.add_argument("--dpd-email", action="store_true", help="Auto-import DPD costs from Gmail IMAP (Specyfikacja XLSX)")
     parser.add_argument("--ads-csv", type=str, default=None, help="Import Amazon advertising report CSV")
     parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
+    parser.add_argument("--cogs-export", type=str, default=None, help="Export top-100 products missing COGS to CSV template")
+    parser.add_argument("--cogs-csv", type=str, default=None, help="Import COGS from filled CSV file (see --cogs-export)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
@@ -66,7 +70,8 @@ def main():
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
                  args.cogs, args.shipping, args.dpd_email]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
-    run_all = not any(all_flags) and not args.printful_orders and not args.tracking_sync and not args.dpd_csv
+    run_all = (not any(all_flags) and not args.printful_orders and not args.tracking_sync
+               and not args.dpd_csv and not args.cogs_export and not args.cogs_csv)
 
     print(f"{'='*60}")
     print(f"nesell-analytics ETL — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
@@ -173,6 +178,20 @@ def main():
         if not _run_step(step, total_steps, f"Importing Amazon ads CSV: {args.ads_csv}",
                          amazon_ads.import_ads_csv, conn, args.ads_csv, args.ads_marketplace):
             failures.append("Amazon ads CSV import")
+
+    if args.cogs_export:
+        step += 1
+        from . import cogs_csv
+        if not _run_step(step, total_steps, f"Exporting missing COGS template to: {args.cogs_export}",
+                         cogs_csv.export_missing_cogs_csv, args.cogs_export):
+            failures.append("COGS CSV export")
+
+    if args.cogs_csv:
+        step += 1
+        from . import cogs_csv
+        if not _run_step(step, total_steps, f"Importing COGS from CSV: {args.cogs_csv}",
+                         cogs_csv.import_cogs_csv, args.cogs_csv):
+            failures.append("COGS CSV import")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:
