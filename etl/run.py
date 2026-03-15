@@ -59,6 +59,8 @@ def main():
     parser.add_argument("--shipping", action="store_true", help="Estimate DPD shipping costs for FBM orders")
     parser.add_argument("--dpd-csv", type=str, default=None, help="Import actual DPD costs from invoice CSV file")
     parser.add_argument("--dpd-email", action="store_true", help="Auto-import DPD costs from Gmail IMAP (Specyfikacja XLSX)")
+    parser.add_argument("--dpd-api", action="store_true", help="Sync DPD costs via API: reconcile missing records + enrich with TrackTrace metadata")
+    parser.add_argument("--dpd-reconcile", action="store_true", help="Reconcile: find BL DPD orders not yet in shipping_costs (reconcile-only, no TrackTrace)")
     parser.add_argument("--ads-csv", type=str, default=None, help="Import Amazon advertising report CSV")
     parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
     parser.add_argument("--cogs-export", type=str, default=None, help="Export top-100 products missing COGS to CSV template")
@@ -68,7 +70,7 @@ def main():
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
-                 args.cogs, args.shipping, args.dpd_email]
+                 args.cogs, args.shipping, args.dpd_email, args.dpd_api, args.dpd_reconcile]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = (not any(all_flags) and not args.printful_orders and not args.tracking_sync
                and not args.dpd_csv and not args.cogs_export and not args.cogs_csv)
@@ -171,6 +173,20 @@ def main():
         if not _run_step(step, total_steps, f"Importing DPD costs from CSV: {args.dpd_csv}",
                          shipping_costs.import_dpd_csv, conn, args.dpd_csv):
             failures.append("DPD CSV import")
+
+    if args.dpd_api:
+        step += 1
+        from . import dpd_costs
+        if not _run_step(step, total_steps, "DPD API: reconcile + enrich shipping costs",
+                         dpd_costs.sync_dpd_costs, conn, args.days, False):
+            failures.append("DPD API sync")
+
+    if args.dpd_reconcile:
+        step += 1
+        from . import dpd_costs
+        if not _run_step(step, total_steps, "DPD reconcile: fill missing shipping_costs rows",
+                         dpd_costs.sync_dpd_costs, conn, args.days, True):
+            failures.append("DPD reconcile")
 
     if args.ads_csv:
         step += 1
