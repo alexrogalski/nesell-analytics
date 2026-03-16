@@ -1,0 +1,55 @@
+{
+  "created": [
+    {
+      "sku": "PFT-WDH",
+      "printful_id": 961,
+      "bl_product_id": 543455994,
+      "allegro_offer_id": "18414805632",
+      "price_pln": "99.00",
+      "category_id": "5553",
+      "status": "INACTIVE",
+      "title": "Prany Dad Hat Vintage Czapka z Daszkiem Regulowana Haft"
+    },
+    {
+      "sku": "PFT-OBH",
+      "printful_id": 547,
+      "bl_product_id": 543455999,
+      "allegro_offer_id": "18414805647",
+      "price_pln": "119.00",
+      "category_id": "5554",
+      "status": "INACTIVE",
+      "title": "Bucket Hat Bawełna Organiczna GOTS Ekologiczna Unisex Haft"
+    },
+    {
+      "sku": "PFT-BBH",
+      "printful_id": 379,
+      "bl_product_id": 543456003,
+      "allegro_offer_id": "18414805665",
+      "price_pln": "109.00",
+      "category_id": "5554",
+      "status": "INACTIVE",
+      "title": "Bucket Hat Lato Festiwal Unisex Czapka Wędkarska Y2K Haft"
+    },
+    {
+      "sku": "PFT-DDH",
+      "printful_id": 396,
+      "bl_product_id": 543456007,
+      "allegro_offer_id": "18414805695",
+      "price_pln": "99.00",
+      "category_id": "5553",
+      "status": "INACTIVE",
+      "title": "Distressed Dad Hat Vintage Czapka z Daszkiem Used Look Haft"
+    },
+    {
+      "sku": "PFT-CCH",
+      "printful_id": 532,
+      "bl_product_id": 543456012,
+      "allegro_offer_id": "18414805720",
+      "price_pln": "109.00",
+      "category_id": "5553",
+      "status": "INACTIVE",
+      "title": "Czapka Sztruksowa Corduroy Bejsbolówka Regulowana Unisex Haft"
+    }
+  ],
+  "errors": []
+}
