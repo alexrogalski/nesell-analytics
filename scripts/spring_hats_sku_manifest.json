@@ -1,0 +1,156 @@
+{
+  "note": "Spring 2026 hat SKUs. Amazon listings use these SKUs. Printful products need to be created manually then synced via Baselinker.",
+  "printful_catalog_ids": {
+    "961": "Otto Cap 18-772 Garment Washed Dad Hat",
+    "547": "Capstone Organic Bucket Hat",
+    "379": "Big Accessories BX003 Bucket Hat",
+    "396": "Otto Cap 104-1018 Distressed Dad Hat",
+    "532": "Beechfield B682 Corduroy Cap"
+  },
+  "products": [
+    {
+      "sku": "PFT-S26-WASHED-KHAKI",
+      "name": "Vintage Garment Washed Dad Hat | Embroidered | Khaki",
+      "price_brutto": 22.99,
+      "weight": 0.15,
+      "printful_catalog_id": 961,
+      "color": "Khaki"
+    },
+    {
+      "sku": "PFT-S26-WASHED-STONE",
+      "name": "Vintage Garment Washed Dad Hat | Embroidered | Stone",
+      "price_brutto": 22.99,
+      "weight": 0.15,
+      "printful_catalog_id": 961,
+      "color": "Stone"
+    },
+    {
+      "sku": "PFT-S26-WASHED-SAGE",
+      "name": "Vintage Garment Washed Dad Hat | Embroidered | Sage",
+      "price_brutto": 22.99,
+      "weight": 0.15,
+      "printful_catalog_id": 961,
+      "color": "Sage"
+    },
+    {
+      "sku": "PFT-S26-WASHED-NAVY",
+      "name": "Vintage Garment Washed Dad Hat | Embroidered | Navy",
+      "price_brutto": 22.99,
+      "weight": 0.15,
+      "printful_catalog_id": 961,
+      "color": "Navy"
+    },
+    {
+      "sku": "PFT-S26-ORGBUCKET-BLACK",
+      "name": "Organic Bucket Hat | GOTS Cotton Embroidered Eco | Black",
+      "price_brutto": 34.99,
+      "weight": 0.18,
+      "printful_catalog_id": 547,
+      "color": "Black"
+    },
+    {
+      "sku": "PFT-S26-ORGBUCKET-NATURAL",
+      "name": "Organic Bucket Hat | GOTS Cotton Embroidered Eco | Natural",
+      "price_brutto": 34.99,
+      "weight": 0.18,
+      "printful_catalog_id": 547,
+      "color": "Natural"
+    },
+    {
+      "sku": "PFT-S26-ORGBUCKET-NAVY",
+      "name": "Organic Bucket Hat | GOTS Cotton Embroidered Eco | Navy",
+      "price_brutto": 34.99,
+      "weight": 0.18,
+      "printful_catalog_id": 547,
+      "color": "Navy"
+    },
+    {
+      "sku": "PFT-S26-BUCKET-BLACK",
+      "name": "Bucket Hat Cotton Embroidered Festival Summer | Black",
+      "price_brutto": 26.99,
+      "weight": 0.16,
+      "printful_catalog_id": 379,
+      "color": "Black"
+    },
+    {
+      "sku": "PFT-S26-BUCKET-NAVY",
+      "name": "Bucket Hat Cotton Embroidered Festival Summer | Navy",
+      "price_brutto": 26.99,
+      "weight": 0.16,
+      "printful_catalog_id": 379,
+      "color": "Navy"
+    },
+    {
+      "sku": "PFT-S26-BUCKET-WHITE",
+      "name": "Bucket Hat Cotton Embroidered Festival Summer | White",
+      "price_brutto": 26.99,
+      "weight": 0.16,
+      "printful_catalog_id": 379,
+      "color": "White"
+    },
+    {
+      "sku": "PFT-S26-DIST-BLACK",
+      "name": "Distressed Vintage Dad Hat Embroidered Used-Look | Black",
+      "price_brutto": 24.99,
+      "weight": 0.15,
+      "printful_catalog_id": 396,
+      "color": "Black"
+    },
+    {
+      "sku": "PFT-S26-DIST-CHARCOAL",
+      "name": "Distressed Vintage Dad Hat Embroidered Used-Look | Charcoal",
+      "price_brutto": 24.99,
+      "weight": 0.15,
+      "printful_catalog_id": 396,
+      "color": "Charcoal"
+    },
+    {
+      "sku": "PFT-S26-DIST-KHAKI",
+      "name": "Distressed Vintage Dad Hat Embroidered Used-Look | Khaki",
+      "price_brutto": 24.99,
+      "weight": 0.15,
+      "printful_catalog_id": 396,
+      "color": "Khaki"
+    },
+    {
+      "sku": "PFT-S26-DIST-NAVY",
+      "name": "Distressed Vintage Dad Hat Embroidered Used-Look | Navy",
+      "price_brutto": 24.99,
+      "weight": 0.15,
+      "printful_catalog_id": 396,
+      "color": "Navy"
+    },
+    {
+      "sku": "PFT-S26-CORD-BLACK",
+      "name": "Corduroy Cap Embroidered Fashion Baseball Cap | Black",
+      "price_brutto": 26.99,
+      "weight": 0.17,
+      "printful_catalog_id": 532,
+      "color": "Black"
+    },
+    {
+      "sku": "PFT-S26-CORD-CAMEL",
+      "name": "Corduroy Cap Embroidered Fashion Baseball Cap | Camel",
+      "price_brutto": 26.99,
+      "weight": 0.17,
+      "printful_catalog_id": 532,
+      "color": "Camel"
+    },
+    {
+      "sku": "PFT-S26-CORD-OLIVE",
+      "name": "Corduroy Cap Embroidered Fashion Baseball Cap | Dark Olive",
+      "price_brutto": 26.99,
+      "weight": 0.17,
+      "printful_catalog_id": 532,
+      "color": "Dark Olive"
+    },
+    {
+      "sku": "PFT-S26-CORD-NAVYD",
+      "name": "Corduroy Cap Embroidered Fashion Baseball Cap | Oxford Navy",
+      "price_brutto": 26.99,
+      "weight": 0.17,
+      "printful_catalog_id": 532,
+      "color": "Oxford Navy"
+    }
+  ]
+}
