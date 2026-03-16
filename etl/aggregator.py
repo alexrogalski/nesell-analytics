@@ -203,11 +203,14 @@ def aggregate_daily(conn, days_back: int = 90):
     cost_map = {p["sku"]: float(p["cost_pln"] or 0) for p in products}
 
     # Build SKU normalization cache for all order-item SKUs
+    # IMPORTANT: use the same key transformation as the agg dict (lstrip zeros, rstrip dashes)
+    # so that sku_norm_map.get(sku) always finds the right normalized SKU.
     raw_skus = set()
     for item in all_items:
         s = (item.get("sku") or "").strip()
         if s:
-            raw_skus.add(s)
+            agg_key = s.lstrip('0').rstrip('-').strip() or s
+            raw_skus.add(agg_key)
     sku_norm_map = {}
     normalized_count = 0
     for raw in raw_skus:
@@ -364,6 +367,8 @@ def aggregate_daily(conn, days_back: int = 90):
             shipping += fallback_ship
         gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
         margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
+        # Clamp to DB precision NUMERIC(5,2) — max ±999.99
+        margin = max(-999.9, min(999.9, margin))
 
         metrics.append({
             "date": day,
@@ -371,12 +376,12 @@ def aggregate_daily(conn, days_back: int = 90):
             "sku": sku,
             "orders_count": len(data["orders"]),
             "units_sold": net_units,
-            "revenue": revenue,
-            "revenue_pln": revenue_pln,
-            "cogs": cogs,
-            "platform_fees": fees,
-            "shipping_cost": shipping,
-            "gross_profit": gross_profit,
+            "revenue": min(revenue, 99_999_999.99),
+            "revenue_pln": min(revenue_pln, 99_999_999.99),
+            "cogs": min(cogs, 99_999_999.99),
+            "platform_fees": min(fees, 99_999_999.99),
+            "shipping_cost": min(shipping, 99_999_999.99),
+            "gross_profit": max(-99_999_999.99, min(gross_profit, 99_999_999.99)),
             "margin_pct": margin,
         })
 
