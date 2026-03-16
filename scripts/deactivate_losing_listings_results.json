@@ -1,0 +1,259 @@
+{
+  "run_at": "2026-03-16T01:32:00.486918",
+  "dry_run": false,
+  "results": [
+    {
+      "ean": "194502876079",
+      "name": "Nike Dunk Low 44.5",
+      "action": "amazon_deactivate_DE",
+      "status": "OK",
+      "sku": "194502876079",
+      "http_status": 200,
+      "response": {
+        "sku": "194502876079",
+        "status": "ACCEPTED",
+        "submissionId": "3ad92cd714e74bca9c747505051c0876",
+        "issues": []
+      }
+    },
+    {
+      "ean": "194502876079",
+      "name": "Nike Dunk Low 44.5",
+      "action": "allegro_create_offer_499",
+      "offer_id": null,
+      "status": "FAIL"
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_DE",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "eb39e85316fc4782a20e278953c999c6",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_FR",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "a814492b19fa4ff28c56b008c5cdcb02",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_IT",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "1d0ec236f51f48f8a1515546fa5cd28b",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_ES",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "16be9e163d514e44a84b43a21d0bba47",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_NL",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "26438a0776fe48ea9e91b2a10f5af21c",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_PL",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "c0ed5fb9dde949bc93504d9e0317bac3",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_SE",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "7940aa7d0fcc4e0388ab7fb5ce4a4e0f",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809835060041",
+      "name": "Tocobo Sun Stick",
+      "action": "amazon_deactivate_BE",
+      "status": "OK",
+      "sku": "8809835060041",
+      "http_status": 200,
+      "response": {
+        "sku": "8809835060041",
+        "status": "ACCEPTED",
+        "submissionId": "0a1129d1e7ae42889a37a60c45be275d",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_DE",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "14c94a3a1931401f93f94ee83d960326",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_FR",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "96e8522d116044688672c9b65ab22739",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_IT",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "b71272338cb247a592d4a6172e348b69",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_ES",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "10764e9b5bf749bd9c9f6c1135c93941",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_NL",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "aa7efeddd270481d83748c174cff6984",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_PL",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "f38494f59aae4ae98b8ca584cfc5bddb",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_SE",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "cc0030e898ef456ebdd3b04219bb4572",
+        "issues": []
+      }
+    },
+    {
+      "ean": "8809670682033",
+      "name": "Mary&May Sun Stick",
+      "action": "amazon_deactivate_BE",
+      "status": "OK",
+      "sku": "8809670682033",
+      "http_status": 200,
+      "response": {
+        "sku": "8809670682033",
+        "status": "ACCEPTED",
+        "submissionId": "081d313c227a4ae399aa0048e167874c",
+        "issues": []
+      }
+    },
+    {
+      "ean": "194954229836",
+      "name": "Nike Force 1 r.28",
+      "action": "mark_do_not_reorder",
+      "status": "OK",
+      "bl_product_id": 166304317,
+      "stock": 0
+    }
+  ]
+}
