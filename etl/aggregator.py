@@ -263,9 +263,11 @@ def aggregate_daily(conn, days_back: int = 90):
     })
 
     # First pass: count items per order (for fee allocation)
+    # Only count items with a valid unit_price to avoid fee-without-revenue artifacts.
     items_per_order = defaultdict(int)
     for item in all_items:
-        items_per_order[item["order_id"]] += int(item["quantity"] or 1)
+        if item.get("unit_price") is not None and float(item["unit_price"] or 0) > 0:
+            items_per_order[item["order_id"]] += int(item["quantity"] or 1)
 
     for item in all_items:
         order = order_map.get(item["order_id"])
@@ -276,6 +278,12 @@ def aggregate_daily(conn, days_back: int = 90):
         raw_sku = (item.get("sku") or "").strip()
         if not raw_sku:
             continue  # skip items with no SKU entirely
+
+        # Skip items with no price: including their fees would create fee-without-revenue rows.
+        # These occur when unit_price_pln is NULL in order_items (FX rate missing at import time).
+        if item.get("unit_price") is None or float(item.get("unit_price") or 0) == 0:
+            continue
+
         # Normalize SKU: strip leading zeros, trailing dashes/special chars
         sku = raw_sku.lstrip('0').rstrip('-').strip()
         if not sku:
@@ -285,7 +293,7 @@ def aggregate_daily(conn, days_back: int = 90):
 
         agg[key]["orders"].add(item["order_id"])
         agg[key]["units"] += qty
-        agg[key]["revenue"] += float(item["unit_price"] or 0) * qty
+        agg[key]["revenue"] += float(item["unit_price"]) * qty
         agg[key]["currency"] = item.get("currency") or order.get("currency", "EUR")
 
         # Track FBA vs FBM units for fee fallback
