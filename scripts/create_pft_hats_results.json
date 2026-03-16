@@ -1,0 +1,35 @@
+{
+  "created": [
+    {
+      "code": "WDH",
+      "printful_id": 961,
+      "bl_product_id": 543455994,
+      "sku": "PFT-WDH"
+    },
+    {
+      "code": "OBH",
+      "printful_id": 547,
+      "bl_product_id": 543455999,
+      "sku": "PFT-OBH"
+    },
+    {
+      "code": "BBH",
+      "printful_id": 379,
+      "bl_product_id": 543456003,
+      "sku": "PFT-BBH"
+    },
+    {
+      "code": "DDH",
+      "printful_id": 396,
+      "bl_product_id": 543456007,
+      "sku": "PFT-DDH"
+    },
+    {
+      "code": "CCH",
+      "printful_id": 532,
+      "bl_product_id": 543456012,
+      "sku": "PFT-CCH"
+    }
+  ],
+  "errors": []
+}
