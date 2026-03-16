@@ -238,18 +238,19 @@ def product_profitability(df):
     """Aggregate daily_metrics to product-level P&L."""
     if df.empty:
         return df
+    agg_dict = {
+        "revenue_pln": "sum",
+        "cogs": "sum",
+        "fees": "sum",
+        "profit": "sum",
+        "orders_count": "sum",
+        "units": "sum",
+    }
+    if "shipping_cost" in df.columns:
+        agg_dict["shipping_cost"] = "sum"
     grouped = (
         df.groupby("sku")
-        .agg(
-            {
-                "revenue_pln": "sum",
-                "cogs": "sum",
-                "fees": "sum",
-                "profit": "sum",
-                "orders_count": "sum",
-                "units": "sum",
-            }
-        )
+        .agg(agg_dict)
         .reset_index()
     )
     grouped = calc_contribution_margins(grouped)

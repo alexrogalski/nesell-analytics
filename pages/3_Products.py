@@ -255,6 +255,120 @@ if selected_sku_idx is not None:
     else:
         st.warning("Could not load enriched order data. Make sure ETL has been run.")
 
+# --- 1c. P&L Waterfall per Product ---
+st.markdown('<div class="section-header">P&L WATERFALL PER PRODUCT</div>', unsafe_allow_html=True)
+
+_pnl_sku_list = prod_df.sort_values("revenue_pln", ascending=False)["sku"].tolist()
+_pnl_sku_labels = []
+for _s in _pnl_sku_list:
+    _row = prod_df[prod_df["sku"] == _s].iloc[0]
+    _label_name = str(_row.get("name", ""))[:30]
+    _label_rev = _row.get("revenue_pln", 0)
+    _pnl_sku_labels.append(f"{_s}  |  {_label_name}  |  {_label_rev:,.0f} PLN")
+
+_pnl_sku_idx = st.selectbox(
+    "Select product for P&L breakdown",
+    range(len(_pnl_sku_list)),
+    format_func=lambda i: _pnl_sku_labels[i],
+    index=None,
+    placeholder="Choose a product to view full P&L waterfall...",
+    key="pnl_product",
+)
+
+if _pnl_sku_idx is not None:
+    import plotly.graph_objects as _go
+
+    _pnl_sku = _pnl_sku_list[_pnl_sku_idx]
+    _pnl_row = prod_df[prod_df["sku"] == _pnl_sku].iloc[0]
+
+    _rev = float(_pnl_row.get("revenue_pln", 0))
+    _cogs = float(_pnl_row.get("cogs", 0))
+    _cm1 = float(_pnl_row.get("cm1", 0))
+    _fees = float(_pnl_row.get("fees", 0))
+    _cm2 = float(_pnl_row.get("cm2", 0))
+    _shipping = float(_pnl_row.get("shipping_cost", 0))
+    _cm3 = float(_pnl_row.get("cm3", 0))
+    _units = int(_pnl_row.get("units", 0))
+    _cost_pln = float(_pnl_row.get("cost_pln", 0))
+
+    # KPI row
+    _k1, _k2, _k3, _k4, _k5, _k6 = st.columns(6)
+    _k1.metric("Revenue", f"{_rev:,.0f} PLN")
+    _k2.metric("COGS", f"{_cogs:,.0f} PLN",
+               delta=f"{-_cogs/_rev*100:.1f}%" if _rev > 0 else None,
+               delta_color="inverse")
+    _k3.metric("CM1", f"{_cm1:,.0f} PLN",
+               delta=f"{_cm1/_rev*100:.1f}%" if _rev > 0 else None)
+    _k4.metric("Platform Fees", f"{_fees:,.0f} PLN",
+               delta=f"{-_fees/_rev*100:.1f}%" if _rev > 0 else None,
+               delta_color="inverse")
+    _k5.metric("CM2", f"{_cm2:,.0f} PLN",
+               delta=f"{_cm2/_rev*100:.1f}%" if _rev > 0 else None)
+    _k6.metric("CM3 / Profit", f"{_cm3:,.0f} PLN",
+               delta=f"{_cm3/_rev*100:.1f}%" if _rev > 0 else None)
+
+    # Build waterfall steps
+    _wf_labels = ["Revenue", "COGS"]
+    _wf_values = [_rev, -_cogs]
+    _wf_measures = ["absolute", "relative"]
+    _wf_labels.append("= CM1")
+    _wf_values.append(_cm1)
+    _wf_measures.append("total")
+    _wf_labels.append("Fees")
+    _wf_values.append(-_fees)
+    _wf_measures.append("relative")
+    if _shipping > 0:
+        _wf_labels.append("= CM2")
+        _wf_values.append(_cm2)
+        _wf_measures.append("total")
+        _wf_labels.append("Shipping")
+        _wf_values.append(-_shipping)
+        _wf_measures.append("relative")
+    _wf_labels.append("= CM3")
+    _wf_values.append(_cm3)
+    _wf_measures.append("total")
+
+    _fig_wf = _go.Figure(_go.Waterfall(
+        name="P&L",
+        orientation="v",
+        measure=_wf_measures,
+        x=_wf_labels,
+        y=_wf_values,
+        connector={"line": {"color": "#1e293b", "width": 1}},
+        increasing={"marker": {"color": "#10b981"}},
+        decreasing={"marker": {"color": "#ef4444"}},
+        totals={"marker": {"color": "#3b82f6"}},
+        texttemplate="%{y:,.0f}",
+        textposition="outside",
+    ))
+    _fig_wf.update_layout(
+        height=380,
+        showlegend=False,
+        plot_bgcolor="#0d1117",
+        paper_bgcolor="#0d1117",
+        font=dict(color="#94a3b8", family="monospace", size=11),
+        yaxis=dict(gridcolor="#1e293b", tickformat=",.0f", color="#94a3b8"),
+        xaxis=dict(gridcolor="#1e293b", color="#94a3b8"),
+        margin=dict(l=20, r=20, t=40, b=20),
+    )
+    st.plotly_chart(_fig_wf, use_container_width=True)
+
+    # Per-unit breakdown
+    if _units > 0 and _rev > 0:
+        _unit_cogs = _cogs / _units
+        _unit_cost_note = f" (cost_pln: {_cost_pln:.2f})" if _cost_pln > 0 else " (NO COGS — margin overstated)"
+        _pnl_detail_html = (
+            f'<div style="font-family: monospace; font-size: 0.75rem; color: #64748b; padding: 8px 0;">'
+            f'Per unit ({_units} units sold): '
+            f'Revenue <span style="color:#e2e8f0">{_rev/_units:,.2f}</span> | '
+            f'COGS <span style="color:#ef4444">{_unit_cogs:,.2f}</span>{_unit_cost_note} | '
+            f'CM1 <span style="color:#fbbf24">{_cm1/_units:,.2f}</span> | '
+            f'Fees <span style="color:#94a3b8">{_fees/_units:,.2f}</span> | '
+            f'CM3 <span style="color:#10b981">{_cm3/_units:,.2f}</span> PLN'
+            f'</div>'
+        )
+        st.markdown(_pnl_detail_html, unsafe_allow_html=True)
+
 # --- 2. Quadrant scatter ---
 st.markdown('<div class="section-header">PORTFOLIO QUADRANT</div>', unsafe_allow_html=True)
 
