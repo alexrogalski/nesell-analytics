@@ -98,26 +98,35 @@ def upsert_orders(conn, orders):
 
 
 def upsert_order_items(conn, items):
-    """Upsert order items (dedup by order_id + sku)."""
+    """Upsert order items (merge duplicates by summing quantities)."""
     if not items:
         return 0
-    # Deduplicate by (order_id, sku) within batch — keep last occurrence
+    # Merge by (order_id, sku) — sum quantities for duplicates
     seen = {}
     for it in items:
         key = (it["order_id"], it.get("sku"))
-        row = {
-            "order_id": it["order_id"],
-            "sku": it.get("sku"),
-            "name": it.get("name"),
-            "quantity": it["quantity"],
-            "unit_price": it["unit_price"],
-            "currency": it["currency"],
-            "unit_price_pln": it.get("unit_price_pln"),
-            "unit_cost": it.get("unit_cost"),
-            "unit_cost_pln": it.get("unit_cost_pln"),
-            "asin": it.get("asin"),
-        }
-        seen[key] = row
+        if key in seen:
+            # Duplicate found — sum quantities, use most complete data
+            existing = seen[key]
+            existing["quantity"] += it["quantity"]
+            # Prefer non-empty values from new item
+            if it.get("name") and not existing.get("name"):
+                existing["name"] = it["name"]
+            if it.get("asin") and not existing.get("asin"):
+                existing["asin"] = it.get("asin")
+        else:
+            seen[key] = {
+                "order_id": it["order_id"],
+                "sku": it.get("sku"),
+                "name": it.get("name"),
+                "quantity": it["quantity"],
+                "unit_price": it["unit_price"],
+                "currency": it["currency"],
+                "unit_price_pln": it.get("unit_price_pln"),
+                "unit_cost": it.get("unit_cost"),
+                "unit_cost_pln": it.get("unit_cost_pln"),
+                "asin": it.get("asin"),
+            }
     rows = list(seen.values())
     total = 0
     for i in range(0, len(rows), 500):

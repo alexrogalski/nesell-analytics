@@ -77,3 +77,10 @@ Done — new orders: 0, tracking synced: 0, retried: 0
 2026-03-17 01:44:46,786 INFO     Polling Baselinker for Amazon POD orders since 2026-03-17T01:14:46
 2026-03-17 01:44:46,917 INFO     Found 0 Amazon POD order(s) in this window
 Done — new orders: 0, tracking synced: 0, retried: 0
+2026-03-17 02:14:47,070 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T12:42:44
+2026-03-17 02:14:47,858 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-17 02:14:47,862 INFO     Checking tracking for 1 confirmed Printful order(s)
+2026-03-17 02:14:47,862 INFO     Fetching status for Printful order 150452403
+2026-03-17 02:14:48,403 INFO     Printful order 150452403: status=canceled, tracking=None
+2026-03-17 02:14:48,403 ERROR    ALERT: Printful order #150452403 (BL #33371155) is canceled — Manual intervention required.
+Done — new orders: 0, tracking synced: 0, retried: 0
