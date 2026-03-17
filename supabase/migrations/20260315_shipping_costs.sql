@@ -22,10 +22,10 @@ CREATE TABLE IF NOT EXISTS shipping_costs (
     UNIQUE(order_id)
 );
 
-CREATE INDEX idx_shipping_costs_order ON shipping_costs(order_id);
-CREATE INDEX idx_shipping_costs_external ON shipping_costs(external_order_id);
-CREATE INDEX idx_shipping_costs_date ON shipping_costs(ship_date);
-CREATE INDEX idx_shipping_costs_country ON shipping_costs(destination_country);
+CREATE INDEX IF NOT EXISTS idx_shipping_costs_order ON shipping_costs(order_id);
+CREATE INDEX IF NOT EXISTS idx_shipping_costs_external ON shipping_costs(external_order_id);
+CREATE INDEX IF NOT EXISTS idx_shipping_costs_date ON shipping_costs(ship_date);
+CREATE INDEX IF NOT EXISTS idx_shipping_costs_country ON shipping_costs(destination_country);
 
 -- RLS
 ALTER TABLE shipping_costs ENABLE ROW LEVEL SECURITY;

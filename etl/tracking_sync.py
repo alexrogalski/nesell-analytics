@@ -224,7 +224,7 @@ def amz_post(path: str, payload: dict) -> dict | None:
             print(f"  [Amazon] Rate limited, waiting {wait}s...")
             time.sleep(wait)
             continue
-        if r.status_code in (200, 202):
+        if r.status_code in (200, 201, 202):
             return r.json()
         if r.status_code == 403:
             time.sleep(3)
@@ -273,6 +273,72 @@ def _normalize_carrier(carrier_name: str) -> dict:
 # ============================================================
 # Core functions
 # ============================================================
+
+
+def discover_and_register_printful_orders() -> int:
+    """Scan Printful for fulfilled/shipped orders not yet in printful_order_mappings.
+
+    Handles orders created via Printful's native Amazon integration (external_id =
+    Amazon order ID like "302-XXXXXXX-XXXXXXX") that were never registered by our
+    pipeline.
+
+    Returns:
+        Number of newly registered orders.
+    """
+    # Fetch all recent Printful orders (v1 API, paged)
+    # Scan all non-cancelled statuses: inprocess (production), fulfilled (shipped)
+    all_pf_orders = []
+    for status_filter in ("inprocess", "fulfilled"):
+        offset = 0
+        limit = 100
+        while True:
+            resp = pf_get("/orders", {"status": status_filter, "limit": limit, "offset": offset})
+            if not resp:
+                break
+            items = resp.get("result", [])
+            if isinstance(items, dict):
+                items = items.get("items", [])
+            all_pf_orders.extend(items)
+            paging = resp.get("paging", {})
+            total = paging.get("total", 0)
+            offset += limit
+            if offset >= total:
+                break
+
+    if not all_pf_orders:
+        return 0
+
+    # Get all printful_order_ids already in DB
+    existing = supa_get(TABLE, {"select": "printful_order_id"})
+    existing_ids = {row["printful_order_id"] for row in existing}
+
+    registered = 0
+    for order in all_pf_orders:
+        pf_id = order.get("id")
+        if not pf_id or pf_id in existing_ids:
+            continue
+
+        external_id = str(order.get("external_id") or "")
+        amz_order_id = external_id if AMZ_ORDER_RE.match(external_id) else None
+
+        record: dict = {
+            "printful_order_id": pf_id,
+            "status": order.get("status", "fulfilled"),
+            "bl_tracking_synced": False,
+            "amz_tracking_synced": False,
+        }
+        if amz_order_id:
+            record["amazon_order_id"] = amz_order_id
+
+        try:
+            supa_post(TABLE, [record], on_conflict="printful_order_id")
+            label = f"AMZ#{amz_order_id}" if amz_order_id else f"ext={external_id!r}"
+            print(f"  [discover] Registered PF#{pf_id} ({label})")
+            registered += 1
+        except Exception as e:
+            print(f"  [discover] Failed to register PF#{pf_id}: {e}")
+
+    return registered
 
 
 def get_pending_printful_orders() -> list[dict]:
@@ -618,6 +684,14 @@ def sync_all_tracking(dry_run: bool = False) -> dict:
         "errors": [],
     }
 
+    # Step 0: Auto-discover orders created via native Printful-Amazon integration
+    print("\n[0/3] Discovering new fulfilled Printful orders...")
+    newly_registered = discover_and_register_printful_orders()
+    if newly_registered:
+        print(f"  Registered {newly_registered} new order(s) from Printful.")
+    else:
+        print("  No new orders to register.")
+
     # Step 1: Get pending orders
     print("\n[1/3] Fetching pending Printful orders from DB...")
     pending = get_pending_printful_orders()
@@ -800,6 +874,110 @@ def register_printful_order(
 
 
 # ============================================================
+# One-shot ship confirmation
+# ============================================================
+
+AMZ_ORDER_RE = re.compile(r"^\d{3}-\d{7}-\d{7}$")
+
+
+def ship_now(pf_order_ref: str, amz_order_id: str | None = None, dry_run: bool = False) -> bool:
+    """Immediately confirm shipment for a single Printful order on Amazon.
+
+    Fetches the order from Printful, extracts the latest shipment tracking,
+    resolves the Amazon order ID, then submits a POST_ORDER_FULFILLMENT_DATA feed.
+
+    Args:
+        pf_order_ref: Printful order ID, with or without "PF" prefix (e.g. "PF149928733" or "149928733").
+        amz_order_id: Amazon order ID. If None, auto-detected from Printful's external_id.
+        dry_run: If True, print what would happen without submitting.
+
+    Returns:
+        True on success (or dry_run), False on error.
+    """
+    # Strip optional "PF" prefix
+    pf_id_str = pf_order_ref.upper().lstrip("PF")
+    try:
+        pf_id = int(pf_id_str)
+    except ValueError:
+        print(f"[ship-now] Invalid Printful order ref: {pf_order_ref!r}")
+        return False
+
+    print(f"[ship-now] Fetching Printful order {pf_id}...")
+    resp = pf_get(f"/orders/{pf_id}")
+    if not resp:
+        print(f"[ship-now] Order {pf_id} not found in Printful.")
+        return False
+
+    order = resp.get("result") or resp.get("order") or resp
+    # Some endpoints wrap in {"result": {...}}
+    if isinstance(order, dict) and "id" not in order and "result" in resp:
+        order = resp["result"]
+
+    # Extract shipment info
+    shipments = order.get("shipments") or []
+    if not shipments:
+        print(f"[ship-now] No shipments found for Printful order {pf_id}.")
+        print(f"  Order status: {order.get('status', 'unknown')}")
+        return False
+
+    latest = shipments[-1]
+    tracking_number = latest.get("tracking_number") or latest.get("tracking")
+    carrier = latest.get("carrier") or latest.get("service", "")
+    ship_date = latest.get("ship_date") or latest.get("created") or latest.get("updated")
+
+    if not tracking_number:
+        print(f"[ship-now] No tracking number in shipment for Printful order {pf_id}.")
+        return False
+
+    # Resolve Amazon order ID
+    if not amz_order_id:
+        ext_id = str(order.get("external_id") or "")
+        if AMZ_ORDER_RE.match(ext_id):
+            amz_order_id = ext_id
+            print(f"[ship-now] Auto-detected Amazon order ID: {amz_order_id}")
+        else:
+            print(f"[ship-now] Cannot resolve Amazon order ID.")
+            print(f"  Printful external_id: {ext_id!r} (doesn't match Amazon format)")
+            print(f"  Provide --amz-order <XXX-XXXXXXX-XXXXXXX>")
+            return False
+
+    carrier_info = _normalize_carrier(carrier)
+
+    print(f"[ship-now] Order details:")
+    print(f"  Printful ID:     {pf_id}")
+    print(f"  Amazon order:    {amz_order_id}")
+    print(f"  Tracking:        {tracking_number}")
+    print(f"  Carrier:         {carrier} → {carrier_info['amazon_carrier']}")
+    print(f"  Ship date:       {ship_date}")
+
+    if dry_run:
+        print(f"\n[ship-now] DRY RUN — no changes submitted.")
+        return True
+
+    print(f"\n[ship-now] Submitting Amazon fulfillment feed...")
+    ok = confirm_amazon_shipment(amz_order_id, tracking_number, carrier, ship_date)
+
+    if ok:
+        print(f"[ship-now] Feed submitted successfully.")
+        # Register in DB so future syncs know this is handled
+        register_printful_order(
+            printful_order_id=pf_id,
+            amazon_order_id=amz_order_id,
+            status="shipped",
+        )
+        # Mark amz_tracking_synced in DB
+        supa_patch(
+            TABLE,
+            {"printful_order_id": f"eq.{pf_id}"},
+            {"amz_tracking_synced": True, "amz_synced_at": datetime.utcnow().isoformat()},
+        )
+        return True
+    else:
+        print(f"[ship-now] Feed submission failed.")
+        return False
+
+
+# ============================================================
 # CLI entry point
 # ============================================================
 
@@ -817,13 +995,22 @@ def main():
         help="Register a Printful order for tracking sync",
     )
     parser.add_argument("--bl-order", type=int, help="Baselinker order ID (with --register)")
-    parser.add_argument("--amz-order", type=str, help="Amazon order ID (with --register)")
+    parser.add_argument("--amz-order", type=str, help="Amazon order ID (with --register or --ship-now)")
     parser.add_argument("--sku", type=str, help="SKU (with --register)")
+    parser.add_argument(
+        "--ship-now", metavar="PF_ORDER_ID",
+        help="Immediately confirm shipment for a single Printful order on Amazon",
+    )
     args = parser.parse_args()
 
     print(f"{'='*60}")
     print(f"Printful Tracking Sync — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"{'='*60}")
+
+    if args.ship_now:
+        success = ship_now(args.ship_now, amz_order_id=args.amz_order, dry_run=args.dry_run)
+        import sys
+        sys.exit(0 if success else 1)
 
     if args.register:
         register_printful_order(
