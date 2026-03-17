@@ -1,0 +1,289 @@
+{
+  "timestamp": "2026-03-16T16:10:29.684780",
+  "offers": [
+    {
+      "sku": "PFT-WDH",
+      "id": "18414728279",
+      "price": 89.99
+    },
+    {
+      "sku": "PFT-DDH",
+      "id": "18414731024",
+      "price": 96.99
+    },
+    {
+      "sku": "PFT-CCH",
+      "id": "18414731041",
+      "price": 104.99
+    },
+    {
+      "sku": "PFT-OBH",
+      "id": "18414731001",
+      "price": 119.99
+    },
+    {
+      "sku": "PFT-BBH",
+      "id": "18414808073",
+      "price": 99.99
+    }
+  ],
+  "steps": {
+    "promo_packages": {
+      "status_code": 200,
+      "data": {
+        "marketplaceId": "allegro-pl",
+        "basePackages": [
+          {
+            "id": "emphasized10d",
+            "name": "Feature",
+            "cycleDuration": "PT240H"
+          },
+          {
+            "id": "emphasized1d",
+            "name": "Flexible Feature",
+            "cycleDuration": "PT24H"
+          }
+        ],
+        "extraPackages": [
+          {
+            "id": "departmentPage",
+            "name": "Promote on the category page",
+            "cycleDuration": "PT240H"
+          }
+        ],
+        "additionalMarketplaces": []
+      }
+    },
+    "current_promo_status": {
+      "status_code": 200,
+      "data": {
+        "promoOptions": [
+          {
+            "offerId": "18108419449",
+            "marketplaceId": "allegro-pl",
+            "basePackage": null,
+            "extraPackages": [],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18108462915",
+            "marketplaceId": "allegro-pl",
+            "basePackage": null,
+            "extraPackages": [],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18414728279",
+            "marketplaceId": "allegro-pl",
+            "basePackage": {
+              "id": "emphasized10d",
+              "validFrom": "2026-03-16T15:08:31.969Z",
+              "validTo": null,
+              "nextCycleDate": "2026-03-26T15:08:31.625Z"
+            },
+            "extraPackages": [
+              {
+                "id": "departmentPage",
+                "validFrom": "2026-03-16T15:10:11.472Z",
+                "validTo": null,
+                "nextCycleDate": "2026-03-26T15:10:10.784Z"
+              }
+            ],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18414731001",
+            "marketplaceId": "allegro-pl",
+            "basePackage": {
+              "id": "emphasized10d",
+              "validFrom": "2026-03-16T15:08:33.238Z",
+              "validTo": null,
+              "nextCycleDate": "2026-03-26T15:08:32.015Z"
+            },
+            "extraPackages": [
+              {
+                "id": "departmentPage",
+                "validFrom": "2026-03-16T15:10:11.131Z",
+                "validTo": null,
+                "nextCycleDate": "2026-03-26T15:10:10.963Z"
+              }
+            ],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18414731024",
+            "marketplaceId": "allegro-pl",
+            "basePackage": {
+              "id": "emphasized10d",
+              "validFrom": "2026-03-16T15:08:31.962Z",
+              "validTo": null,
+              "nextCycleDate": "2026-03-26T15:08:31.741Z"
+            },
+            "extraPackages": [
+              {
+                "id": "departmentPage",
+                "validFrom": "2026-03-16T15:10:11.280Z",
+                "validTo": null,
+                "nextCycleDate": "2026-03-26T15:10:10.872Z"
+              }
+            ],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18414731041",
+            "marketplaceId": "allegro-pl",
+            "basePackage": {
+              "id": "emphasized10d",
+              "validFrom": null,
+              "validTo": null,
+              "nextCycleDate": null
+            },
+            "extraPackages": [],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          },
+          {
+            "offerId": "18414808073",
+            "marketplaceId": "allegro-pl",
+            "basePackage": {
+              "id": "emphasized10d",
+              "validFrom": "2026-03-16T15:08:32.599Z",
+              "validTo": null,
+              "nextCycleDate": "2026-03-26T15:08:32.129Z"
+            },
+            "extraPackages": [
+              {
+                "id": "departmentPage",
+                "validFrom": "2026-03-16T15:10:11.209Z",
+                "validTo": null,
+                "nextCycleDate": "2026-03-26T15:10:11.042Z"
+              }
+            ],
+            "pendingChanges": null,
+            "additionalMarketplaces": []
+          }
+        ],
+        "count": 7,
+        "totalCount": 7
+      }
+    },
+    "promo_command": {
+      "command_id": "87b5cf70-5744-499a-aca0-f7e4b1781a42",
+      "status_code": 201,
+      "data": {
+        "id": "87b5cf70-5744-499a-aca0-f7e4b1781a42",
+        "taskCount": {
+          "success": 0,
+          "failed": 0,
+          "total": 0
+        }
+      }
+    },
+    "promo_command_tasks": {
+      "status_code": 200,
+      "data": {
+        "tasks": [
+          {
+            "offer": {
+              "id": "18414728279"
+            },
+            "marketplaceId": "base",
+            "scheduledAt": "2026-03-16T15:20:34.286Z",
+            "finishedAt": "2026-03-16T15:20:34.286Z",
+            "status": "DONE",
+            "errors": []
+          },
+          {
+            "offer": {
+              "id": "18414731024"
+            },
+            "marketplaceId": "base",
+            "scheduledAt": "2026-03-16T15:20:34.558Z",
+            "finishedAt": "2026-03-16T15:20:34.558Z",
+            "status": "DONE",
+            "errors": []
+          },
+          {
+            "offer": {
+              "id": "18414731041"
+            },
+            "marketplaceId": "base",
+            "scheduledAt": "2026-03-16T15:20:34.705Z",
+            "finishedAt": "2026-03-16T15:20:34.705Z",
+            "status": "DONE",
+            "errors": []
+          },
+          {
+            "offer": {
+              "id": "18414731001"
+            },
+            "marketplaceId": "base",
+            "scheduledAt": "2026-03-16T15:20:34.546Z",
+            "finishedAt": "2026-03-16T15:20:34.546Z",
+            "status": "DONE",
+            "errors": []
+          },
+          {
+            "offer": {
+              "id": "18414808073"
+            },
+            "marketplaceId": "base",
+            "scheduledAt": "2026-03-16T15:20:34.298Z",
+            "finishedAt": "2026-03-16T15:20:34.298Z",
+            "status": "DONE",
+            "errors": []
+          }
+        ],
+        "modification": {
+          "basePackage": {
+            "id": "emphasized10d"
+          },
+          "extraPackages": null,
+          "modificationTime": "NOW"
+        },
+        "additionalMarketplaces": []
+      }
+    },
+    "cpc_ads": [
+      {
+        "sku": "PFT-WDH",
+        "offer_id": "18414728279",
+        "status_code": 404,
+        "note": "CPC ads endpoint not found - must be activated manually via Allegro Ads panel"
+      },
+      {
+        "sku": "PFT-DDH",
+        "offer_id": "18414731024",
+        "status_code": 404,
+        "note": "CPC ads endpoint not found - must be activated manually via Allegro Ads panel"
+      },
+      {
+        "sku": "PFT-CCH",
+        "offer_id": "18414731041",
+        "status_code": 404,
+        "note": "CPC ads endpoint not found - must be activated manually via Allegro Ads panel"
+      },
+      {
+        "sku": "PFT-OBH",
+        "offer_id": "18414731001",
+        "status_code": 404,
+        "note": "CPC ads endpoint not found - must be activated manually via Allegro Ads panel"
+      },
+      {
+        "sku": "PFT-BBH",
+        "offer_id": "18414808073",
+        "status_code": 404,
+        "note": "CPC ads endpoint not found - must be activated manually via Allegro Ads panel"
+      }
+    ],
+    "loyalty_promotions": {
+      "status_code": 400,
+      "data": "{\"errors\":[{\"code\":\"ExceptionLocaleWrapper\",\"message\":\"Parametr promotionType jest wymagany.\",\"details\":null,\"path\":\"/sale/loyalty/promotions\",\"userMessage\":\"Parametr promotionType jest wymagany.\",\"metadata\":{}}]}"
+    }
+  }
+}

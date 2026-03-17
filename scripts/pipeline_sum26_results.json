@@ -1,0 +1,45 @@
+{
+  "run_at": "2026-03-16T21:32:25.787299+00:00",
+  "dry_run": true,
+  "step": "all",
+  "products": [
+    "mountain",
+    "coffee",
+    "surf",
+    "cycling",
+    "dog-dad",
+    "vinyl",
+    "garden",
+    "astro",
+    "camping",
+    "yoga"
+  ],
+  "markets": [
+    "DE",
+    "FR",
+    "IT",
+    "ES",
+    "NL",
+    "PL",
+    "SE",
+    "BE"
+  ],
+  "results": {
+    "upload_designs": {
+      "uploaded": 0,
+      "skipped": 0,
+      "errors": 0,
+      "missing": 10
+    },
+    "generate_mockups": {
+      "generated": 0,
+      "skipped": 0,
+      "errors": 10
+    },
+    "create_listings": {
+      "created": 392,
+      "skipped": 0,
+      "errors": 0
+    }
+  }
+}

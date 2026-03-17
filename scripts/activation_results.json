@@ -1,0 +1,179 @@
+{
+  "run_at": "2026-03-16T12:44:41.213327",
+  "set_a": [
+    {
+      "sku": "PFT-WDH",
+      "offer_id": "18414805632",
+      "title": "Prany Dad Hat Vintage Czapka z Daszkiem Regulowana Haft",
+      "status_before": "INACTIVE",
+      "price": "99.00",
+      "allegro_url": "https://allegro.pl/oferta/18414805632",
+      "action": "activation_failed",
+      "status_after": "INACTIVE",
+      "error": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+    },
+    {
+      "sku": "PFT-OBH",
+      "offer_id": "18414805647",
+      "title": "Bucket Hat Bawełna Organiczna GOTS Ekologiczna Unisex Haft",
+      "status_before": "INACTIVE",
+      "price": "119.00",
+      "allegro_url": "https://allegro.pl/oferta/18414805647",
+      "action": "activation_failed",
+      "status_after": "INACTIVE",
+      "error": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+    },
+    {
+      "sku": "PFT-BBH",
+      "offer_id": "18414805665",
+      "title": "Bucket Hat Lato Festiwal Unisex Czapka Wędkarska Y2K Haft",
+      "status_before": "INACTIVE",
+      "price": "109.00",
+      "allegro_url": "https://allegro.pl/oferta/18414805665",
+      "action": "activation_failed",
+      "status_after": "INACTIVE",
+      "error": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+    },
+    {
+      "sku": "PFT-DDH",
+      "offer_id": "18414805695",
+      "title": "Distressed Dad Hat Vintage Czapka z Daszkiem Used Look Haft",
+      "status_before": "INACTIVE",
+      "price": "99.00",
+      "allegro_url": "https://allegro.pl/oferta/18414805695",
+      "action": "activation_failed",
+      "status_after": "INACTIVE",
+      "error": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+    },
+    {
+      "sku": "PFT-CCH",
+      "offer_id": "18414805720",
+      "title": "Czapka Sztruksowa Corduroy Bejsbolówka Regulowana Unisex Haft",
+      "status_before": "INACTIVE",
+      "price": "109.00",
+      "allegro_url": "https://allegro.pl/oferta/18414805720",
+      "action": "activation_failed",
+      "status_after": "INACTIVE",
+      "error": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+    }
+  ],
+  "set_b": [
+    {
+      "sku": "PFT-WDH",
+      "offer_id": "18414728279",
+      "title": "Czapka dad hat garment washed vintage bawelna unisex",
+      "status_before": "ACTIVE",
+      "price": "89.99",
+      "allegro_url": "https://allegro.pl/oferta/18414728279",
+      "action": "none",
+      "status_after": "ACTIVE"
+    },
+    {
+      "sku": "PFT-DDH",
+      "offer_id": "18414731024",
+      "title": "Czapka distressed dad hat vintage used look bawelna unisex",
+      "status_before": "ACTIVE",
+      "price": "96.99",
+      "allegro_url": "https://allegro.pl/oferta/18414731024",
+      "action": "none",
+      "status_after": "ACTIVE"
+    },
+    {
+      "sku": "PFT-CCH",
+      "offer_id": "18414731041",
+      "title": "Czapka sztruksowa corduroy unisex regulowana modna 2026",
+      "status_before": "ENDED",
+      "price": "104.99",
+      "allegro_url": "https://allegro.pl/oferta/18414731041",
+      "action": "activation_failed",
+      "status_after": "ENDED",
+      "error": "422: {\"errors\":[{\"code\":\"ConstraintViolationException.OfferValidation\",\"message\":\"Przedmiot, który chcesz wystawić znajduje się już na liście Twoich aktywnych ofert. Zgodnie z Regulaminem Allegro nie możesz publikować więcej niż dwóch ofert dotyczących tego samego przedmiotu z parametrem stan “Nowy” w ra"
+    },
+    {
+      "sku": "PFT-OBH",
+      "offer_id": "18414731001",
+      "title": "Bucket hat bio bawelna organiczna GOTS eco unisex lato",
+      "status_before": "ACTIVE",
+      "price": "119.99",
+      "allegro_url": "https://allegro.pl/oferta/18414731001",
+      "action": "none",
+      "status_after": "ACTIVE"
+    },
+    {
+      "sku": "PFT-BBH",
+      "offer_id": "18414808073",
+      "title": "Bucket hat czapka rybacka bawelna unisex regulowana lato",
+      "status_before": "ACTIVE",
+      "price": "99.99",
+      "allegro_url": "https://allegro.pl/oferta/18414808073",
+      "action": "none",
+      "status_after": "ACTIVE"
+    }
+  ],
+  "summary": {
+    "active": [
+      {
+        "sku": "PFT-WDH",
+        "offer_id": "18414728279",
+        "title": "Czapka dad hat garment washed vintage bawelna unisex",
+        "price": "89.99",
+        "url": "https://allegro.pl/oferta/18414728279"
+      },
+      {
+        "sku": "PFT-DDH",
+        "offer_id": "18414731024",
+        "title": "Czapka distressed dad hat vintage used look bawelna unisex",
+        "price": "96.99",
+        "url": "https://allegro.pl/oferta/18414731024"
+      },
+      {
+        "sku": "PFT-OBH",
+        "offer_id": "18414731001",
+        "title": "Bucket hat bio bawelna organiczna GOTS eco unisex lato",
+        "price": "119.99",
+        "url": "https://allegro.pl/oferta/18414731001"
+      },
+      {
+        "sku": "PFT-BBH",
+        "offer_id": "18414808073",
+        "title": "Bucket hat czapka rybacka bawelna unisex regulowana lato",
+        "price": "99.99",
+        "url": "https://allegro.pl/oferta/18414808073"
+      }
+    ],
+    "activated": [],
+    "failed": [
+      {
+        "sku": "PFT-WDH",
+        "offer_id": "18414805632",
+        "reason": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+      },
+      {
+        "sku": "PFT-OBH",
+        "offer_id": "18414805647",
+        "reason": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+      },
+      {
+        "sku": "PFT-BBH",
+        "offer_id": "18414805665",
+        "reason": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+      },
+      {
+        "sku": "PFT-DDH",
+        "offer_id": "18414805695",
+        "reason": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+      },
+      {
+        "sku": "PFT-CCH",
+        "offer_id": "18414805720",
+        "reason": "422: {\"errors\":[{\"code\":\"RESPONSIBLE_PRODUCER_NOT_SPECIFIED\",\"message\":\"Responsible producer is required for every product in the offer\",\"details\":null,\"path\":\"productSet[0].responsibleProducer\",\"userMessage\":\"Producent odpowiedzialny jest obowiązkowy dla każdego produktu w ofercie\",\"metadata\":{}},{\"code"
+      },
+      {
+        "sku": "PFT-CCH",
+        "offer_id": "18414731041",
+        "reason": "422: {\"errors\":[{\"code\":\"ConstraintViolationException.OfferValidation\",\"message\":\"Przedmiot, który chcesz wystawić znajduje się już na liście Twoich aktywnych ofert. Zgodnie z Regulaminem Allegro nie możesz publikować więcej niż dwóch ofert dotyczących tego samego przedmiotu z parametrem stan “Nowy” w ra"
+      }
+    ],
+    "not_found": []
+  }
+}

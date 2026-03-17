@@ -1,0 +1,81 @@
+2026-03-16 12:03:07,104 INFO     Polling Baselinker for Amazon POD orders since 2026-03-09T12:03:07
+2026-03-16 12:03:07,773 INFO     Found 1 Amazon POD order(s) in this window
+2026-03-16 12:03:07,773 INFO     Processing BL order 33371155 (Amazon: ?)
+2026-03-16 12:03:07,774 INFO     Creating Printful order (external_id=33371155, items=1)
+2026-03-16 12:03:08,339 ERROR    BL order 33371155: Printful API error — Validation error: Item 0: Item can't be submitted without any print files
+2026-03-16 12:03:08,339 ERROR    ALERT: BL #33371155 (Amazon ?): Printful API error — Validation error: Item 0: Item can't be submitted without any print files
+2026-03-16 12:05:56,384 INFO     Cleared 1 errored order(s) for retry
+2026-03-16 12:05:56,385 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T12:03:07
+2026-03-16 12:05:56,513 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 12:06:09,092 INFO     Polling Baselinker for Amazon POD orders since 2026-03-09T12:06:04
+2026-03-16 12:06:09,756 INFO     Found 1 Amazon POD order(s) in this window
+2026-03-16 12:06:09,757 INFO     Processing BL order 33371155 (Amazon: ?)
+2026-03-16 12:06:11,284 INFO     Confirming Printful order 150452403
+2026-03-16 12:06:12,521 INFO     Printful order 150452403 confirmed, new status=pending
+2026-03-16 12:06:12,521 INFO     Printful order #150452403 created+confirmed for BL #33371155 (Amazon: ?) — 1 item(s)
+2026-03-16 12:06:12,521 INFO     ALERT: New POD order → Printful
+BL #33371155 | Amazon #? | Printful #150452403
+Items: 1 | Ship to: DE
+2026-03-16 12:06:12,692 INFO     Checking tracking for 1 confirmed Printful order(s)
+2026-03-16 12:06:12,693 INFO     Fetching status for Printful order 150452403
+2026-03-16 12:06:13,100 INFO     Printful order 150452403: status=pending, tracking=None
+2026-03-16 12:42:36,562 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T12:06:09
+2026-03-16 12:42:37,225 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 12:42:37,227 INFO     Checking tracking for 1 confirmed Printful order(s)
+2026-03-16 12:42:37,227 INFO     Fetching status for Printful order 150452403
+2026-03-16 12:42:37,664 INFO     Printful order 150452403: status=pending, tracking=None
+2026-03-16 12:42:44,704 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T12:42:37
+2026-03-16 12:42:44,835 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 12:42:44,836 INFO     Checking tracking for 1 confirmed Printful order(s)
+2026-03-16 12:42:44,836 INFO     Fetching status for Printful order 150452403
+2026-03-16 12:42:45,227 INFO     Printful order 150452403: status=pending, tracking=None
+2026-03-16 13:12:46,251 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T12:42:44
+2026-03-16 13:12:46,476 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 13:12:46,483 INFO     Checking tracking for 1 confirmed Printful order(s)
+2026-03-16 13:12:46,483 INFO     Fetching status for Printful order 150452403
+2026-03-16 13:12:46,873 INFO     Printful order 150452403: status=canceled, tracking=None
+2026-03-16 13:12:46,874 ERROR    ALERT: Printful order #150452403 (BL #33371155) is canceled — Manual intervention required.
+2026-03-16 13:59:30,337 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T13:12:46
+2026-03-16 13:59:30,497 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 14:29:30,633 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T13:59:30
+2026-03-16 14:29:30,784 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 14:59:30,898 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T14:29:30
+2026-03-16 14:59:31,038 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 15:29:31,234 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T14:59:31
+2026-03-16 15:29:31,388 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 15:59:31,544 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T15:29:31
+2026-03-16 15:59:32,353 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 16:29:32,646 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T15:59:32
+2026-03-16 16:29:32,808 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 16:59:40,162 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T16:29:32
+2026-03-16 16:59:40,947 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 18:00:25,646 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T16:59:41
+2026-03-16 18:00:25,815 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 18:45:34,285 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T18:00:25
+2026-03-16 18:45:35,095 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 19:15:35,248 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T18:45:35
+2026-03-16 19:15:35,394 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 19:45:35,579 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T19:15:35
+2026-03-16 19:45:36,432 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 20:15:36,632 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T19:45:36
+2026-03-16 20:15:36,777 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 20:45:36,997 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T20:15:36
+2026-03-16 20:45:37,130 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 21:15:37,357 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T20:45:37
+2026-03-16 21:15:37,516 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 21:45:37,733 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T21:15:37
+2026-03-16 21:45:39,443 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 22:15:39,637 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T21:45:39
+2026-03-16 22:15:40,382 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 22:45:40,604 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T22:15:40
+2026-03-16 22:45:40,743 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 23:15:42,123 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T22:45:40
+2026-03-16 23:15:42,282 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-16 23:45:42,594 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T23:15:42
+2026-03-16 23:45:42,739 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-17 00:15:43,134 INFO     Polling Baselinker for Amazon POD orders since 2026-03-16T23:45:42
+2026-03-17 00:15:43,343 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-17 01:14:46,462 INFO     Polling Baselinker for Amazon POD orders since 2026-03-17T00:15:43
+2026-03-17 01:14:46,606 INFO     Found 0 Amazon POD order(s) in this window
+2026-03-17 01:44:46,786 INFO     Polling Baselinker for Amazon POD orders since 2026-03-17T01:14:46
+2026-03-17 01:44:46,917 INFO     Found 0 Amazon POD order(s) in this window

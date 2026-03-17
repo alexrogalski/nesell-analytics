@@ -101,9 +101,11 @@ def upsert_order_items(conn, items):
     """Upsert order items (dedup by order_id + sku)."""
     if not items:
         return 0
-    rows = []
+    # Deduplicate by (order_id, sku) within batch — keep last occurrence
+    seen = {}
     for it in items:
-        rows.append({
+        key = (it["order_id"], it.get("sku"))
+        row = {
             "order_id": it["order_id"],
             "sku": it.get("sku"),
             "name": it.get("name"),
@@ -114,7 +116,9 @@ def upsert_order_items(conn, items):
             "unit_cost": it.get("unit_cost"),
             "unit_cost_pln": it.get("unit_cost_pln"),
             "asin": it.get("asin"),
-        })
+        }
+        seen[key] = row
+    rows = list(seen.values())
     total = 0
     for i in range(0, len(rows), 500):
         chunk = rows[i:i+500]

@@ -1,0 +1,58 @@
+{
+  "run_at": "2026-03-16T01:01:51.227677Z",
+  "dry_run": false,
+  "products": [
+    "washed",
+    "orgbucket",
+    "bucket",
+    "dist",
+    "cord"
+  ],
+  "markets": [
+    "DE",
+    "FR",
+    "IT",
+    "ES",
+    "NL",
+    "PL",
+    "SE",
+    "BE"
+  ],
+  "results": [
+    {
+      "product": "washed",
+      "created": 0,
+      "skipped": 40,
+      "errors": 0
+    },
+    {
+      "product": "orgbucket",
+      "created": 0,
+      "skipped": 32,
+      "errors": 0
+    },
+    {
+      "product": "bucket",
+      "created": 0,
+      "skipped": 32,
+      "errors": 0
+    },
+    {
+      "product": "dist",
+      "created": 0,
+      "skipped": 40,
+      "errors": 0
+    },
+    {
+      "product": "cord",
+      "created": 0,
+      "skipped": 40,
+      "errors": 0
+    }
+  ],
+  "total": {
+    "created": 0,
+    "skipped": 184,
+    "errors": 0
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "step1_designs": {
+    "mountain": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/mountain.png",
+      "text": "EXPLORE",
+      "size_bytes": 91779,
+      "generated_at": "2026-03-16T22:08:35.528149+00:00"
+    },
+    "coffee": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/coffee.png",
+      "text": "COFFEE",
+      "size_bytes": 84109,
+      "generated_at": "2026-03-16T22:08:35.607655+00:00"
+    },
+    "surf": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/surf.png",
+      "text": "SURF",
+      "size_bytes": 94113,
+      "generated_at": "2026-03-16T22:08:35.696068+00:00"
+    },
+    "cycling": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/cycling.png",
+      "text": "RIDE",
+      "size_bytes": 81076,
+      "generated_at": "2026-03-16T22:08:35.791321+00:00"
+    },
+    "dog-dad": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/dog-dad.png",
+      "text": "DOG DAD",
+      "size_bytes": 96825,
+      "generated_at": "2026-03-16T22:08:35.878389+00:00"
+    },
+    "vinyl": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/vinyl.png",
+      "text": "ANALOG",
+      "size_bytes": 100821,
+      "generated_at": "2026-03-16T22:08:35.974558+00:00"
+    },
+    "garden": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/garden.png",
+      "text": "GROW",
+      "size_bytes": 101662,
+      "generated_at": "2026-03-16T22:08:36.072360+00:00"
+    },
+    "astro": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/astro.png",
+      "text": "COSMOS",
+      "size_bytes": 103938,
+      "generated_at": "2026-03-16T22:08:36.170773+00:00"
+    },
+    "camping": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/camping.png",
+      "text": "WILD",
+      "size_bytes": 85851,
+      "generated_at": "2026-03-16T22:08:36.264358+00:00"
+    },
+    "yoga": {
+      "path": "/Users/alexanderrogalski/nesell-analytics/designs/sum26/yoga.png",
+      "text": "BREATHE",
+      "size_bytes": 82479,
+      "generated_at": "2026-03-16T22:08:36.337177+00:00"
+    }
+  },
+  "step2_uploads": {
+    "mountain": {
+      "file_id": 956177071,
+      "preview_url": "",
+      "thumbnail_url": "",
+      "status": "waiting",
+      "hosted_url": "https://tmpfiles.org/dl/29247001/mountain.png",
+      "uploaded_at": "2026-03-16T22:10:31.000Z"
+    },
+    "coffee": {
+      "file_id": 956177701,
+      "preview_url": "https://files.cdn.printful.com/files/e10/e101b003987fc0f0b2f077efd56100af_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/e10/e101b003987fc0f0b2f077efd56100af_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247102/coffee.png",
+      "uploaded_at": "2026-03-16T22:11:52.819022+00:00"
+    },
+    "surf": {
+      "file_id": 956177800,
+      "preview_url": "https://files.cdn.printful.com/files/201/201f7e2aca07a506950e46405d09d0a1_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/201/201f7e2aca07a506950e46405d09d0a1_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247112/surf.png",
+      "uploaded_at": "2026-03-16T22:12:01.290672+00:00"
+    },
+    "cycling": {
+      "file_id": 956177879,
+      "preview_url": "https://files.cdn.printful.com/files/55f/55f495a4214e41a656bc4f086714917c_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/55f/55f495a4214e41a656bc4f086714917c_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247116/cycling.png",
+      "uploaded_at": "2026-03-16T22:12:09.737955+00:00"
+    },
+    "dog-dad": {
+      "file_id": 956177937,
+      "preview_url": "https://files.cdn.printful.com/files/d9c/d9c4fd7bba07913a4f0b20f4c7ffad10_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/d9c/d9c4fd7bba07913a4f0b20f4c7ffad10_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247127/dog-dad.png",
+      "uploaded_at": "2026-03-16T22:12:23.658290+00:00"
+    },
+    "vinyl": {
+      "file_id": 956178012,
+      "preview_url": "https://files.cdn.printful.com/files/f66/f6656aced5c044fb33f801572bbd523a_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/f66/f6656aced5c044fb33f801572bbd523a_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247144/vinyl.png",
+      "uploaded_at": "2026-03-16T22:12:37.509441+00:00"
+    },
+    "garden": {
+      "file_id": 956178109,
+      "preview_url": "https://files.cdn.printful.com/files/0ff/0ffac133832d87b79f5300d0703ab3b8_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/0ff/0ffac133832d87b79f5300d0703ab3b8_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247156/garden.png",
+      "uploaded_at": "2026-03-16T22:12:51.465802+00:00"
+    },
+    "astro": {
+      "file_id": 956178174,
+      "preview_url": "https://files.cdn.printful.com/files/509/509286fd99c8c4180c54bf7a8af4fce8_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/509/509286fd99c8c4180c54bf7a8af4fce8_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247169/astro.png",
+      "uploaded_at": "2026-03-16T22:13:00.012921+00:00"
+    },
+    "camping": {
+      "file_id": 956178236,
+      "preview_url": "https://files.cdn.printful.com/files/312/3128651785f7cf6747e078f542083e12_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/312/3128651785f7cf6747e078f542083e12_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247180/camping.png",
+      "uploaded_at": "2026-03-16T22:13:08.494740+00:00"
+    },
+    "yoga": {
+      "file_id": 956178301,
+      "preview_url": "https://files.cdn.printful.com/files/62e/62e64dd6d5c830e3db14dc47481f3fca_preview.png",
+      "thumbnail_url": "https://files.cdn.printful.com/files/62e/62e64dd6d5c830e3db14dc47481f3fca_thumb.png",
+      "status": "ok",
+      "hosted_url": "https://tmpfiles.org/dl/29247190/yoga.png",
+      "uploaded_at": "2026-03-16T22:13:17.000051+00:00"
+    }
+  },
+  "step3_printful_products": {
+    "mountain": {
+      "sync_product_id": 424211151,
+      "name": "SUM26 Mountain Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956177071,
+      "created_at": "2026-03-16T22:17:11.025646+00:00"
+    },
+    "coffee": {
+      "sync_product_id": 424211154,
+      "name": "SUM26 Coffee Culture Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956177701,
+      "created_at": "2026-03-16T22:17:14.122693+00:00"
+    },
+    "surf": {
+      "sync_product_id": 424211164,
+      "name": "SUM26 Surf Hat — Trucker Cap",
+      "hat_type": "trucker",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956177800,
+      "created_at": "2026-03-16T22:17:17.166327+00:00"
+    },
+    "cycling": {
+      "sync_product_id": 424211170,
+      "name": "SUM26 Cycling Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956177879,
+      "created_at": "2026-03-16T22:17:20.079228+00:00"
+    },
+    "dog-dad": {
+      "sync_product_id": 424211189,
+      "name": "SUM26 Dog Lover Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956177937,
+      "created_at": "2026-03-16T22:17:22.990249+00:00"
+    },
+    "vinyl": {
+      "sync_product_id": 424211193,
+      "name": "SUM26 Music Hat — Trucker Cap",
+      "hat_type": "trucker",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956178012,
+      "created_at": "2026-03-16T22:17:26.577346+00:00"
+    },
+    "astro": {
+      "sync_product_id": 424211196,
+      "name": "SUM26 Astronomy Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956178174,
+      "created_at": "2026-03-16T22:17:32.276933+00:00"
+    },
+    "camping": {
+      "sync_product_id": 424211198,
+      "name": "SUM26 Camping Hat — Trucker Cap",
+      "hat_type": "trucker",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956178236,
+      "created_at": "2026-03-16T22:17:35.135514+00:00"
+    },
+    "yoga": {
+      "sync_product_id": 424211208,
+      "name": "SUM26 Yoga Hat — Dad Hat",
+      "hat_type": "dad_hat",
+      "variant_count": 4,
+      "variant_ids": [],
+      "skus": [],
+      "design_file_id": 956178301,
+      "created_at": "2026-03-16T22:17:38.093160+00:00"
+    },
+    "garden": {
+      "sync_product_id": 424211398,
+      "name": "SUM26 Gardening Hat — Bucket Hat",
+      "hat_type": "bucket",
+      "variant_count": 3,
+      "design_file_id": 956178109,
+      "created_at": "2026-03-16T22:20:00.000Z"
+    }
+  },
+  "step4_amazon_listings": {},
+  "errors": []
+}

@@ -1,0 +1,1881 @@
+{
+  "generated_at": "2026-03-16T21:00:11.500593+00:00",
+  "offers": {
+    "PFT-BBH": {
+      "sku": "PFT-BBH",
+      "id": "18414808073",
+      "name": "Bucket hat czapka rybacka bawelna unisex regulowana lato",
+      "expected_price_pln": 99.99,
+      "actual_price": {
+        "amount": "99.99",
+        "currency": "PLN"
+      },
+      "format": "BUY_NOW",
+      "priceAutomation": null,
+      "stock_available": 999,
+      "stock_sold": 0,
+      "watchers": 0,
+      "visits": 0,
+      "status": "ACTIVE",
+      "started_at": "2026-03-16T01:31:09.000Z",
+      "ended_at": null,
+      "category_id": "5554",
+      "external_id": "PFT-BBH-BUCKET-HAT-BX003",
+      "image": "https://a.allegroimg.com/original/11928e/f2c99cbc4073880137382d8b43c2",
+      "marketplaces": {
+        "allegro-business-pl": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "99.99",
+            "currency": "PLN"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-cz": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "573.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-business-cz": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "573.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-sk": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "23.43",
+            "currency": "EUR"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-hu": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "9175.0",
+            "currency": "HUF"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        }
+      },
+      "b2b": {
+        "buyableOnlyByBusiness": false
+      },
+      "isFulfillment": false
+    },
+    "PFT-CCH": {
+      "sku": "PFT-CCH",
+      "id": "18414731041",
+      "name": "Czapka sztruksowa corduroy unisex regulowana modna 2026",
+      "expected_price_pln": 104.99,
+      "actual_price": {
+        "amount": "104.99",
+        "currency": "PLN"
+      },
+      "format": "BUY_NOW",
+      "priceAutomation": null,
+      "stock_available": 999,
+      "stock_sold": 0,
+      "watchers": 0,
+      "visits": 0,
+      "status": "ENDED",
+      "started_at": "2026-03-16T01:30:19.000Z",
+      "ended_at": "2026-03-16T01:35:00.000Z",
+      "category_id": "5553",
+      "external_id": "PF-532-CORDUROY-CAP",
+      "image": "https://a.allegroimg.com/original/113a25/1c5f8e0c4b5384d89c393340c21a",
+      "marketplaces": {
+        "allegro-business-pl": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "104.99",
+            "currency": "PLN"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-cz": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "601.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-business-cz": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "601.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-sk": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "24.6",
+            "currency": "EUR"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-hu": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "9630.0",
+            "currency": "HUF"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        }
+      },
+      "b2b": {
+        "buyableOnlyByBusiness": false
+      },
+      "isFulfillment": false
+    },
+    "PFT-DDH": {
+      "sku": "PFT-DDH",
+      "id": "18414731024",
+      "name": "Czapka distressed dad hat vintage used look bawelna unisex",
+      "expected_price_pln": 96.99,
+      "actual_price": {
+        "amount": "96.99",
+        "currency": "PLN"
+      },
+      "format": "BUY_NOW",
+      "priceAutomation": null,
+      "stock_available": 999,
+      "stock_sold": 0,
+      "watchers": 0,
+      "visits": 0,
+      "status": "ACTIVE",
+      "started_at": "2026-03-16T01:30:16.000Z",
+      "ended_at": null,
+      "category_id": "5553",
+      "external_id": "PF-396-DISTRESSED-DAD-HAT",
+      "image": "https://a.allegroimg.com/original/113a25/1c5f8e0c4b5384d89c393340c21a",
+      "marketplaces": {
+        "allegro-business-pl": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "96.99",
+            "currency": "PLN"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-cz": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "555.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-business-cz": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "555.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-sk": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "22.73",
+            "currency": "EUR"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-hu": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "8895.0",
+            "currency": "HUF"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        }
+      },
+      "b2b": {
+        "buyableOnlyByBusiness": false
+      },
+      "isFulfillment": false
+    },
+    "PFT-OBH": {
+      "sku": "PFT-OBH",
+      "id": "18414731001",
+      "name": "Bucket hat bio bawelna organiczna GOTS eco unisex lato",
+      "expected_price_pln": 119.99,
+      "actual_price": {
+        "amount": "119.99",
+        "currency": "PLN"
+      },
+      "format": "BUY_NOW",
+      "priceAutomation": null,
+      "stock_available": 999,
+      "stock_sold": 0,
+      "watchers": 0,
+      "visits": 0,
+      "status": "ACTIVE",
+      "started_at": "2026-03-16T01:30:21.000Z",
+      "ended_at": null,
+      "category_id": "5554",
+      "external_id": "PF-547-ORGANIC-BUCKET-HAT",
+      "image": "https://a.allegroimg.com/original/11928e/f2c99cbc4073880137382d8b43c2",
+      "marketplaces": {
+        "allegro-business-pl": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "119.99",
+            "currency": "PLN"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-cz": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "687.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-business-cz": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "687.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-sk": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "28.12",
+            "currency": "EUR"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-hu": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "11005.0",
+            "currency": "HUF"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        }
+      },
+      "b2b": {
+        "buyableOnlyByBusiness": false
+      },
+      "isFulfillment": false
+    },
+    "PFT-WDH": {
+      "sku": "PFT-WDH",
+      "id": "18414728279",
+      "name": "Czapka dad hat garment washed vintage bawelna unisex",
+      "expected_price_pln": 89.99,
+      "actual_price": {
+        "amount": "89.99",
+        "currency": "PLN"
+      },
+      "format": "BUY_NOW",
+      "priceAutomation": null,
+      "stock_available": 999,
+      "stock_sold": 0,
+      "watchers": 0,
+      "visits": 0,
+      "status": "ACTIVE",
+      "started_at": "2026-03-16T01:29:22.000Z",
+      "ended_at": null,
+      "category_id": "5553",
+      "external_id": "PF-961-WASHED-DAD-HAT",
+      "image": "https://a.allegroimg.com/original/113a25/1c5f8e0c4b5384d89c393340c21a",
+      "marketplaces": {
+        "allegro-business-pl": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "89.99",
+            "currency": "PLN"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-cz": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "515.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-business-cz": {
+          "state": "REFUSED",
+          "price": {
+            "amount": "515.0",
+            "currency": "CZK"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-sk": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "21.09",
+            "currency": "EUR"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        },
+        "allegro-hu": {
+          "state": "APPROVED",
+          "price": {
+            "amount": "8255.0",
+            "currency": "HUF"
+          },
+          "watchers": 0,
+          "visits": 0,
+          "sold": 0
+        }
+      },
+      "b2b": {
+        "buyableOnlyByBusiness": false
+      },
+      "isFulfillment": false
+    }
+  },
+  "offer_events": {
+    "status_code": 200,
+    "body": {
+      "offerEvents": [
+        {
+          "id": "MTc3MzYyMTM1MDU5NTE4MA",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T00:35:40.000Z",
+          "offer": {
+            "id": "18414724796",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzYyMTM1MTQ0Mzc1OQ",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T00:35:32.701Z",
+          "offer": {
+            "id": "18414724796",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzYyMTM1MjYwNDM4NQ",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T00:35:41.684Z",
+          "offer": {
+            "id": "18414724796",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzYyMTY4OTk3ODkwMA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:41:16.493Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMTc0OTQ1MDcyMw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:42:18.538Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMTc2OTE0MzM0MA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:42:35.255Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMTc5OTUwMjUxNQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:43:05.594Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMTgxMDA3Njg4Mw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:43:16.981Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMTgyMjY2NTM4OA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T00:43:29.378Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyMjI0MzMyNzA1MQ",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T00:50:33.251Z",
+          "offer": {
+            "id": "18414724796",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzYyMjI0MzUyMDg4OQ",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T00:50:33.175Z",
+          "offer": {
+            "id": "18414724796",
+            "external": null,
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDU3Mjk0MTcxNA",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T01:29:22.000Z",
+          "offer": {
+            "id": "18414728279",
+            "publication": null,
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDU3MzAwMjkyMg",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T00:38:16.524Z",
+          "offer": {
+            "id": "18414728279",
+            "publication": null,
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYyNzM4ODg1NQ",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T01:30:16.000Z",
+          "offer": {
+            "id": "18414731024",
+            "publication": null,
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYyNzYwMjU4MA",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T00:40:47.568Z",
+          "offer": {
+            "id": "18414731024",
+            "publication": null,
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYyOTQ3NTYwMg",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T01:30:19.000Z",
+          "offer": {
+            "id": "18414731041",
+            "publication": null,
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYzMDEwNDg1OA",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T00:40:48.581Z",
+          "offer": {
+            "id": "18414731041",
+            "publication": null,
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYzMzA3NDQ3Mg",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T01:30:21.000Z",
+          "offer": {
+            "id": "18414731001",
+            "publication": null,
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDYzMzUzMDQ1NQ",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T00:40:46.563Z",
+          "offer": {
+            "id": "18414731001",
+            "publication": null,
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDY3OTk0NzA0Ng",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T01:31:09.000Z",
+          "offer": {
+            "id": "18414808073",
+            "publication": null,
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDY4MDEzODk2Mw",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T01:31:01.832Z",
+          "offer": {
+            "id": "18414808073",
+            "publication": null,
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDY4MTQwNjMzMA",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T01:31:10.838Z",
+          "offer": {
+            "id": "18414808073",
+            "publication": null,
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDc4OTk5NzU4NA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:32:56.095Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDc5NDA5MzQ3OA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:33:00.697Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDgwNjM4NDc2MQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:33:15.819Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDgwNjc3ODEwMA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:33:13.089Z",
+          "offer": {
+            "id": "18414731041",
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDgyMjA0NDU5Nw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:33:28.828Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg1OTUzMDc2Ng",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:05.545Z",
+          "offer": {
+            "id": "18414731041",
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg2MDg2ODY4Mw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:06.973Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg2NjMyNjQ5OA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:12.724Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg2NjUyNjc1Mg",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:13.517Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg3MDY2Nzc5Nw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:19.803Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg3ODgwMDU2NA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:25.162Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg3OTc1MjAzMQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:26.350Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDg4MjU0NzM1NQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:34:29.335Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDkxMDE2NjQ4MQ",
+          "type": "OFFER_ENDED",
+          "occurredAt": "2026-03-16T01:35:00.000Z",
+          "offer": {
+            "id": "18414731041",
+            "publication": {
+              "endedBy": "ADMIN"
+            },
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNDkxMzYyMzgyNg",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:00.192Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDkyOTU3MzA2OQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:16.544Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDkzMDE1MDM5MA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:17.122Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDk0MjMzNTMxOA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:28.824Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDk1NDY5MzEzNg",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:41.640Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDk1NTY4ODI0MQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:45.137Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDk1NzQzNTY3MQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:46.668Z",
+          "offer": {
+            "id": "18414731041",
+            "external": {
+              "id": "PF-532-CORDUROY-CAP"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNDk2NDk4NDgxNQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:35:50.986Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTAxNzg3MTIxMw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:36:44.585Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTA3NjcxMDI1MA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:37:46.127Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTA4NDkxNjIwNg",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:37:51.189Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTA4OTgyMzA2OQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:37:56.055Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTEzOTY1NTQ5NQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:38:46.208Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTE3ODk0MDI2Nw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T01:39:25.410Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzYyNTQ3MDc3NzAxOQ",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T01:44:20.163Z",
+          "offer": {
+            "id": "18414728279",
+            "publication": null,
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTQ3MTA2OTYyMQ",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T01:44:20.039Z",
+          "offer": {
+            "id": "18414728279",
+            "external": {
+              "id": "PF-961-WASHED-DAD-HAT"
+            },
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTUyNTkxMDUzMg",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T01:45:14.560Z",
+          "offer": {
+            "id": "18414731024",
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            },
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTUyNTkyNjUyOQ",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T01:45:15.065Z",
+          "offer": {
+            "id": "18414731024",
+            "publication": null,
+            "external": {
+              "id": "PF-396-DISTRESSED-DAD-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTUzMDE1NjcwMw",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T01:45:19.611Z",
+          "offer": {
+            "id": "18414731001",
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            },
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTUzMDUwMjY3Mg",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T01:45:19.665Z",
+          "offer": {
+            "id": "18414731001",
+            "publication": null,
+            "external": {
+              "id": "PF-547-ORGANIC-BUCKET-HAT"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTU3Mjc2NDM5MQ",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T01:46:02.595Z",
+          "offer": {
+            "id": "18414808073",
+            "publication": null,
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzYyNTU3MzM2ODk5MA",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T01:46:02.383Z",
+          "offer": {
+            "id": "18414808073",
+            "external": {
+              "id": "PFT-BBH-BUCKET-HAT-BX003"
+            },
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzY0OTQ4MTAzODI1Mg",
+          "type": "OFFER_ARCHIVED",
+          "occurredAt": "2026-03-16T08:24:30.825Z",
+          "offer": {
+            "id": "18108382021",
+            "publication": null,
+            "external": {
+              "id": "DC4244-010"
+            }
+          }
+        },
+        {
+          "id": "MTc3MzY2MTYzNjc3NjA5NQ",
+          "type": "OFFER_ACTIVATED",
+          "occurredAt": "2026-03-16T11:47:06.000Z",
+          "offer": {
+            "id": "18414805720",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzY2MTYzNzkxNTE0Mw",
+          "type": "OFFER_STOCK_CHANGED",
+          "occurredAt": "2026-03-16T01:29:23.245Z",
+          "offer": {
+            "id": "18414805720",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzY2MTk3NzYzNjg1NQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:52:44.483Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjAyNzI2NjA2MA",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:53:34.156Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "en-US"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjA1OTkwMjM3Mg",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:54:06.388Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "sk-SK"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjEwNDA0NDUyNw",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:54:50.130Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjEyMTMyMzk5NQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:55:07.614Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "hu-HU"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjE0MzY4NDY2MQ",
+          "type": "OFFER_TRANSLATION_UPDATED",
+          "occurredAt": "2026-03-16T11:55:32.804Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null
+          },
+          "translations": [
+            {
+              "language": "uk-UA"
+            },
+            {
+              "language": "hu-HU"
+            },
+            {
+              "language": "en-US"
+            },
+            {
+              "language": "sk-SK"
+            },
+            {
+              "language": "cs-CZ"
+            }
+          ]
+        },
+        {
+          "id": "MTc3MzY2MjUzODczMDE5NQ",
+          "type": "OFFER_VISIBILITY_CHANGED",
+          "occurredAt": "2026-03-16T12:02:08.145Z",
+          "offer": {
+            "id": "18414805720",
+            "external": null,
+            "publication": {
+              "marketplaces": {
+                "base": "allegro-pl",
+                "additional": [
+                  {
+                    "id": "allegro-cz",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-cz",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "allegro-sk",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-hu",
+                    "status": "APPROVED",
+                    "refusalReasons": []
+                  },
+                  {
+                    "id": "allegro-business-pl",
+                    "status": "REFUSED",
+                    "refusalReasons": [
+                      {
+                        "code": "VQR012_OFFER_HAS_NO_TAX_RATE_FOR_MARKETPLACE",
+                        "parameters": {},
+                        "relatedReasons": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              "updatedMarketplaces": [
+                "allegro-business-pl",
+                "allegro-sk",
+                "allegro-cz",
+                "allegro-hu",
+                "allegro-pl",
+                "allegro-business-cz"
+              ]
+            }
+          }
+        },
+        {
+          "id": "MTc3MzY2MjUzODk2MDc0MA",
+          "type": "OFFER_CHANGED",
+          "occurredAt": "2026-03-16T12:02:08.184Z",
+          "offer": {
+            "id": "18414805720",
+            "publication": null,
+            "external": null
+          }
+        },
+        {
+          "id": "MTc3MzY3MDM0MjIyMDcyOQ",
+          "type": "OFFER_PRICE_CHANGED",
+          "occurredAt": "2026-03-16T14:12:11.308Z",
+          "offer": {
+            "id": "18108382685",
+            "external": null,
+            "marketplaces": [
+              {
+                "id": "allegro-pl",
+                "changeType": "MANUAL"
+              },
+              {
+                "id": "allegro-business-pl",
+                "changeType": "MANUAL"
+              },
+              {
+                "id": "allegro-business-cz",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-cz",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-hu",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-sk",
+                "changeType": "AUTOMATIC"
+              }
+            ]
+          }
+        },
+        {
+          "id": "MTc3MzY3MDM0MjI2NDQzMw",
+          "type": "OFFER_PRICE_CHANGED",
+          "occurredAt": "2026-03-16T14:12:11.402Z",
+          "offer": {
+            "id": "18108400238",
+            "external": null,
+            "marketplaces": [
+              {
+                "id": "allegro-pl",
+                "changeType": "MANUAL"
+              },
+              {
+                "id": "allegro-business-pl",
+                "changeType": "MANUAL"
+              },
+              {
+                "id": "allegro-business-cz",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-cz",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-hu",
+                "changeType": "AUTOMATIC"
+              },
+              {
+                "id": "allegro-sk",
+                "changeType": "AUTOMATIC"
+              }
+            ]
+          }
+        },
+        {
+          "id": "MTc3MzY5MjE0OTMxMDQ3MA",
+          "type": "OFFER_ENDED",
+          "occurredAt": "2026-03-16T20:15:39.000Z",
+          "offer": {
+            "id": "18108446318",
+            "publication": {
+              "endedBy": "EMPTY_STOCK"
+            },
+            "external": {
+              "id": "8809724476168"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "product_offers_detail": {
+    "PFT-WDH": {
+      "name": "Czapka dad hat garment washed vintage bawelna unisex",
+      "description": "<h2>FURTALK Czapka z daszkiem Unisex Vintage 100% Bawełna Regulowana</h2> <p>Odkryj styl i wygodę z naszą czapką baseballową FURTALK. Wykonana z najwyższej jakości bawełny, ta czapka w stylu vintage j",
+      "parameters_count": 1,
+      "images_count": 7,
+      "compatibilityList": null,
+      "tax": null,
+      "messageToSellerSettings": {
+        "mode": "OPTIONAL"
+      }
+    },
+    "PFT-DDH": {
+      "name": "Czapka distressed dad hat vintage used look bawelna unisex",
+      "description": "<h2>FURTALK Czapka z daszkiem Unisex Vintage 100% Bawełna Regulowana</h2> <p>Odkryj styl i wygodę z naszą czapką baseballową FURTALK. Wykonana z najwyższej jakości bawełny, ta czapka w stylu vintage j",
+      "parameters_count": 1,
+      "images_count": 7,
+      "compatibilityList": null,
+      "tax": null,
+      "messageToSellerSettings": {
+        "mode": "OPTIONAL"
+      }
+    },
+    "PFT-CCH": {
+      "name": "Czapka sztruksowa corduroy unisex regulowana modna 2026",
+      "description": "<h2>FURTALK Czapka z daszkiem Unisex Vintage 100% Bawełna Regulowana</h2> <p>Odkryj styl i wygodę z naszą czapką baseballową FURTALK. Wykonana z najwyższej jakości bawełny, ta czapka w stylu vintage j",
+      "parameters_count": 1,
+      "images_count": 7,
+      "compatibilityList": null,
+      "tax": null,
+      "messageToSellerSettings": {
+        "mode": "OPTIONAL"
+      }
+    },
+    "PFT-OBH": {
+      "name": "Bucket hat bio bawelna organiczna GOTS eco unisex lato",
+      "description": "<h2>KAPELUSZ LETNI WĘDKARSKI RYBACKI BAWEŁNIANY DAMSKI MĘSKI BUCKET HAT L/XL</h2> <p>Lekki i wygodny kapelusz bawełaniany, który <b>zapewni wyjątkowy wygląd</b>, a dodatkowo <b>ochroni głowę przed pro",
+      "parameters_count": 1,
+      "images_count": 1,
+      "compatibilityList": null,
+      "tax": null,
+      "messageToSellerSettings": {
+        "mode": "OPTIONAL"
+      }
+    },
+    "PFT-BBH": {
+      "name": "Bucket hat czapka rybacka bawelna unisex regulowana lato",
+      "description": "<p><b>Bucket Hat Bawelniana — klasyczny styl unisex</b></p><p>100% bawelna. Unisex. Regulowany. Dostepny w 3 kolorach. Druk on-demand, dostawa 5-7 dni roboczych.</p>",
+      "parameters_count": 1,
+      "images_count": 1,
+      "compatibilityList": null,
+      "tax": null,
+      "messageToSellerSettings": {
+        "mode": "OPTIONAL"
+      }
+    }
+  },
+  "stats_endpoint": {
+    "status_code": 403,
+    "body": "{\"errors\":[{\"code\":\"ACCESS_DENIED\",\"message\":\"This resource is no longer supported and access to it was blocked for your integration. Read more: https://developer.allegro.pl/news/at-the-beginning-of-2024-we-will-disable-the-sale-offers-resources-for-creating-and-editing-offers-k1dG88KlxHv\",\"details\":null,\"path\":null,\"userMessage\":\"This resource is no longer supported and access to it was blocked for your integration. Read more: https://developer.allegro.pl/news/at-the-beginning-of-2024-we-will-d"
+  }
+}

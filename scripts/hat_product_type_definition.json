@@ -1,0 +1,212 @@
+{
+  "metaSchema": {
+    "link": {
+      "resource": "https://selling-partner-definitions-prod-dub.s3.eu-west-1.amazonaws.com/schema/amazon-product-type-definition-meta-schema-v1.json/rZ%252F2Yep0np022S38ZdEiNQ%253D%253D?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEJH%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJHMEUCIE6Dvc84cDRSrSDgjGlYDrgsOiXjzMs7gk75N2o5AjIXAiEArDL86SDTEKY3waHuUVe7CCNFoYRzYStwW8AZG%2F42EioqyQQIWhADGgw1MzU3ODk4MjM4MDgiDPtXT1z3cctmZpIXKiqmBEmyK8djTLqY4YZMAKJcOLQiqO9tMHsT4C%2FqlCw1Z7cxNT8xx%2BFprOvQeMWZ0Jzf3813G9B1p99m0a2uMVAH5UNbmTmY0NfftVhzGdFCLktAplC8Q90yTFgZCewQxmyuWbJZ3EUh%2FmOhDF8Cp6tDz7R2t%2FOHUicg7296oGjzlMkEHZihSrKCyf6C1S2g5M%2FQ0xRDFE8knZU5WioPXluKHAv7rY6EmSLX0NuS5dUOsIsC7%2F1DTr7kSMYCbp5hS%2BZNdSjTkkONO5V%2FCW6mjO4MXdlkIyl54uIsbK%2FDJ6YRzPlMRuytOEChTtFXlyEm%2BBUdf3jiVnE%2FRVaObIq4PU1%2BpJA898vfp8gSZVUxGd%2Fk3XYVTmRNj0RlkUl0stbZizjI9AIXi0O0x6gd1ZLxeIyuE7NOFvWZCrVpVLCr6%2BbXO36qnbJiWZWCePlxV%2BZ3yfCVDVDbbPDrCN2RyvbhMks6mcctEYzbkH%2FURXS%2FrhCBYYXqwL%2BmoyLZCOqGyiSTSfxsD86gH9Js84JxwxqAzgQLIT7vdxseNEASHqWaxdiyN5YfTMVcdvAMOty96LaJZqD4fMxMWsPVLocVW0bJpXR%2FDDeZ9leOYC0izHi%2BbBlpcCyWLBDyP2wDvDkLx%2B%2BxaxlBWiTA8qqxJF%2FNjY6Mk0sQaY80upXX7ToKCYRDoNnXxGr3OhmMfoD1Xu5JbCaTj7lzJlsMHlV8hFl%2BedP1Hrp1PrSXK5J05oIwotDEzQY6pwFQI5TW438Hs2Q%2BCF3ax%2Fefhhqmxl4z%2BAG7dJFNuHLXL7%2FGRYnEEPEnoj7IauXw0%2FikNILVMyHE3YPEr5F91dGLR2sEXgZf4E9%2Bxsw83hc077%2Bdo6dh38kiS3ZiQ7Q2pZkd%2Fxj4auD9vRtVmm7Xscaaqq%2BMeGgcE%2BqwRy1qkI%2F4dF49uf03DYG8xjgXAZEeXYd2XNPc7Wil8CYQJmKQRNTgPhJJZ6Kyvg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260311T112802Z&X-Amz-SignedHeaders=host&X-Amz-Credential=ASIAXZP4P45AOPLJH7LG%2F20260311%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=469f2b895001c8aa46c972155d783603b621f44337de4e03d6f689d4a9bddec7",
+      "verb": "GET"
+    },
+    "checksum": "rZ/2Yep0np022S38ZdEiNQ=="
+  },
+  "schema": {
+    "link": {
+      "resource": "https://selling-partner-definitions-prod-dub.s3.eu-west-1.amazonaws.com/schema/HAT.json/OiMv3tWKGIPqlU5tIOXEZQ%253D%253D?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEJH%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCWV1LXdlc3QtMSJHMEUCIE6Dvc84cDRSrSDgjGlYDrgsOiXjzMs7gk75N2o5AjIXAiEArDL86SDTEKY3waHuUVe7CCNFoYRzYStwW8AZG%2F42EioqyQQIWhADGgw1MzU3ODk4MjM4MDgiDPtXT1z3cctmZpIXKiqmBEmyK8djTLqY4YZMAKJcOLQiqO9tMHsT4C%2FqlCw1Z7cxNT8xx%2BFprOvQeMWZ0Jzf3813G9B1p99m0a2uMVAH5UNbmTmY0NfftVhzGdFCLktAplC8Q90yTFgZCewQxmyuWbJZ3EUh%2FmOhDF8Cp6tDz7R2t%2FOHUicg7296oGjzlMkEHZihSrKCyf6C1S2g5M%2FQ0xRDFE8knZU5WioPXluKHAv7rY6EmSLX0NuS5dUOsIsC7%2F1DTr7kSMYCbp5hS%2BZNdSjTkkONO5V%2FCW6mjO4MXdlkIyl54uIsbK%2FDJ6YRzPlMRuytOEChTtFXlyEm%2BBUdf3jiVnE%2FRVaObIq4PU1%2BpJA898vfp8gSZVUxGd%2Fk3XYVTmRNj0RlkUl0stbZizjI9AIXi0O0x6gd1ZLxeIyuE7NOFvWZCrVpVLCr6%2BbXO36qnbJiWZWCePlxV%2BZ3yfCVDVDbbPDrCN2RyvbhMks6mcctEYzbkH%2FURXS%2FrhCBYYXqwL%2BmoyLZCOqGyiSTSfxsD86gH9Js84JxwxqAzgQLIT7vdxseNEASHqWaxdiyN5YfTMVcdvAMOty96LaJZqD4fMxMWsPVLocVW0bJpXR%2FDDeZ9leOYC0izHi%2BbBlpcCyWLBDyP2wDvDkLx%2B%2BxaxlBWiTA8qqxJF%2FNjY6Mk0sQaY80upXX7ToKCYRDoNnXxGr3OhmMfoD1Xu5JbCaTj7lzJlsMHlV8hFl%2BedP1Hrp1PrSXK5J05oIwotDEzQY6pwFQI5TW438Hs2Q%2BCF3ax%2Fefhhqmxl4z%2BAG7dJFNuHLXL7%2FGRYnEEPEnoj7IauXw0%2FikNILVMyHE3YPEr5F91dGLR2sEXgZf4E9%2Bxsw83hc077%2Bdo6dh38kiS3ZiQ7Q2pZkd%2Fxj4auD9vRtVmm7Xscaaqq%2BMeGgcE%2BqwRy1qkI%2F4dF49uf03DYG8xjgXAZEeXYd2XNPc7Wil8CYQJmKQRNTgPhJJZ6Kyvg%3D%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20260311T112802Z&X-Amz-SignedHeaders=host&X-Amz-Credential=ASIAXZP4P45AOPLJH7LG%2F20260311%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Expires=604800&X-Amz-Signature=62998365d9603aba714cb8c61798347cc259eb6a51d32477e2123236b3b4620c",
+      "verb": "GET"
+    },
+    "checksum": "OiMv3tWKGIPqlU5tIOXEZQ=="
+  },
+  "requirements": "LISTING",
+  "requirementsEnforced": "ENFORCED",
+  "propertyGroups": {
+    "offer": {
+      "title": "Angebot",
+      "description": "Produktangebot",
+      "propertyNames": [
+        "skip_offer",
+        "fulfillment_availability",
+        "map_policy",
+        "purchasable_offer",
+        "condition_type",
+        "condition_note",
+        "list_price",
+        "product_tax_code",
+        "merchant_release_date",
+        "merchant_shipping_group",
+        "max_order_quantity",
+        "gift_options",
+        "uvp_list_price",
+        "main_offer_image_locator",
+        "other_offer_image_locator_1",
+        "other_offer_image_locator_2",
+        "other_offer_image_locator_3",
+        "other_offer_image_locator_4",
+        "other_offer_image_locator_5",
+        "supplemental_condition_information"
+      ]
+    },
+    "images": {
+      "title": "Bilder",
+      "description": "Bereitstellung von Medieninhalten, wie etwa Produktbildern",
+      "propertyNames": [
+        "main_product_image_locator",
+        "other_product_image_locator_1",
+        "other_product_image_locator_2",
+        "other_product_image_locator_3",
+        "other_product_image_locator_4",
+        "other_product_image_locator_5",
+        "other_product_image_locator_6",
+        "other_product_image_locator_7",
+        "other_product_image_locator_8",
+        "swatch_product_image_locator",
+        "image_locator_ps01",
+        "image_locator_ps02",
+        "image_locator_ps03",
+        "image_locator_ps04",
+        "image_locator_ps05",
+        "image_locator_ps06"
+      ]
+    },
+    "shipping": {
+      "title": "Versand",
+      "description": "Versand",
+      "propertyNames": [
+        "item_dimensions",
+        "item_package_dimensions",
+        "item_package_weight",
+        "item_display_weight",
+        "epr_product_packaging"
+      ]
+    },
+    "variations": {
+      "title": "Variationen",
+      "description": "Produktvariationen",
+      "propertyNames": [
+        "parentage_level",
+        "child_parent_sku_relationship",
+        "variation_theme"
+      ]
+    },
+    "safety_and_compliance": {
+      "title": "Sicherheit und Einhaltung von Regeln",
+      "description": "Sicherheit und Einhaltung von Regeln",
+      "propertyNames": [
+        "country_of_origin",
+        "batteries_required",
+        "batteries_included",
+        "battery",
+        "num_batteries",
+        "number_of_lithium_metal_cells",
+        "number_of_lithium_ion_cells",
+        "lithium_battery",
+        "supplier_declared_dg_hz_regulation",
+        "hazmat",
+        "safety_data_sheet_url",
+        "item_weight",
+        "is_this_product_subject_to_buyer_age_restrictions",
+        "outer",
+        "regulatory_compliance_certification",
+        "dsa_responsible_party_address",
+        "compliance_media",
+        "gpsr_safety_attestation",
+        "gpsr_manufacturer_reference",
+        "has_multiple_battery_powered_components",
+        "ships_globally",
+        "contains_battery_or_cell",
+        "battery_contains_free_unabsorbed_liquid",
+        "is_battery_non_spillable",
+        "non_lithium_battery_packaging",
+        "has_replaceable_battery",
+        "non_lithium_battery_energy_content",
+        "has_less_than_30_percent_state_of_charge",
+        "battery_installation_device_type",
+        "is_oem_sourced_product",
+        "ghs_chemical_h_code",
+        "epr_eco_fee_eubr"
+      ]
+    },
+    "product_identity": {
+      "title": "Produktidentit\u00e4t",
+      "description": "Produktidentit\u00e4t",
+      "propertyNames": [
+        "item_name",
+        "brand",
+        "supplier_declared_has_product_identifier_exemption",
+        "externally_assigned_product_identifier",
+        "merchant_suggested_asin",
+        "recommended_browse_nodes",
+        "model_number",
+        "model_name",
+        "manufacturer"
+      ]
+    },
+    "product_details": {
+      "title": "Produktdetails",
+      "description": "Produktdetails",
+      "propertyNames": [
+        "handmade_classification",
+        "product_description",
+        "bullet_point",
+        "generic_keyword",
+        "special_feature",
+        "lifestyle",
+        "style",
+        "department",
+        "target_gender",
+        "age_range_description",
+        "headwear_size",
+        "material",
+        "fabric_type",
+        "pattern_type",
+        "number_of_items",
+        "item_package_quantity",
+        "item_type_name",
+        "subject_character",
+        "special_size_type",
+        "color",
+        "ring",
+        "metal_type",
+        "occasion_type",
+        "part_number",
+        "item_shape",
+        "theme",
+        "fit_type",
+        "weave_type",
+        "care_instructions",
+        "magnification_strength",
+        "edition",
+        "configuration",
+        "language",
+        "lens",
+        "item_display_dimensions",
+        "flavor",
+        "customer_package_type",
+        "pattern",
+        "unit_count",
+        "product_site_launch_date",
+        "sport_type",
+        "league_name",
+        "team_name",
+        "athlete",
+        "recommended_uses_for_product",
+        "sun_protection",
+        "brim_width",
+        "band",
+        "grip",
+        "head",
+        "is_waterproof",
+        "hat_form_type",
+        "ultraviolet_protection_factor",
+        "collection_item"
+      ]
+    }
+  },
+  "locale": "de_DE",
+  "marketplaceIds": [
+    "A1PA6795UKMFR9"
+  ],
+  "productType": "HAT",
+  "displayName": "Hut",
+  "productTypeVersion": {
+    "version": "UAAAAAAAAAAAAAAAAlYDzto7x5r3xFCxuDuC_dadZ",
+    "latest": true,
+    "releaseCandidate": false
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "date": "2026-03-16",
+  "task": "Allegro Spring Sale — wylistowanie 5 czapek PFT-",
+  "status": "SUCCESS",
+  "offers_live": 5,
+  "offers": [
+    {"sku": "PFT-WDH", "printful_id": 961, "offer_id": "18414728279", "price_pln": 89.99, "status": "ACTIVE"},
+    {"sku": "PFT-DDH", "printful_id": 396, "offer_id": "18414731024", "price_pln": 96.99, "status": "ACTIVE"},
+    {"sku": "PFT-CCH", "printful_id": 532, "offer_id": "18414731041", "price_pln": 104.99, "status": "ACTIVE"},
+    {"sku": "PFT-OBH", "printful_id": 547, "offer_id": "18414731001", "price_pln": 119.99, "status": "ACTIVE"},
+    {"sku": "PFT-BBH", "printful_id": 379, "offer_id": "18414808073", "price_pln": 99.99, "status": "ACTIVE", "created": true}
+  ],
+  "gpsr_compliant": true,
+  "responsible_producer": "nesell sp. z o.o. (88691125-3968-4709-aef3-646df64fb0f2)",
+  "spring_sale": "2026-03-25 to 2026-03-31"
+}
