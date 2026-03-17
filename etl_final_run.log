@@ -1,0 +1,168 @@
+============================================================
+nesell-analytics ETL — 2026-03-17 02:44
+============================================================
+  [DB] Connected to Supabase REST API
+
+[1/9] Syncing FX rates...
+  FX EUR: 59 rates synced
+  FX GBP: 59 rates synced
+  FX SEK: 59 rates synced
+  FX USD: 59 rates synced
+  FX HUF: 59 rates synced
+  FX CZK: 59 rates synced
+
+[2/9] Syncing Baselinker orders...
+  DONE: 657 orders saved from 657 fetched
+
+[3/9] Syncing Amazon FBA orders...
+  Amazon orders batch: 100 (total 100)
+  Amazon orders batch: 100 (total 200)
+    [429] rate limited, waiting 5s (attempt 1/8)...
+    [429] rate limited, waiting 10s (attempt 2/8)...
+    [429] rate limited, waiting 20s (attempt 3/8)...
+    [429] rate limited, waiting 40s (attempt 4/8)...
+  Amazon orders batch: 100 (total 300)
+    [429] rate limited, waiting 5s (attempt 1/8)...
+    [429] rate limited, waiting 10s (attempt 2/8)...
+    [429] rate limited, waiting 20s (attempt 3/8)...
+  Amazon orders batch: 100 (total 400)
+    [429] rate limited, waiting 5s (attempt 1/8)...
+    [429] rate limited, waiting 10s (attempt 2/8)...
+    [429] rate limited, waiting 20s (attempt 3/8)...
+    [429] rate limited, waiting 40s (attempt 4/8)...
+  Amazon orders batch: 100 (total 500)
+    [429] rate limited, waiting 5s (attempt 1/8)...
+    [429] rate limited, waiting 10s (attempt 2/8)...
+    [429] rate limited, waiting 20s (attempt 3/8)...
+  Amazon orders batch: 100 (total 600)
+    [429] rate limited, waiting 5s (attempt 1/8)...
+    [429] rate limited, waiting 10s (attempt 2/8)...
+    [429] rate limited, waiting 20s (attempt 3/8)...
+    [429] rate limited, waiting 40s (attempt 4/8)...
+  Amazon orders batch: 57 (total 657)
+  Amazon orders batch: 0 (total 657)
+  Filtered out 3 MCF/inbound shipments (S02 or Non-Amazon)
+  Upserted 654 Amazon orders
+  Inserted 0 Amazon order items (654 orders skipped — already had items)
+
+[4/9] Syncing product catalog...
+  [Printful] Product list page 1: 105 IDs
+  [Printful] Total product IDs: 105
+  [Printful] Batch 1: 100 products fetched
+  [Printful] Batch 2: 5 products fetched
+  Printful: 411 products fetched
+  [Wholesale] Product list page 1: 1000 IDs
+  [Wholesale] Product list page 2: 1000 IDs
+  [Wholesale] Product list page 3: 1000 IDs
+  [Wholesale] Product list page 4: 874 IDs
+  [Wholesale] Total product IDs: 3874
+  [Wholesale] Batch 1: 100 products fetched
+  [Wholesale] Batch 2: 100 products fetched
+  [Wholesale] Batch 3: 100 products fetched
+  [Wholesale] Batch 4: 100 products fetched
+  [Wholesale] Batch 5: 100 products fetched
+  [Wholesale] Batch 6: 100 products fetched
+  [Wholesale] Batch 7: 100 products fetched
+  [Wholesale] Batch 8: 100 products fetched
+  [Wholesale] Batch 9: 100 products fetched
+  [Wholesale] Batch 10: 100 products fetched
+  [Wholesale] Batch 11: 100 products fetched
+  [Wholesale] Batch 12: 100 products fetched
+  [Wholesale] Batch 13: 100 products fetched
+  [Wholesale] Batch 14: 100 products fetched
+  [Wholesale] Batch 15: 100 products fetched
+  [Wholesale] Batch 16: 100 products fetched
+  [Wholesale] Batch 17: 100 products fetched
+  [Wholesale] Batch 18: 100 products fetched
+  [Wholesale] Batch 19: 100 products fetched
+  [Wholesale] Batch 20: 100 products fetched
+  [Wholesale] Batch 21: 100 products fetched
+  [Wholesale] Batch 22: 100 products fetched
+  [Wholesale] Batch 23: 100 products fetched
+  [Wholesale] Batch 24: 100 products fetched
+  [Wholesale] Batch 25: 100 products fetched
+  [Wholesale] Batch 26: 100 products fetched
+  [Wholesale] Batch 27: 100 products fetched
+  [Wholesale] Batch 28: 100 products fetched
+  [Wholesale] Batch 29: 100 products fetched
+  [Wholesale] Batch 30: 100 products fetched
+  [Wholesale] Batch 31: 100 products fetched
+  [Wholesale] Batch 32: 100 products fetched
+  [Wholesale] Batch 33: 100 products fetched
+  [Wholesale] Batch 34: 100 products fetched
+  [Wholesale] Batch 35: 100 products fetched
+  [Wholesale] Batch 36: 100 products fetched
+  [Wholesale] Batch 37: 100 products fetched
+  [Wholesale] Batch 38: 100 products fetched
+  [Wholesale] Batch 39: 74 products fetched
+  Wholesale: 13334 products fetched
+  Total unique products to upsert: 13745
+  Upserted 4329 products
+
+[5/9] Fetching real Amazon fees...
+  Fetching Amazon financial events...
+  Finances page 10: 920 shipments, 33 refunds
+  Total: 1612 shipment events, 54 refund events
+  Got fees for 1614 orders
+  Commission (referral): 8,795.81
+  FBA fees:              4,996.80
+  Other fees:            136.36
+  Refunds:               -1,356.97
+  Total fees:            13,928.97
+
+  Updating orders in DB...
+  Updated 200 orders...
+  Updated 400 orders...
+  Updated 600 orders...
+  Updated 800 orders...
+  Updated 1000 orders...
+  Updated 1200 orders...
+  Updated 1400 orders...
+  Updated 1600 orders...
+  Total: 1614 orders updated with real fees
+
+[6/9] Fetching real Allegro fees...
+  Loading Allegro token...
+  Token loaded OK
+  Fetching billing entries (since 2025-12-17)...
+  Got 98 billing entries
+  Fetching payment operations (since 2025-12-17)...
+  Got 71 payment operations
+    Skipped 33 accounting/summary entries (PAD, SUM)
+  Fees aggregated for 28 unique orders
+
+  Fee breakdown (all orders, 90d):
+    Commission:         373.49 PLN
+    Shipping fees:      102.73 PLN
+    Ads/promoted:         0.00 PLN
+    Price adj (PS1):     41.84 PLN
+    Refunds:             38.29 PLN
+    Other:                0.00 PLN
+    Total fees:         476.22 PLN
+
+  Updating orders in DB...
+    Building Allegro UUID -> buyer email mapping...
+    Fetched 34 checkout-forms for UUID->email mapping
+    Looking up 2 individual checkout-forms...
+    Loading Allegro orders from DB for matching...
+    DB has 97 Allegro orders, 97 with email
+  Updated: 28 orders with real Allegro fees
+
+[7/9] Fetching Amazon reports...
+  [Inventory] Fetching FBA Inventory by Country...
+    [429] rate limited on POST, waiting 15s (1/8)
+    [429] rate limited on POST, waiting 30s (2/8)
+    [429] rate limited on POST, waiting 60s (3/8)
+    Report GET_AFN_INVENTORY_DATA_BY_COUNTRY created: 1537466020529, polling...
+    [WARN] Report 1537466020529 status: FATAL
+  [Storage] Fetching FBA Storage Fees...
+    Requesting storage fees for 2026-02...
+    Found existing DONE report: 1537418020529 (created 2026-03-17T01:17)
+    [429] rate limited on POST, waiting 15s (1/8)
+    [429] rate limited on POST, waiting 30s (2/8)
+    [429] rate limited on POST, waiting 60s (3/8)
+    [429] rate limited on POST, waiting 120s (4/8)
+    [429] rate limited on POST, waiting 120s (5/8)
+    [429] rate limited on POST, waiting 120s (6/8)
+    [429] rate limited on POST, waiting 120s (7/8)
+    [429] rate limited on POST, waiting 120s (8/8)
