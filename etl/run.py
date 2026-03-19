@@ -65,12 +65,15 @@ def main():
     parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
     parser.add_argument("--cogs-export", type=str, default=None, help="Export top-100 products missing COGS to CSV template")
     parser.add_argument("--cogs-csv", type=str, default=None, help="Import COGS from filled CSV file (see --cogs-export)")
+    parser.add_argument("--availability", action="store_true", help="Check Printful variant availability and deactivate unavailable listings")
+    parser.add_argument("--availability-enforce", action="store_true", help="Same as --availability but actually deactivate/reactivate (not dry run)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
     args = parser.parse_args()
 
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
-                 args.cogs, args.shipping, args.dpd_email, args.dpd_api, args.dpd_reconcile]
+                 args.cogs, args.shipping, args.dpd_email, args.dpd_api, args.dpd_reconcile,
+                 args.availability, args.availability_enforce]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = (not any(all_flags) and not args.printful_orders and not args.tracking_sync
                and not args.dpd_csv and not args.cogs_export and not args.cogs_csv)
@@ -208,6 +211,15 @@ def main():
         if not _run_step(step, total_steps, f"Importing COGS from CSV: {args.cogs_csv}",
                          cogs_csv.import_cogs_csv, args.cogs_csv):
             failures.append("COGS CSV import")
+
+    # ── Printful availability guard ──
+    if run_all or args.availability or args.availability_enforce:
+        step += 1
+        from . import availability_guard
+        dry_run = not args.availability_enforce
+        if not _run_step(step, total_steps, f"Printful availability guard ({'dry run' if dry_run else 'ENFORCE'})",
+                         availability_guard.run_guard, dry_run):
+            failures.append("Availability guard")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:
