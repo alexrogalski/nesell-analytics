@@ -1,0 +1,19 @@
+
+Baselinker email variables (paste these into BL panel):
+  {order_id}              — numer zamówienia BL
+  {delivery_fullname}     — imię i nazwisko do dostawy
+  {delivery_address}      — adres dostawy
+  {delivery_city}         — miasto dostawy
+  {delivery_country_code} — kod kraju
+  {package_number}        — numer śledzenia paczki
+  {delivery_package_module} — nazwa kuriera (DPD, InPost...)
+  {order_total}           — kwota zamówienia
+  {currency}              — waluta
+  {buyer_email}           — email kupującego
+  {order_page}            — link do zamówienia na marketplace
+  {invoice_number}        — numer faktury
+  {invoice_date}          — data wystawienia faktury
+  {product_name}          — nazwa produktu (pierwszego)
+  {product_sku}           — SKU produktu (pierwszego)
+
+Note: variable availability depends on the trigger event type.

@@ -1,0 +1,7 @@
+{
+  "name": "Faktura — Powiadomienie o wystawieniu faktury",
+  "trigger": "Automatyczna akcja: Wystaw fakturę → Wyślij email do klienta",
+  "subject": "Faktura do zamówienia #{order_id}",
+  "body_pl": "Cześć {delivery_fullname},\n\nw załączniku znajdziesz fakturę do zamówienia #{order_id}.\n\nDane faktury:\n- Numer: {invoice_number}\n- Data: {invoice_date}\n- Kwota: {order_total} {currency}\n\nFaktura jest również dostępna w Twoim koncie na platformie sprzedażowej.\n\nW razie pytań — odpowiedz na tę wiadomość.\n\nPozdrawiamy,\nZespół Nesell\n",
+  "body_de": "Hallo {delivery_fullname},\n\nim Anhang finden Sie die Rechnung zu Ihrer Bestellung #{order_id}.\n\nRechnungsdetails:\n- Nummer: {invoice_number}\n- Datum: {invoice_date}\n- Betrag: {order_total} {currency}\n\nBei Fragen antworten Sie einfach auf diese E-Mail.\n\nMit freundlichen Grüßen,\nDas Nesell-Team\n"
+}

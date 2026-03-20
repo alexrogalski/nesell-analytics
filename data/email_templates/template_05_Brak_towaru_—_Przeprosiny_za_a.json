@@ -1,0 +1,7 @@
+{
+  "name": "Brak towaru — Przeprosiny za anulowanie",
+  "trigger": "Automatyczna akcja: Zmiana statusu → 'Anulowane (brak towaru)'",
+  "subject": "Ważna informacja o zamówieniu #{order_id}",
+  "body_pl": "Cześć {delivery_fullname},\n\nz przykrością informujemy, że Twoje zamówienie #{order_id} zostało anulowane z powodu braku towaru w magazynie.\n\nŚrodki w kwocie {order_total} {currency} zostaną zwrócone na Twoje konto w ciągu 5-10 dni roboczych.\n\nPrzepraszamy za wszelkie niedogodności. Jeśli masz pytania, odpowiedz na tę wiadomość.\n\nPozdrawiamy,\nZespół Nesell\n",
+  "body_de": "Hallo {delivery_fullname},\n\nleider müssen wir Ihnen mitteilen, dass Ihre Bestellung #{order_id} aufgrund von Nichtverfügbarkeit des Artikels storniert wurde.\n\nDer Betrag von {order_total} {currency} wird innerhalb von 5-10 Werktagen auf Ihr Konto zurücküberwiesen.\n\nWir entschuldigen uns für die Unannehmlichkeiten.\n\nMit freundlichen Grüßen,\nDas Nesell-Team\n"
+}

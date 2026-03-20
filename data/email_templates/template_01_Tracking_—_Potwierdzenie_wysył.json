@@ -1,0 +1,8 @@
+{
+  "name": "Tracking — Potwierdzenie wysyłki",
+  "trigger": "Automatyczna akcja: Zmiana statusu → 'Wysłane'",
+  "subject": "Twoje zamówienie #{order_id} zostało wysłane!",
+  "body_pl": "Cześć {delivery_fullname}!\n\nTwoje zamówienie #{order_id} właśnie opuściło nasz magazyn i jest w drodze do Ciebie.\n\n📦 Numer śledzenia: {package_number}\n🚚 Kurier: {delivery_package_module}\n\nMożesz śledzić swoją paczkę tutaj:\nhttps://www.dpd.com/pl/pl/tracking/?parcelnr={package_number}\n\nSzacowany czas dostawy: 2-5 dni roboczych.\n\nJeśli masz jakiekolwiek pytania, odpowiedz na tę wiadomość.\n\nPozdrawiamy,\nZespół Nesell\n",
+  "body_de": "Hallo {delivery_fullname},\n\nIhre Bestellung #{order_id} wurde soeben aus unserem Lager versandt.\n\n📦 Sendungsnummer: {package_number}\n🚚 Kurier: {delivery_package_module}\n\nVerfolgen Sie Ihre Sendung hier:\nhttps://www.dpdgroup.com/de/mydpd/my-parcels/track?parcelno={package_number}\n\nGeschätzte Lieferzeit: 3-7 Werktage.\n\nBei Fragen antworten Sie einfach auf diese E-Mail.\n\nMit freundlichen Grüßen,\nDas Nesell-Team\n",
+  "body_en": "Hello {delivery_fullname},\n\nYour order #{order_id} has just left our warehouse and is on its way to you!\n\n📦 Tracking number: {package_number}\n🚚 Carrier: {delivery_package_module}\n\nTrack your package here:\nhttps://www.dpdgroup.com/en/mydpd/my-parcels/track?parcelno={package_number}\n\nEstimated delivery: 3-7 business days.\n\nIf you have any questions, simply reply to this email.\n\nBest regards,\nThe Nesell Team\n"
+}

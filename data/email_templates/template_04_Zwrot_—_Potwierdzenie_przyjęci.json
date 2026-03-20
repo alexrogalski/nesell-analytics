@@ -1,0 +1,7 @@
+{
+  "name": "Zwrot — Potwierdzenie przyjęcia zwrotu",
+  "trigger": "Automatyczna akcja: Utworzono zwrot → Wyślij email",
+  "subject": "Potwierdzenie przyjęcia zwrotu #ZWR-{order_id}",
+  "body_pl": "Cześć {delivery_fullname},\n\npotwierdzamy przyjęcie Twojego zgłoszenia zwrotu do zamówienia #{order_id}.\n\nCo dalej?\n1. Wyślij produkt na nasz adres (jeśli jeszcze tego nie zrobiłeś)\n2. Po otrzymaniu paczki przetworzymy zwrot w ciągu 3-5 dni roboczych\n3. Środki wrócą na Twoje konto w ciągu 5-10 dni roboczych\n\nMasz pytania? Odpisz na tę wiadomość.\n\nPrzepraszamy za wszelkie niedogodności.\n\nPozdrawiamy,\nZespół Nesell\n",
+  "body_de": "Hallo {delivery_fullname},\n\nwir bestätigen den Eingang Ihrer Rücksendeanfrage zur Bestellung #{order_id}.\n\nNächste Schritte:\n1. Senden Sie das Produkt an unsere Adresse (falls noch nicht geschehen)\n2. Nach Eingang bearbeiten wir die Rückgabe innerhalb von 3-5 Werktagen\n3. Die Rückerstattung erfolgt innerhalb von 5-10 Werktagen\n\nBei Fragen antworten Sie einfach auf diese E-Mail.\n\nWir entschuldigen uns für etwaige Unannehmlichkeiten.\n\nMit freundlichen Grüßen,\nDas Nesell-Team\n"
+}

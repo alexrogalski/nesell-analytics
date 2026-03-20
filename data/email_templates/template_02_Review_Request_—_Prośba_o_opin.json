@@ -1,0 +1,8 @@
+{
+  "name": "Review Request — Prośba o opinię (24h po dostarczeniu)",
+  "trigger": "Automatyczna akcja: Status kuriera 'Dostarczono' → Poczekaj 24h → Wyślij email",
+  "subject": "Jak minęło zamówienie #{order_id}? Zostaw opinię!",
+  "body_pl": "Cześć {delivery_fullname}!\n\nMamy nadzieję, że Twoje zamówienie dotarło bezpiecznie 😊\n\nTwoja opinia jest dla nas bardzo ważna! Zajmie Ci to dosłownie minutę.\n\n⭐ Zostaw opinię tutaj:\n{order_page}\n\nJeśli cokolwiek nie spełniło Twoich oczekiwań — napisz do nas ZANIM wystawisz opinię.\nZawsze znajdziemy rozwiązanie: {buyer_email}\n\nDziękujemy za zakupy!\n\nPozdrawiamy,\nZespół Nesell\n",
+  "body_de": "Hallo {delivery_fullname},\n\nwir hoffen, dass Ihre Bestellung gut angekommen ist! 😊\n\nIhre Bewertung bedeutet uns sehr viel. Es dauert nur eine Minute:\n\n⭐ Jetzt bewerten:\n{order_page}\n\nFalls etwas nicht Ihren Erwartungen entsprochen hat, schreiben Sie uns BEVOR Sie eine Bewertung abgeben.\nWir finden immer eine Lösung: {buyer_email}\n\nVielen Dank für Ihren Einkauf!\n\nMit freundlichen Grüßen,\nDas Nesell-Team\n",
+  "body_en": "Hello {delivery_fullname},\n\nWe hope your order arrived safely! 😊\n\nYour feedback means a lot to us. It only takes a minute:\n\n⭐ Leave a review here:\n{order_page}\n\nIf anything didn't meet your expectations, please write to us BEFORE leaving a review.\nWe always find a solution: {buyer_email}\n\nThank you for shopping with us!\n\nBest regards,\nThe Nesell Team\n"
+}
