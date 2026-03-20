@@ -8,7 +8,7 @@ from lib.theme import setup_page, COLORS
 from lib.data import (
     load_daily_metrics, load_platforms, load_products,
     load_refund_summary, load_amazon_ad_spend, load_amazon_storage_fees,
-    load_fx_rates,
+    load_fx_rates, load_tacos_trend, load_organic_paid_split,
 )
 from lib.metrics import calc_period_kpis, daily_summary, calc_contribution_margins, platform_summary
 from lib.charts import multi_line
@@ -233,7 +233,10 @@ with c2:
             f"{net_profit/total_revenue*100:.1f}%" if total_revenue > 0 else "0%",
         ],
     }
-    st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
+    _pnl_summary_df = pd.DataFrame(summary_data)
+    st.dataframe(_pnl_summary_df, use_container_width=True, hide_index=True)
+    _pnl_csv = _pnl_summary_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _pnl_csv, "pnl_summary.csv", "text/csv", key="dl_pnl_summary")
 
     # Data availability notes
     missing = []
@@ -343,7 +346,7 @@ if not plat_summary.empty:
 if not ads_df.empty:
     st.markdown('<div class="section-header">PPC / ADVERTISING</div>', unsafe_allow_html=True)
 
-    ppc1, ppc2, ppc3, ppc4 = st.columns(4)
+    ppc1, ppc2, ppc3, ppc4, ppc5 = st.columns(5)
     total_impressions = int(ads_df["impressions"].sum())
     total_clicks = int(ads_df["clicks"].sum())
     total_ad_sales = float(ads_df["sales"].sum())
@@ -352,10 +355,16 @@ if not ads_df.empty:
     overall_roas = (total_ad_sales / total_ppc) if total_ppc > 0 else 0
     ctr = (total_clicks / total_impressions * 100) if total_impressions > 0 else 0
 
+    # TACoS = total ad spend / total revenue (all channels)
+    overall_tacos = (total_ppc_pln / total_revenue * 100) if total_revenue > 0 else 0
+    tacos_status = "HEALTHY" if overall_tacos < 10 else ("MODERATE" if overall_tacos <= 15 else "HIGH")
+
     ppc1.metric("Ad Spend", f"{total_ppc:,.2f} EUR", delta=f"{total_ppc_pln:,.0f} PLN")
     ppc2.metric("Ad Sales", f"{total_ad_sales:,.2f} EUR")
     ppc3.metric("ACOS", f"{overall_acos:.1f}%", delta=f"ROAS: {overall_roas:.2f}x")
     ppc4.metric("CTR", f"{ctr:.2f}%", delta=f"{total_clicks:,} clicks / {total_impressions:,} impr.")
+    ppc5.metric("TACoS", f"{overall_tacos:.1f}%", delta=tacos_status,
+                delta_color="normal" if overall_tacos < 10 else ("off" if overall_tacos <= 15 else "inverse"))
 
     # Daily PPC trend
     if not ads_daily.empty and len(ads_daily) > 1:
@@ -375,6 +384,31 @@ if not ads_df.empty:
             legend=dict(orientation="h", y=-0.15),
         )
         st.plotly_chart(fig_ppc, use_container_width=True)
+
+    # TACoS Trend
+    tacos_data = load_tacos_trend(days=days)
+    if not tacos_data.empty and tacos_data["ad_spend_pln"].sum() > 0:
+        tacos_chart = tacos_data[tacos_data["revenue_pln"] > 0].copy()
+        if not tacos_chart.empty:
+            tacos_chart["date"] = pd.to_datetime(tacos_chart["date"])
+            fig_tacos = go.Figure()
+            fig_tacos.add_trace(go.Scatter(
+                x=tacos_chart["date"], y=tacos_chart["tacos"],
+                mode="lines", name="TACoS %",
+                line=dict(color=COLORS["muted"], width=1), opacity=0.4,
+            ))
+            fig_tacos.add_trace(go.Scatter(
+                x=tacos_chart["date"], y=tacos_chart["tacos_7d"],
+                mode="lines", name="TACoS 7d MA",
+                line=dict(color=COLORS["warning"], width=2),
+            ))
+            fig_tacos.add_hline(y=10, line_dash="dot", line_color=COLORS["success"], opacity=0.5,
+                                annotation_text="10% (healthy)")
+            fig_tacos.add_hline(y=15, line_dash="dot", line_color=COLORS["danger"], opacity=0.5,
+                                annotation_text="15% (high)")
+            fig_tacos.update_layout(height=280, title="TACoS Trend (7d Moving Average)",
+                                    legend=dict(orientation="h", y=-0.15))
+            st.plotly_chart(fig_tacos, use_container_width=True)
 
 # --- 6. Storage fees detail ---
 if not storage_df.empty and total_storage > 0:
@@ -441,4 +475,64 @@ if kpis:
             f"{kpis['orders_delta']:+.1f}%", f"{kpis['units_delta']:+.1f}%", f"{kpis['aov_delta']:+.1f}%",
         ],
     }
-    st.dataframe(pd.DataFrame(comp_data), use_container_width=True, hide_index=True)
+    _comp_df = pd.DataFrame(comp_data)
+    st.dataframe(_comp_df, use_container_width=True, hide_index=True)
+    _comp_csv = _comp_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _comp_csv, "period_comparison.csv", "text/csv", key="dl_period_comp")
+
+# --- 8. Revenue Composition: Organic vs Paid ---
+st.markdown('<div class="section-header">REVENUE COMPOSITION: ORGANIC vs PAID</div>', unsafe_allow_html=True)
+
+org_paid = load_organic_paid_split(days=days)
+if not org_paid.empty:
+    total_organic = org_paid["organic_pln"].sum()
+    total_paid = org_paid["paid_pln"].sum()
+    total_all = org_paid["revenue_pln"].sum()
+    organic_pct = total_organic / total_all * 100 if total_all > 0 else 100
+    paid_pct = 100 - organic_pct
+
+    # Trend direction
+    trend_str = None
+    if len(org_paid) > 14:
+        recent_org = org_paid.tail(7)["organic_pct"].mean()
+        older_org = org_paid.head(7)["organic_pct"].mean()
+        trend_str = "improving" if recent_org > older_org else "declining"
+
+    rp1, rp2, rp3 = st.columns(3)
+    rp1.metric("Organic Revenue", f"{total_organic:,.0f} PLN", delta=f"{organic_pct:.1f}%")
+    rp2.metric("Paid Revenue", f"{total_paid:,.0f} PLN", delta=f"{paid_pct:.1f}%")
+    rp3.metric("Organic Share Trend", f"{organic_pct:.1f}%", delta=trend_str)
+
+    if total_paid == 0:
+        st.info("No ad sales data. Import PPC CSV via `--ads-csv` to see organic/paid split.")
+    else:
+        o1, o2 = st.columns([2, 1])
+        with o1:
+            org_chart = org_paid.copy()
+            org_chart["date"] = pd.to_datetime(org_chart["date"])
+            fig_org = go.Figure()
+            fig_org.add_trace(go.Scatter(
+                x=org_chart["date"], y=org_chart["organic_pln"],
+                mode="lines", name="Organic", stackgroup="one",
+                line=dict(width=0.5, color=COLORS["success"]),
+            ))
+            fig_org.add_trace(go.Scatter(
+                x=org_chart["date"], y=org_chart["paid_pln"],
+                mode="lines", name="Paid", stackgroup="one",
+                line=dict(width=0.5, color=COLORS["warning"]),
+            ))
+            fig_org.update_layout(height=300, title="Revenue: Organic vs Paid (PLN)",
+                                  legend=dict(orientation="h", y=-0.15))
+            st.plotly_chart(fig_org, use_container_width=True)
+
+        with o2:
+            fig_pie = go.Figure(go.Pie(
+                labels=["Organic", "Paid"],
+                values=[total_organic, total_paid],
+                marker_colors=[COLORS["success"], COLORS["warning"]],
+                hole=0.4, textinfo="percent+label",
+            ))
+            fig_pie.update_layout(height=300, showlegend=False, title="")
+            st.plotly_chart(fig_pie, use_container_width=True)
+else:
+    st.info("No revenue data available.")

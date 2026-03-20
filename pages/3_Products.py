@@ -4,11 +4,18 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_products, load_cogs_gaps, load_orders_enriched
+from lib.data import load_daily_metrics, load_platforms, load_products, load_cogs_gaps, load_orders_enriched, load_abc_xyz_analysis
 from lib.metrics import product_profitability, calc_contribution_margins
 from lib.charts import scatter_quadrant, bar_chart
+from lib.html_tables import (
+    render_table_css, render_product_table, render_cogs_gap_table,
+    render_alert_banner,
+)
 
 setup_page("Products")
+
+# Inject shared HTML table CSS
+st.markdown(render_table_css(), unsafe_allow_html=True)
 
 st.markdown('<div class="section-header">PRODUCT INTELLIGENCE</div>', unsafe_allow_html=True)
 
@@ -18,6 +25,9 @@ days = st.sidebar.selectbox(
     "PERIOD", list(period_options.keys()), index=2,
     format_func=lambda x: period_options[x], key="prod_period",
 )
+
+# SKU / product name search
+product_search = st.sidebar.text_input("Search SKU or product name", key="product_search")
 
 platforms = load_platforms()
 df = load_daily_metrics(days=days)
@@ -41,6 +51,13 @@ if df.empty:
 # --- Product profitability ---
 prod_df = product_profitability(df)
 
+# Add total cost per unit (COGS + fees + shipping)
+if not prod_df.empty and "fees" in prod_df.columns:
+    _tc = prod_df["cogs"] + prod_df["fees"]
+    if "shipping_cost" in prod_df.columns:
+        _tc = _tc + prod_df["shipping_cost"]
+    prod_df["total_cost_per_unit"] = np.where(prod_df["units"] > 0, _tc / prod_df["units"], 0)
+
 # Merge product names, source, and image_url
 if not products_df.empty and not prod_df.empty:
     merge_cols = ["sku", "name", "source", "cost_pln"]
@@ -60,95 +77,33 @@ else:
     prod_df["cost_pln"] = 0
     prod_df["image_url"] = None
 
+# --- Filter by SKU / product name search ---
+if product_search:
+    _q = product_search.lower()
+    prod_df = prod_df[
+        prod_df["sku"].astype(str).str.lower().str.contains(_q, na=False)
+        | prod_df["name"].astype(str).str.lower().str.contains(_q, na=False)
+    ]
+
+if prod_df.empty:
+    st.info("No products match your search. Try a different query.")
+    st.stop()
+
 # --- 1. Top products table ---
 st.markdown('<div class="section-header">SKU PROFITABILITY TABLE</div>', unsafe_allow_html=True)
 
-sort_options = {"cm3": "CM3 (Profit)", "revenue_pln": "Revenue", "units": "Units", "cm3_pct": "Margin %"}
+sort_options = {"cm3_per_unit": "CM/Unit", "cm3": "CM3 (Profit)", "revenue_pln": "Revenue", "revenue_per_unit": "Revenue/Unit", "units": "Units", "cm3_pct": "Margin %"}
 sort_by = st.selectbox("Sort by", list(sort_options.keys()), format_func=lambda x: sort_options[x])
 prod_sorted = prod_df.sort_values(sort_by, ascending=False).head(50)
 
-# Build HTML table with product thumbnails
-prof_rows_html = ""
-for i, (_, row) in enumerate(prod_sorted.iterrows()):
-    sku = row.get("sku", "")
-    name = str(row.get("name", ""))[:40]
-    source = row.get("source", "unknown")
-    units = int(row.get("units", 0))
-    avg_price = row.get("revenue_per_unit", 0)
-    unit_cost = row.get("cost_per_unit", 0)
-    revenue = row.get("revenue_pln", 0)
-    cogs_val = row.get("cogs", 0)
-    cm1 = row.get("cm1", 0)
-    fees_val = row.get("fees", 0)
-    cm3_val = row.get("cm3", 0)
-    margin = row.get("cm3_pct", 0)
-    img_url = row.get("image_url", None)
-    row_bg = "#111827" if i % 2 == 0 else "#0f1729"
+st.markdown(render_product_table(prod_sorted, max_rows=50), unsafe_allow_html=True)
 
-    # Thumbnail or placeholder
-    if img_url and str(img_url) != "None" and str(img_url).startswith("http"):
-        img_html = f'<img src="{img_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #1e293b;" loading="lazy" />'
-    else:
-        img_html = '<div style="width:40px;height:40px;background:#1e293b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.5rem;color:#475569;">N/A</div>'
-
-    # Source badge color
-    source_color = "#10b981" if source == "printful" else ("#3b82f6" if source == "wholesale" else "#64748b")
-
-    # Margin color
-    margin_color = "#10b981" if margin > 30 else ("#fbbf24" if margin > 10 else "#ef4444")
-
-    source_rgba = ','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0, 2, 4))
-    prof_rows_html += (
-        f'<tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">'
-        f'<td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; color: #e2e8f0; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.72rem; color: #94a3b8; max-width: 160px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>'
-        f'<td style="padding: 5px 8px; text-align: center; vertical-align: middle;">'
-        f'<span style="font-family: monospace; font-size: 0.6rem; color: {source_color}; background: rgba({source_rgba},0.1); padding: 2px 5px; border-radius: 3px;">{source}</span>'
-        f'</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{avg_price:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #94a3b8; vertical-align: middle;">{unit_cost:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #e2e8f0; vertical-align: middle;">{revenue:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #ef4444; vertical-align: middle;">{cogs_val:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #fbbf24; vertical-align: middle;">{fees_val:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: #10b981; font-weight: 600; vertical-align: middle;">{cm3_val:,.0f}</td>'
-        f'<td style="padding: 5px 8px; font-family: monospace; font-size: 0.75rem; text-align: right; color: {margin_color}; font-weight: 600; vertical-align: middle;">{margin:.1f}%</td>'
-        f'</tr>'
-    )
-
-th_style = 'padding: 8px; text-align: left; font-family: monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-th_r = th_style.replace("text-align: left", "text-align: right")
-th_c = th_style.replace("text-align: left", "text-align: center")
-
-prof_table_inner = (
-    '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
-    '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
-    f'<th style="{th_style} width: 50px;"></th>'
-    f'<th style="{th_style}">SKU</th>'
-    f'<th style="{th_style}">Name</th>'
-    f'<th style="{th_c}">Source</th>'
-    f'<th style="{th_r}">Units</th>'
-    f'<th style="{th_r}">Avg Price</th>'
-    f'<th style="{th_r}">Unit Cost</th>'
-    f'<th style="{th_r}">Revenue</th>'
-    f'<th style="{th_r}">COGS</th>'
-    f'<th style="{th_r}">Fees</th>'
-    f'<th style="{th_r}">CM3</th>'
-    f'<th style="{th_r}">Margin%</th>'
-    '</tr></thead>'
-    f'<tbody>{prof_rows_html}</tbody>'
-    '</table>'
-)
-
-_prof_row_count = len(prod_sorted)
-_prof_table_height = min(550, 42 + _prof_row_count * 45)
-st.html(f'''<style>
-html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
-</style>
-<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: {_prof_table_height}px; overflow-y: auto;">
-{prof_table_inner}
-</div>''')
+# CSV export for profitability table
+_export_cols = ["sku", "name", "source", "units", "revenue_per_unit", "cost_per_unit",
+                "total_cost_per_unit", "cm3_per_unit", "revenue_pln", "cogs", "fees", "cm3", "cm3_pct"]
+_export_cols = [c for c in _export_cols if c in prod_sorted.columns]
+_prof_csv = prod_sorted[_export_cols].to_csv(index=False).encode("utf-8")
+st.download_button("Download CSV", _prof_csv, "products_profitability.csv", "text/csv", key="dl_products_prof")
 
 # --- 1b. SKU Order Drill-Down ---
 st.markdown('<div class="section-header">SKU ORDER DRILL-DOWN</div>', unsafe_allow_html=True)
@@ -473,20 +428,17 @@ if not prod_df.empty:
 
     # Coverage status banner
     if coverage_pct < 90:
-        low_cogs_html = (
-            '<div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b; border-radius: 6px; padding: 14px 18px; margin: 12px 0;">'
-            '<div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 4px;">LOW COGS COVERAGE</div>'
-            f'<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #fbbf24;">{coverage_pct:.0f}% of revenue has COGS data. Reported margins are overstated by ~{100 - coverage_pct:.0f}pp. Add product costs in Baselinker to get accurate P&L.</div>'
-            '</div>'
-        )
-        st.markdown(low_cogs_html, unsafe_allow_html=True)
+        st.markdown(render_alert_banner(
+            title="LOW COGS COVERAGE",
+            body=f"{coverage_pct:.0f}% of revenue has COGS data. Reported margins are overstated by ~{100 - coverage_pct:.0f}pp. Add product costs in Baselinker to get accurate P&L.",
+            variant="warning",
+        ), unsafe_allow_html=True)
     else:
-        good_cogs_html = (
-            '<div style="background: #0b1a12; border: 1px solid #065f46; border-left: 4px solid #10b981; border-radius: 6px; padding: 14px 18px; margin: 12px 0;">'
-            f'<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399;">COGS coverage is good: {coverage_pct:.1f}% of revenue covered.</div>'
-            '</div>'
-        )
-        st.markdown(good_cogs_html, unsafe_allow_html=True)
+        st.markdown(render_alert_banner(
+            title="",
+            body=f"COGS coverage is good: {coverage_pct:.1f}% of revenue covered.",
+            variant="success",
+        ), unsafe_allow_html=True)
 
     # Full COGS gaps table
     if not without_cogs.empty:
@@ -505,76 +457,86 @@ if not prod_df.empty:
         gap_count_html = f'<div style="font-family: var(--font-mono); font-size: 0.75rem; color: #94a3b8; margin: 8px 0 16px 0;">{len(gap_df)} products with revenue but no COGS. Total impact: {uncovered_rev:,.0f} PLN.</div>'
         st.markdown(gap_count_html, unsafe_allow_html=True)
 
-        # Build HTML table with Baselinker links and thumbnails
-        rows_html = ""
-        for i, (_, row) in enumerate(gap_df.iterrows()):
-            sku = row.get("sku", "unknown")
-            name = str(row.get("name", ""))[:40]
-            source = row.get("source_label", "Unknown")
-            rev = row.get("revenue_pln", 0)
-            units = int(row.get("units", 0))
-            orders = int(row.get("orders_count", 0))
-            img_url = row.get("image_url", None)
-            bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
-            row_bg = "#111827" if i % 2 == 0 else "#0f1729"
+        st.markdown(render_cogs_gap_table(
+            gap_df, show_source=True, show_name=True,
+        ), unsafe_allow_html=True)
 
-            # Thumbnail or placeholder
-            if img_url and str(img_url) != "None" and str(img_url).startswith("http"):
-                img_html = f'<img src="{img_url}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #1e293b;" loading="lazy" />'
-            else:
-                img_html = '<div style="width:36px;height:36px;background:#1e293b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.45rem;color:#475569;">N/A</div>'
-
-            # Source badge color
-            source_color = "#10b981" if source == "Printful" else ("#3b82f6" if source == "Wholesale" else "#64748b")
-
-            source_rgba = ','.join(str(int(source_color.lstrip('#')[j:j+2], 16)) for j in (0, 2, 4))
-            rows_html += (
-                f'<tr style="background: {row_bg}; border-bottom: 1px solid #1e293b;">'
-                f'<td style="padding: 5px 8px; vertical-align: middle;">{img_html}</td>'
-                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; color: #e2e8f0; white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{sku}</td>'
-                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.75rem; color: #94a3b8; max-width: 200px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">{name}</td>'
-                f'<td style="padding: 7px 10px; text-align: center; vertical-align: middle;">'
-                f'<span style="font-family: monospace; font-size: 0.65rem; color: {source_color}; background: rgba({source_rgba},0.1); padding: 2px 6px; border-radius: 3px;">{source}</span>'
-                f'</td>'
-                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #fbbf24; vertical-align: middle;">{rev:,.0f}</td>'
-                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
-                f'<td style="padding: 7px 10px; font-family: monospace; font-size: 0.78rem; text-align: right; color: #94a3b8; vertical-align: middle;">{orders}</td>'
-                f'<td style="padding: 7px 10px; text-align: center; vertical-align: middle;">'
-                f'<a href="{bl_url}" target="_blank" style="color: #3b82f6; font-family: monospace; font-size: 0.7rem; text-decoration: none; background: rgba(59,130,246,0.08); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">Edit &#8594;</a>'
-                f'</td></tr>'
-            )
-
-        gap_th = 'padding: 10px; font-family: monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-        gap_table_inner = (
-            '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
-            '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117; position: sticky; top: 0; z-index: 1;">'
-            f'<th style="{gap_th} text-align: left; width: 46px;"></th>'
-            f'<th style="{gap_th} text-align: left;">SKU</th>'
-            f'<th style="{gap_th} text-align: left;">Name</th>'
-            f'<th style="{gap_th} text-align: center;">Source</th>'
-            f'<th style="{gap_th} text-align: right;">Revenue (PLN)</th>'
-            f'<th style="{gap_th} text-align: right;">Units</th>'
-            f'<th style="{gap_th} text-align: right;">Orders</th>'
-            f'<th style="{gap_th} text-align: center;">Action</th>'
-            '</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            '</table>'
-        )
-
-        _gap_row_count = len(gap_df)
-        _gap_table_height = min(500, 46 + _gap_row_count * 44)
-        st.html(f'''<style>
-html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
-a {{ color: #3b82f6; text-decoration: none; }}
-a:hover {{ text-decoration: underline; }}
-</style>
-<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b; max-height: {_gap_table_height}px; overflow-y: auto;">
-{gap_table_inner}
-</div>''')
+        # CSV export for COGS gaps table
+        _gap_export_cols = ["sku", "name", "source", "revenue_pln", "units", "orders_count"]
+        _gap_export_cols = [c for c in _gap_export_cols if c in gap_df.columns]
+        _gap_csv = gap_df[_gap_export_cols].to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _gap_csv, "cogs_gaps.csv", "text/csv", key="dl_cogs_gaps")
 
         # Copyable SKU list for bulk operations
         with st.expander("Export SKU list (copy-paste)"):
             sku_list = "\n".join(gap_df["sku"].tolist())
             st.code(sku_list, language=None)
     else:
-        st.markdown('<div style="font-family: var(--font-mono); font-size: 0.85rem; color: #34d399; padding: 16px 0;">All products with revenue have COGS assigned.</div>', unsafe_allow_html=True)
+        st.markdown(render_alert_banner(
+            title="",
+            body="All products with revenue have COGS assigned.",
+            variant="success",
+        ), unsafe_allow_html=True)
+
+# --- 6. ABC/XYZ Analysis ---
+st.markdown('<div class="section-header">ABC/XYZ ANALYSIS</div>', unsafe_allow_html=True)
+
+abc_xyz = load_abc_xyz_analysis(days=days)
+if not abc_xyz.empty:
+    a_rev = abc_xyz[abc_xyz["abc_class"] == "A"]["revenue"].sum()
+    total_abc_rev = abc_xyz["revenue"].sum()
+    a_pct = a_rev / total_abc_rev * 100 if total_abc_rev > 0 else 0
+    a_count = len(abc_xyz[abc_xyz["abc_class"] == "A"])
+    b_count = len(abc_xyz[abc_xyz["abc_class"] == "B"])
+    c_count = len(abc_xyz[abc_xyz["abc_class"] == "C"])
+
+    ax1, ax2, ax3, ax4 = st.columns(4)
+    ax1.metric("A-Class SKUs", f"{a_count}", delta=f"{a_pct:.1f}% of revenue")
+    ax2.metric("B-Class SKUs", f"{b_count}")
+    ax3.metric("C-Class SKUs", f"{c_count}")
+    ax4.metric("Total Analyzed", f"{len(abc_xyz)}")
+
+    # 3x3 Heatmap: ABC rows x XYZ columns
+    segments = abc_xyz.groupby("segment").size().reset_index(name="count")
+    matrix = pd.DataFrame(0, index=["A", "B", "C"], columns=["X", "Y", "Z"])
+    for _, row in segments.iterrows():
+        seg = str(row["segment"])
+        if len(seg) == 2 and seg[0] in "ABC" and seg[1] in "XYZ":
+            matrix.loc[seg[0], seg[1]] = int(row["count"])
+
+    from lib.charts import heatmap
+    fig_abc = heatmap(
+        z_data=matrix.values.tolist(),
+        x_labels=["X (Stable)", "Y (Variable)", "Z (Erratic)"],
+        y_labels=["A (Top 80%)", "B (80-95%)", "C (95-100%)"],
+        title="ABC/XYZ Matrix (SKU count per segment)",
+        height=280,
+    )
+    st.plotly_chart(fig_abc, use_container_width=True)
+
+    # Strategy mapping
+    _strategy = {
+        "AX": "Auto-restock, safety stock",
+        "AY": "Regular review, flexible restock",
+        "AZ": "Monitor closely, demand planning",
+        "BX": "Standard restock cycle",
+        "BY": "Periodic review",
+        "BZ": "Reduce inventory, watch trends",
+        "CX": "Minimum stock levels",
+        "CY": "Order on demand",
+        "CZ": "Consider discontinue",
+    }
+
+    abc_display = abc_xyz[["sku", "revenue", "revenue_pct", "abc_class", "cv", "xyz_class", "segment", "units"]].copy()
+    abc_display["strategy"] = abc_display["segment"].map(_strategy).fillna("")
+    abc_display.columns = ["SKU", "Revenue", "Rev %", "ABC", "CV", "XYZ", "Segment", "Units", "Strategy"]
+    abc_display["Revenue"] = abc_display["Revenue"].map(lambda x: f"{x:,.0f}")
+    abc_display["Rev %"] = abc_display["Rev %"].map(lambda x: f"{x:.1f}%")
+    abc_display["CV"] = abc_display["CV"].map(lambda x: f"{x:.2f}" if x < 100 else "N/A")
+
+    st.dataframe(abc_display, use_container_width=True, hide_index=True)
+
+    _abc_csv = abc_xyz.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _abc_csv, "abc_xyz_analysis.csv", "text/csv", key="dl_abc_xyz")
+else:
+    st.info("Not enough data for ABC/XYZ analysis.")

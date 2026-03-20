@@ -266,12 +266,50 @@ def load_amazon_bsr():
 
 
 @st.cache_data(ttl=300)
+def load_amazon_restock():
+    """Load latest Amazon Restock Recommendations snapshot."""
+    rows = _get(
+        "amazon_restock",
+        {
+            "select": "snapshot_date,sku,asin,product_name,recommended_qty,days_of_cover,reorder_date,marketplace_id",
+            "order": "snapshot_date.desc",
+        },
+        limit=5000,
+    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    # Keep only the latest snapshot
+    latest = df["snapshot_date"].max()
+    return df[df["snapshot_date"] == latest].copy()
+
+
+@st.cache_data(ttl=300)
+def load_amazon_aged_inventory():
+    """Load latest Amazon FBA Aged Inventory snapshot."""
+    rows = _get(
+        "amazon_aged_inventory",
+        {
+            "select": "snapshot_date,sku,asin,product_name,qty_to_be_charged_ltsf,days_of_supply,inv_age_0_to_90_days,inv_age_91_to_180_days,inv_age_181_to_270_days,inv_age_271_plus_days,marketplace_id",
+            "order": "snapshot_date.desc",
+        },
+        limit=5000,
+    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    # Keep only the latest snapshot
+    latest = df["snapshot_date"].max()
+    return df[df["snapshot_date"] == latest].copy()
+
+
+@st.cache_data(ttl=300)
 def load_amazon_pricing():
-    """Load Amazon competitive pricing data."""
+    """Load Amazon competitive pricing data (including our_price from competitor_prices ETL)."""
     rows = _get(
         "amazon_pricing",
         {
-            "select": "snapshot_date,asin,marketplace_id,landed_price,listing_price,shipping_price,currency,condition_value",
+            "select": "snapshot_date,asin,marketplace_id,buy_box_price,buy_box_landed_price,lowest_fba_price,lowest_fbm_price,num_offers_new,num_offers_used,our_price,currency,landed_price,listing_price,shipping_price,condition_value",
             "order": "snapshot_date.desc",
         },
         limit=5000,
@@ -389,19 +427,25 @@ def load_orders_enriched(days=30):
     items_df = load_order_items(order_ids)
     products = load_products()
     platforms = load_platforms()
-    fx_rows = _get("fx_rates", {"order": "date.desc"}, limit=5000)
+    # Load FX rates with server-side date filter (orders period + 7 day buffer)
+    _fx_cutoff = (datetime.now() - timedelta(days=days + 7)).strftime("%Y-%m-%d")
+    fx_rows = _get("fx_rates", {"date": f"gte.{_fx_cutoff}", "order": "date.desc"}, limit=5000)
     fx_df = pd.DataFrame(fx_rows)
 
-    # Build fx lookup: (date_str, currency) -> rate_pln
+    # Build fx lookup: (date_str, currency) -> rate_pln  [vectorized]
     fx_lookup = {}
     latest_fx = {}
     if not fx_df.empty:
-        for _, r in fx_df.iterrows():
-            key = (str(r["date"]), str(r["currency"]).upper())
-            fx_lookup[key] = float(r["rate_pln"])
-            cur = str(r["currency"]).upper()
-            if cur not in latest_fx:
-                latest_fx[cur] = float(r["rate_pln"])
+        _dates = fx_df["date"].astype(str)
+        _curs = fx_df["currency"].astype(str).str.upper()
+        _rates = pd.to_numeric(fx_df["rate_pln"], errors="coerce").values
+        fx_lookup = dict(zip(zip(_dates, _curs), _rates))
+        # Latest rate per currency (fx_df ordered date.desc, first occurrence = latest)
+        _dedup = fx_df.drop_duplicates(subset=["currency"], keep="first")
+        latest_fx = dict(zip(
+            _dedup["currency"].astype(str).str.upper(),
+            pd.to_numeric(_dedup["rate_pln"], errors="coerce"),
+        ))
     latest_fx["PLN"] = 1.0
     fx_lookup_default = latest_fx
 
@@ -415,16 +459,22 @@ def load_orders_enriched(days=30):
             return rate
         return fx_lookup_default.get(cur, 1.0)
 
-    # Build products cost lookup: sku -> (cost_pln, cost_eur, image_url, name)
+    # Build products cost lookup: sku -> {cost_pln, cost_eur, ...}  [vectorized]
     prod_lookup = {}
     if not products.empty:
-        for _, p in products.iterrows():
-            prod_lookup[str(p.get("sku", ""))] = {
-                "cost_pln": float(p["cost_pln"]) if pd.notna(p.get("cost_pln")) else 0,
-                "cost_eur": float(p["cost_eur"]) if pd.notna(p.get("cost_eur")) else 0,
-                "image_url": p.get("image_url"),
-                "product_name": p.get("name", ""),
+        _p = products.copy()
+        _p["sku"] = _p["sku"].astype(str)
+        _p["cost_pln"] = pd.to_numeric(_p["cost_pln"], errors="coerce").fillna(0)
+        _p["cost_eur"] = pd.to_numeric(_p["cost_eur"], errors="coerce").fillna(0)
+        prod_lookup = {
+            row["sku"]: {
+                "cost_pln": row["cost_pln"],
+                "cost_eur": row["cost_eur"],
+                "image_url": row.get("image_url"),
+                "product_name": row.get("name", ""),
             }
+            for row in _p.to_dict("records")
+        }
 
     def _find_product_cost(sku):
         """Look up product cost with SKU fallback strategies.
@@ -466,15 +516,17 @@ def load_orders_enriched(days=30):
 
         return 0, 0
 
-    # Build order_id -> order_date lookup for FX conversion
-    order_date_lookup = {}
-    for _, o in orders.iterrows():
-        order_date_lookup[o["id"]] = str(o["order_date"])[:10]
+    # Build order_id -> order_date lookup for FX conversion  [vectorized]
+    order_date_lookup = dict(zip(
+        orders["id"],
+        orders["order_date"].astype(str).str[:10],
+    ))
 
-    # Build order_id -> currency lookup
-    order_currency_lookup = {}
-    for _, o in orders.iterrows():
-        order_currency_lookup[o["id"]] = str(o.get("currency", "EUR"))
+    # Build order_id -> currency lookup  [vectorized]
+    order_currency_lookup = dict(zip(
+        orders["id"],
+        orders["currency"].fillna("EUR").astype(str),
+    ))
 
     # Platform fee rates (non-Amazon platforms only; Amazon uses FBA/FBM detection)
     platform_fee_rates = {
@@ -492,7 +544,7 @@ def load_orders_enriched(days=30):
         "amazon_nl", "amazon_se", "amazon_pl", "amazon_be", "amazon_gb",
     }
 
-    # Enrich items with COGS and unit_price_pln
+    # Enrich items with COGS and unit_price_pln  [vectorized]
     if not items_df.empty:
         items_df["unit_cost_pln"] = pd.to_numeric(items_df["unit_cost_pln"], errors="coerce").fillna(0)
         items_df["unit_cost"] = pd.to_numeric(items_df["unit_cost"], errors="coerce").fillna(0)
@@ -500,23 +552,55 @@ def load_orders_enriched(days=30):
         items_df["unit_price_pln"] = pd.to_numeric(items_df["unit_price_pln"], errors="coerce").fillna(0)
         items_df["quantity"] = pd.to_numeric(items_df["quantity"], errors="coerce").fillna(1).astype(int)
 
-        for idx, item in items_df.iterrows():
-            oid = item["order_id"]
-            date_str = order_date_lookup.get(oid, "2026-03-01")
-            item_currency = str(item.get("currency", "")) or order_currency_lookup.get(oid, "EUR")
+        # Pre-compute per-item date and currency vectors
+        _item_dates = items_df["order_id"].map(order_date_lookup).fillna("2026-03-01")
+        _item_cur_raw = items_df["currency"].fillna("").astype(str)
+        _item_cur_order = items_df["order_id"].map(order_currency_lookup).fillna("EUR")
+        _item_currencies = _item_cur_raw.where(_item_cur_raw != "", _item_cur_order)
 
-            # Fill missing unit_price_pln from unit_price * fx_rate
-            if item["unit_price_pln"] == 0 and item["unit_price"] > 0:
-                items_df.at[idx, "unit_price_pln"] = item["unit_price"] * get_fx(date_str, item_currency)
+        # Pre-compute cost map for all unique SKUs [once, not per-row]
+        _unique_skus = items_df["sku"].dropna().astype(str).unique()
+        _cost_cache = {s: _find_product_cost(s) for s in _unique_skus}
 
-            # Fill missing unit_cost_pln from products table (with SKU fallback)
-            if item["unit_cost_pln"] == 0:
-                sku = str(item.get("sku", ""))
-                cost_pln, cost_eur = _find_product_cost(sku)
-                if cost_pln > 0:
-                    items_df.at[idx, "unit_cost_pln"] = cost_pln
-                elif cost_eur > 0:
-                    items_df.at[idx, "unit_cost_pln"] = cost_eur * get_fx(date_str, "EUR")
+        # Pre-compute FX rates for all unique (date, currency) pairs [once]
+        _fx_pairs = set(zip(_item_dates, _item_currencies))
+        # Also pre-compute EUR rates for cost conversion
+        for d in _item_dates.unique():
+            _fx_pairs.add((d, "EUR"))
+        _fx_cache = {(d, c): get_fx(d, c) for d, c in _fx_pairs}
+
+        # Fill missing unit_price_pln: vectorized mask + vectorized FX lookup
+        _needs_price = (items_df["unit_price_pln"] == 0) & (items_df["unit_price"] > 0)
+        if _needs_price.any():
+            _fx_rates_price = pd.Series(
+                [_fx_cache.get((d, c), 1.0) for d, c in zip(_item_dates[_needs_price], _item_currencies[_needs_price])],
+                index=items_df.index[_needs_price],
+            )
+            items_df.loc[_needs_price, "unit_price_pln"] = items_df.loc[_needs_price, "unit_price"] * _fx_rates_price
+
+        # Fill missing unit_cost_pln from product costs: vectorized lookup
+        _needs_cost = items_df["unit_cost_pln"] == 0
+        if _needs_cost.any():
+            _skus = items_df.loc[_needs_cost, "sku"].astype(str)
+            _cost_pln = _skus.map(lambda s: _cost_cache.get(s, (0, 0))[0])
+            _cost_eur = _skus.map(lambda s: _cost_cache.get(s, (0, 0))[1])
+
+            # Apply PLN costs directly where available
+            _has_pln = _cost_pln > 0
+            if _has_pln.any():
+                items_df.loc[_has_pln[_has_pln].index, "unit_cost_pln"] = _cost_pln[_has_pln].values
+
+            # Convert EUR costs via FX for remaining items
+            _needs_eur_mask = (~_has_pln) & (_cost_eur > 0)
+            if _needs_eur_mask.any():
+                _eur_dates = _item_dates[_needs_eur_mask.index[_needs_eur_mask]]
+                _eur_fx = pd.Series(
+                    [_fx_cache.get((d, "EUR"), 1.0) for d in _eur_dates],
+                    index=_needs_eur_mask.index[_needs_eur_mask],
+                )
+                items_df.loc[_needs_eur_mask[_needs_eur_mask].index, "unit_cost_pln"] = (
+                    _cost_eur[_needs_eur_mask].values * _eur_fx.values
+                )
 
         items_df["line_cost_pln"] = items_df["unit_cost_pln"] * items_df["quantity"]
         items_df["line_revenue_pln"] = items_df["unit_price_pln"] * items_df["quantity"]
@@ -557,66 +641,62 @@ def load_orders_enriched(days=30):
         lambda x: platforms.get(x, {}).get("name", f"#{x}")
     )
 
-    # Revenue in PLN (use total_paid_pln if available, else convert)
-    def calc_revenue_pln(row):
-        if row["total_paid_pln"] and row["total_paid_pln"] > 0:
-            return row["total_paid_pln"]
-        date_str = str(row["order_date"])[:10]
-        return row["total_paid"] * get_fx(date_str, row["currency"])
-    orders["revenue_pln"] = orders.apply(calc_revenue_pln, axis=1)
-
-    # Fees in PLN
-    def calc_fees_pln(row):
-        if row["platform_fee_pln"] and row["platform_fee_pln"] > 0:
-            return row["platform_fee_pln"]
-        if row["platform_fee"] and row["platform_fee"] > 0:
-            date_str = str(row["order_date"])[:10]
-            return row["platform_fee"] * get_fx(date_str, row["currency"])
-        # Estimate from platform fee rate (FBA/FBM-aware for Amazon)
-        pname = row.get("platform_name", "")
-        if pname in amazon_platform_names:
-            ext_id = str(row.get("external_id", ""))
-            is_fbm = ext_id.isdigit()
-            rate = AMAZON_FBM_FEE_RATE if is_fbm else AMAZON_FBA_FEE_RATE
-        else:
-            rate = platform_fee_rates.get(pname, 0)
-        return row["revenue_pln"] * rate
-    orders["fees_pln"] = orders.apply(calc_fees_pln, axis=1)
-
-    # Shipping in PLN
-    # Prefer seller_shipping_cost_pln (actual DPD courier cost, already in PLN)
-    # over shipping_cost (buyer's delivery_price, which is a revenue component)
-    def calc_shipping_pln(row):
-        seller_cost = row.get("seller_shipping_cost_pln", 0)
-        if seller_cost and seller_cost > 0:
-            return seller_cost
-        if row["shipping_cost"] > 0:
-            date_str = str(row["order_date"])[:10]
-            return row["shipping_cost"] * get_fx(date_str, row["currency"])
-        return 0
-    orders["shipping_pln"] = orders.apply(calc_shipping_pln, axis=1)
-
-    # Profit
-    orders["profit_pln"] = orders["revenue_pln"] - orders["cogs_pln"] - orders["fees_pln"] - orders["shipping_pln"]
-    orders["margin_pct"] = orders.apply(
-        lambda r: (r["profit_pln"] / r["revenue_pln"] * 100) if r["revenue_pln"] > 0 else 0, axis=1
+    # Pre-compute FX rates for all unique order (date, currency) pairs [vectorized]
+    _order_dates = orders["order_date"].astype(str).str[:10]
+    _order_curs = orders["currency"].fillna("EUR").astype(str)
+    _order_fx_pairs = set(zip(_order_dates, _order_curs))
+    _order_fx_cache = {(d, c): get_fx(d, c) for d, c in _order_fx_pairs}
+    _order_fx_rates = pd.Series(
+        [_order_fx_cache.get((d, c), 1.0) for d, c in zip(_order_dates, _order_curs)],
+        index=orders.index,
     )
+
+    # Revenue in PLN  [vectorized]
+    _has_paid_pln = orders["total_paid_pln"] > 0
+    orders["revenue_pln"] = orders["total_paid"] * _order_fx_rates
+    orders.loc[_has_paid_pln, "revenue_pln"] = orders.loc[_has_paid_pln, "total_paid_pln"]
+
+    # Fees in PLN  [vectorized]
+    # Layer 1: estimate from platform fee rate (default)
+    _is_amazon = orders["platform_name"].isin(amazon_platform_names)
+    _is_fbm = orders["external_id"].fillna("").astype(str).apply(str.isdigit)
+    _fee_rate = orders["platform_name"].map(platform_fee_rates).fillna(0)
+    _fee_rate = _fee_rate.where(~_is_amazon, _is_fbm.map({True: AMAZON_FBM_FEE_RATE, False: AMAZON_FBA_FEE_RATE}))
+    orders["fees_pln"] = orders["revenue_pln"] * _fee_rate
+    # Layer 2: override with converted platform_fee where available
+    _has_fee = orders["platform_fee"] > 0
+    orders.loc[_has_fee, "fees_pln"] = orders.loc[_has_fee, "platform_fee"] * _order_fx_rates[_has_fee]
+    # Layer 3: override with platform_fee_pln where available (highest priority)
+    _has_fee_pln = orders["platform_fee_pln"] > 0
+    orders.loc[_has_fee_pln, "fees_pln"] = orders.loc[_has_fee_pln, "platform_fee_pln"]
+
+    # Shipping in PLN  [vectorized]
+    # Default: convert buyer shipping_cost via FX
+    orders["shipping_pln"] = 0.0
+    _has_ship = orders["shipping_cost"] > 0
+    orders.loc[_has_ship, "shipping_pln"] = orders.loc[_has_ship, "shipping_cost"] * _order_fx_rates[_has_ship]
+    # Override with seller_shipping_cost_pln where available (higher priority)
+    _has_seller = orders["seller_shipping_cost_pln"] > 0
+    orders.loc[_has_seller, "shipping_pln"] = orders.loc[_has_seller, "seller_shipping_cost_pln"]
+
+    # Profit  [vectorized]
+    orders["profit_pln"] = orders["revenue_pln"] - orders["cogs_pln"] - orders["fees_pln"] - orders["shipping_pln"]
+    orders["margin_pct"] = 0.0
+    _has_rev = orders["revenue_pln"] > 0
+    orders.loc[_has_rev, "margin_pct"] = orders.loc[_has_rev, "profit_pln"] / orders.loc[_has_rev, "revenue_pln"] * 100
 
     # Has COGS flag
     orders["has_cogs"] = orders["cogs_pln"] > 0
 
-    # FBA/FBM flag (for display purposes)
-    orders["fulfillment"] = orders.apply(
-        lambda r: "FBA" if (r["platform_name"] in amazon_platform_names
-                           and not str(r.get("external_id", "")).isdigit())
-        else ("FBM" if r["platform_name"] in amazon_platform_names else ""),
-        axis=1,
-    )
+    # FBA/FBM flag  [vectorized]
+    orders["fulfillment"] = ""
+    orders.loc[_is_amazon & ~_is_fbm, "fulfillment"] = "FBA"
+    orders.loc[_is_amazon & _is_fbm, "fulfillment"] = "FBM"
 
-    # ROI = profit / COGS * 100 (Sellerboard-style return on investment)
-    orders["roi_pct"] = orders.apply(
-        lambda r: (r["profit_pln"] / r["cogs_pln"] * 100) if r["cogs_pln"] > 0 else 0, axis=1
-    )
+    # ROI  [vectorized]
+    orders["roi_pct"] = 0.0
+    _has_cogs_mask = orders["cogs_pln"] > 0
+    orders.loc[_has_cogs_mask, "roi_pct"] = orders.loc[_has_cogs_mask, "profit_pln"] / orders.loc[_has_cogs_mask, "cogs_pln"] * 100
 
     # Fill missing item info
     orders["first_sku"] = orders["first_sku"].fillna("")
@@ -674,6 +754,265 @@ def load_amazon_storage_fees():
     return df
 
 
+# ---------------------------------------------------------------------------
+# Sprint 1: Analytics Quick Wins — new load_ functions
+# ---------------------------------------------------------------------------
+
+def _get_eur_rate(days=90):
+    """Helper: get latest EUR->PLN rate from fx_rates."""
+    fx = load_fx_rates(days=days)
+    if not fx.empty and "currency" in fx.columns:
+        eur_rows = fx[fx["currency"] == "EUR"]
+        if not eur_rows.empty:
+            _r = pd.to_numeric(eur_rows.iloc[-1].get("rate_pln", 4.30), errors="coerce")
+            if not pd.isna(_r) and _r > 0:
+                return float(_r)
+    return 4.30
+
+
+@st.cache_data(ttl=300)
+def load_tacos_trend(days=90):
+    """TACoS (Total Ad Cost of Sale) trend: ad_spend / total_revenue * 100."""
+    ads = load_amazon_ad_spend(days=days)
+    dm = load_daily_metrics(days=days)
+
+    empty = pd.DataFrame(columns=["date", "ad_spend_pln", "revenue_pln", "tacos", "tacos_7d"])
+    if ads.empty or dm.empty:
+        return empty
+
+    eur_rate = _get_eur_rate(days)
+
+    ads_daily = ads.groupby("date").agg(ad_spend=("spend", "sum")).reset_index()
+    ads_daily["ad_spend_pln"] = ads_daily["ad_spend"] * eur_rate
+
+    rev_daily = dm.groupby("date").agg(revenue_pln=("revenue_pln", "sum")).reset_index()
+
+    merged = rev_daily.merge(ads_daily[["date", "ad_spend_pln"]], on="date", how="outer").fillna(0)
+    merged["tacos"] = merged.apply(
+        lambda r: r["ad_spend_pln"] / r["revenue_pln"] * 100 if r["revenue_pln"] > 0 else 0, axis=1
+    )
+    merged = merged.sort_values("date").reset_index(drop=True)
+    merged["tacos_7d"] = merged["tacos"].rolling(7, min_periods=1).mean()
+    return merged
+
+
+@st.cache_data(ttl=300)
+def load_organic_paid_split(days=90):
+    """Organic vs paid revenue split. Organic = Total Revenue - Ad Sales (PLN)."""
+    ads = load_amazon_ad_spend(days=days)
+    dm = load_daily_metrics(days=days)
+
+    empty = pd.DataFrame(columns=["date", "revenue_pln", "organic_pln", "paid_pln", "organic_pct"])
+    if dm.empty:
+        return empty
+
+    eur_rate = _get_eur_rate(days)
+
+    rev_daily = dm.groupby("date").agg(revenue_pln=("revenue_pln", "sum")).reset_index()
+
+    if not ads.empty:
+        ads_daily = ads.groupby("date").agg(paid_sales=("sales", "sum")).reset_index()
+        ads_daily["paid_pln"] = ads_daily["paid_sales"] * eur_rate
+        merged = rev_daily.merge(ads_daily[["date", "paid_pln"]], on="date", how="left").fillna(0)
+    else:
+        merged = rev_daily.copy()
+        merged["paid_pln"] = 0.0
+
+    merged["organic_pln"] = (merged["revenue_pln"] - merged["paid_pln"]).clip(lower=0)
+    merged["organic_pct"] = merged.apply(
+        lambda r: r["organic_pln"] / r["revenue_pln"] * 100 if r["revenue_pln"] > 0 else 100, axis=1
+    )
+    return merged.sort_values("date").reset_index(drop=True)
+
+
+@st.cache_data(ttl=300)
+def load_buybox_history(days=90):
+    """Buy Box Win Rate history from amazon_pricing snapshots.
+
+    Won = our_price <= buy_box_price * 1.005 (within 0.5% tolerance).
+    """
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    rows = _get(
+        "amazon_pricing",
+        {
+            "select": "snapshot_date,asin,our_price,buy_box_price",
+            "snapshot_date": f"gte.{cutoff}",
+            "order": "snapshot_date.asc",
+        },
+        limit=50000,
+    )
+    pricing = pd.DataFrame(rows)
+
+    empty = pd.DataFrame(columns=["snapshot_date", "total_asins", "won", "win_rate_pct", "win_rate_7d"])
+    if pricing.empty:
+        return empty
+
+    pricing["our_price"] = pd.to_numeric(pricing["our_price"], errors="coerce")
+    pricing["buy_box_price"] = pd.to_numeric(pricing["buy_box_price"], errors="coerce")
+
+    valid = pricing[
+        pricing["our_price"].notna() & (pricing["our_price"] > 0) &
+        pricing["buy_box_price"].notna() & (pricing["buy_box_price"] > 0)
+    ].copy()
+    if valid.empty:
+        return empty
+
+    valid["won"] = valid["our_price"] <= valid["buy_box_price"] * 1.005
+
+    result = valid.groupby("snapshot_date").agg(
+        total_asins=("asin", "nunique"),
+        won=("won", "sum"),
+    ).reset_index()
+    result["win_rate_pct"] = result.apply(
+        lambda r: r["won"] / r["total_asins"] * 100 if r["total_asins"] > 0 else 0, axis=1
+    )
+    result = result.sort_values("snapshot_date").reset_index(drop=True)
+    result["win_rate_7d"] = result["win_rate_pct"].rolling(7, min_periods=1).mean()
+    return result
+
+
+@st.cache_data(ttl=300)
+def load_abc_xyz_analysis(days=90):
+    """ABC/XYZ analysis on daily_metrics.
+
+    ABC: Revenue — A (top 80%), B (80-95%), C (95-100%).
+    XYZ: Demand variability via CV of weekly revenue — X (<0.5), Y (0.5-1.0), Z (>1.0).
+    """
+    dm = load_daily_metrics(days=days)
+
+    empty = pd.DataFrame(columns=[
+        "sku", "revenue", "revenue_pct", "cumulative_pct", "abc_class",
+        "cv", "xyz_class", "segment", "units", "orders",
+    ])
+    if dm.empty:
+        return empty
+
+    # --- ABC ---
+    sku_rev = dm.groupby("sku").agg(
+        revenue=("revenue_pln", "sum"),
+        units=("units", "sum"),
+        orders=("orders_count", "sum"),
+    ).reset_index()
+
+    total_rev = sku_rev["revenue"].sum()
+    if total_rev <= 0:
+        return empty
+
+    sku_rev = sku_rev.sort_values("revenue", ascending=False).reset_index(drop=True)
+    sku_rev["revenue_pct"] = sku_rev["revenue"] / total_rev * 100
+    sku_rev["cumulative_pct"] = sku_rev["revenue_pct"].cumsum()
+    sku_rev["abc_class"] = sku_rev["cumulative_pct"].apply(
+        lambda c: "A" if c <= 80 else ("B" if c <= 95 else "C")
+    )
+
+    # --- XYZ ---
+    dm_c = dm.copy()
+    dm_c["date_parsed"] = pd.to_datetime(dm_c["date"])
+    dm_c["year_week"] = dm_c["date_parsed"].dt.strftime("%G-W%V")
+
+    weekly = dm_c.groupby(["sku", "year_week"]).agg(
+        weekly_rev=("revenue_pln", "sum"),
+    ).reset_index()
+
+    cv_data = weekly.groupby("sku").agg(
+        mean_rev=("weekly_rev", "mean"),
+        std_rev=("weekly_rev", "std"),
+    ).reset_index()
+    cv_data["std_rev"] = cv_data["std_rev"].fillna(0)
+    cv_data["cv"] = cv_data.apply(
+        lambda r: r["std_rev"] / r["mean_rev"] if r["mean_rev"] > 0 else 999, axis=1
+    )
+    cv_data["xyz_class"] = cv_data["cv"].apply(
+        lambda v: "X" if v < 0.5 else ("Y" if v <= 1.0 else "Z")
+    )
+
+    # Merge
+    result = sku_rev.merge(cv_data[["sku", "cv", "xyz_class"]], on="sku", how="left")
+    result["cv"] = result["cv"].fillna(999)
+    result["xyz_class"] = result["xyz_class"].fillna("Z")
+    result["segment"] = result["abc_class"] + result["xyz_class"]
+    return result
+
+
+@st.cache_data(ttl=300)
+def load_inventory_velocity(days=30):
+    """Inventory velocity: sell-through rate and days of inventory (DOI).
+
+    Sell-through = units_sold / (units_sold + current_stock).
+    DOI = current_stock / avg_daily_sales (capped at 999).
+    """
+    inv = load_amazon_inventory()
+    dm = load_daily_metrics(days=days)
+
+    empty = pd.DataFrame(columns=[
+        "sku", "product_name", "current_stock", "avg_daily_sales",
+        "sell_through_rate", "days_of_inventory",
+    ])
+    if inv.empty or dm.empty:
+        return empty
+
+    inv["fulfillable_qty"] = pd.to_numeric(inv["fulfillable_qty"], errors="coerce").fillna(0).astype(int)
+
+    latest = inv["snapshot_date"].max()
+    inv_latest = inv[inv["snapshot_date"] == latest].copy()
+    inv_agg = inv_latest.groupby("sku").agg(
+        current_stock=("fulfillable_qty", "sum"),
+        product_name=("product_name", "first"),
+    ).reset_index()
+
+    sales = dm.groupby("sku").agg(total_units=("units", "sum")).reset_index()
+    sales["avg_daily_sales"] = sales["total_units"] / max(days, 1)
+
+    result = inv_agg.merge(sales[["sku", "total_units", "avg_daily_sales"]], on="sku", how="left")
+    result["total_units"] = result["total_units"].fillna(0)
+    result["avg_daily_sales"] = result["avg_daily_sales"].fillna(0)
+
+    denom = result["total_units"] + result["current_stock"]
+    result["sell_through_rate"] = (result["total_units"] / denom * 100).where(denom > 0, 0)
+    result["days_of_inventory"] = (
+        result["current_stock"] / result["avg_daily_sales"]
+    ).where(result["avg_daily_sales"] > 0, 999).clip(upper=999)
+
+    result = result[["sku", "product_name", "current_stock", "avg_daily_sales",
+                      "sell_through_rate", "days_of_inventory"]].copy()
+    return result.sort_values("days_of_inventory").reset_index(drop=True)
+
+
+@st.cache_data(ttl=300)
+def load_marketplace_pnl(days=90):
+    """P&L breakdown per marketplace."""
+    dm = load_daily_metrics(days=days)
+    platforms = load_platforms()
+
+    empty = pd.DataFrame(columns=[
+        "marketplace", "revenue_pln", "cogs", "platform_fees", "shipping_cost",
+        "gross_profit", "margin_pct", "orders_count", "units",
+    ])
+    if dm.empty:
+        return empty
+
+    dm["marketplace"] = dm["platform_id"].map(
+        lambda x: platforms.get(x, {}).get("code", f"#{x}")
+    )
+
+    agg_dict = {
+        "revenue_pln": "sum", "cogs": "sum", "fees": "sum",
+        "profit": "sum", "orders_count": "sum", "units": "sum",
+    }
+    if "shipping_cost" in dm.columns:
+        agg_dict["shipping_cost"] = "sum"
+
+    agg = dm.groupby("marketplace").agg(agg_dict).reset_index()
+    if "shipping_cost" not in agg.columns:
+        agg["shipping_cost"] = 0.0
+
+    agg.rename(columns={"fees": "platform_fees", "profit": "gross_profit"}, inplace=True)
+    agg["margin_pct"] = agg.apply(
+        lambda r: r["gross_profit"] / r["revenue_pln"] * 100 if r["revenue_pln"] > 0 else 0, axis=1
+    )
+    return agg.sort_values("revenue_pln", ascending=False).reset_index(drop=True)
+
+
 def get_marketplace_names():
     """Get marketplace ID to display name mapping."""
     try:
@@ -682,3 +1021,100 @@ def get_marketplace_names():
         return {k: mkt_names.get(v, v) for k, v in MARKETPLACE_TO_PLATFORM.items()}
     except ImportError:
         return {}
+
+
+# --- VAT ---
+
+# Marketplace ID -> (country code, country name, VAT rate %)
+MARKETPLACE_VAT_MAP = {
+    "A1PA6795UKMFR9": ("DE", "Germany", 19.0),
+    "A13V1IB3VIYZZH": ("FR", "France", 20.0),
+    "APJ6JRA9NG5V4":  ("IT", "Italy", 22.0),
+    "A1RKKUPIHCS9HS": ("ES", "Spain", 21.0),
+    "A1805IZSGTT6HS": ("NL", "Netherlands", 21.0),
+    "A2NODRKZP88ZB9": ("SE", "Sweden", 25.0),
+    "A1C3SOZRARQ6R3": ("PL", "Poland", 23.0),
+    "AMEN7PMS3EDWL":  ("BE", "Belgium", 21.0),
+}
+
+# Platform code -> (country code, country name, VAT rate %)
+PLATFORM_VAT_MAP = {
+    "amazon_de": ("DE", "Germany", 19.0),
+    "amazon_fr": ("FR", "France", 20.0),
+    "amazon_it": ("IT", "Italy", 22.0),
+    "amazon_es": ("ES", "Spain", 21.0),
+    "amazon_nl": ("NL", "Netherlands", 21.0),
+    "amazon_se": ("SE", "Sweden", 25.0),
+    "amazon_pl": ("PL", "Poland", 23.0),
+    "amazon_be": ("BE", "Belgium", 21.0),
+    "allegro":   ("PL", "Poland", 23.0),
+}
+
+
+@st.cache_data(ttl=300)
+def load_vat_summary(days=90):
+    """Load daily_metrics grouped by country with VAT calculations.
+
+    Maps platform_id -> platform code -> country -> VAT rate.
+    Returns a DataFrame with columns:
+        country, country_name, revenue_pln (netto), vat_rate, estimated_vat,
+        orders_count, units
+    And a monthly DataFrame for trend charts.
+    """
+    dm = load_daily_metrics(days=days)
+    platforms = load_platforms()
+
+    if dm.empty:
+        empty = pd.DataFrame(columns=[
+            "country", "country_name", "revenue_pln", "vat_rate",
+            "estimated_vat", "orders_count", "units",
+        ])
+        return empty, pd.DataFrame(columns=["month", "country", "revenue_pln", "estimated_vat"])
+
+    # Map platform_id -> platform code
+    dm["platform_code"] = dm["platform_id"].map(
+        lambda x: platforms.get(x, {}).get("code", "")
+    )
+
+    # Map platform code -> country info
+    dm["country"] = dm["platform_code"].map(
+        lambda x: PLATFORM_VAT_MAP.get(x, (None, None, None))[0]
+    )
+    dm["country_name"] = dm["platform_code"].map(
+        lambda x: PLATFORM_VAT_MAP.get(x, (None, None, None))[1]
+    )
+    dm["vat_rate"] = dm["platform_code"].map(
+        lambda x: PLATFORM_VAT_MAP.get(x, (None, None, 0))[2]
+    )
+
+    # Filter only rows with known country (EU marketplaces)
+    eu = dm[dm["country"].notna()].copy()
+    if eu.empty:
+        empty = pd.DataFrame(columns=[
+            "country", "country_name", "revenue_pln", "vat_rate",
+            "estimated_vat", "orders_count", "units",
+        ])
+        return empty, pd.DataFrame(columns=["month", "country", "revenue_pln", "estimated_vat"])
+
+    # Revenue in daily_metrics is gross (includes VAT). Netto = gross / (1 + rate)
+    eu["revenue_netto"] = eu["revenue_pln"] / (1 + eu["vat_rate"] / 100)
+    eu["estimated_vat"] = eu["revenue_pln"] - eu["revenue_netto"]
+
+    # Aggregate by country
+    by_country = eu.groupby(["country", "country_name", "vat_rate"]).agg(
+        revenue_pln=("revenue_netto", "sum"),
+        estimated_vat=("estimated_vat", "sum"),
+        orders_count=("orders_count", "sum"),
+        units=("units", "sum"),
+    ).reset_index()
+    by_country = by_country.sort_values("revenue_pln", ascending=False)
+
+    # Monthly trend
+    eu["month"] = pd.to_datetime(eu["date"]).dt.to_period("M").astype(str)
+    monthly = eu.groupby(["month", "country"]).agg(
+        revenue_pln=("revenue_netto", "sum"),
+        estimated_vat=("estimated_vat", "sum"),
+    ).reset_index()
+    monthly = monthly.sort_values("month")
+
+    return by_country, monthly

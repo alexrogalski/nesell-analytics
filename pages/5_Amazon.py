@@ -7,7 +7,8 @@ from lib.theme import setup_page, COLORS
 from lib.data import (
     load_amazon_traffic, load_amazon_inventory, load_amazon_returns,
     load_amazon_bsr, load_amazon_pricing, get_marketplace_names,
-    load_refund_summary,
+    load_refund_summary, load_amazon_restock, load_amazon_aged_inventory,
+    load_buybox_history, load_inventory_velocity, load_daily_metrics,
 )
 
 setup_page("Amazon")
@@ -21,7 +22,7 @@ days = st.sidebar.selectbox(
 
 # Section selector
 section = st.radio(
-    "", ["Traffic", "Inventory", "Returns", "BSR & Pricing"],
+    "", ["Traffic", "Inventory", "Returns", "BSR & Pricing", "Restock", "Aged Inventory"],
     horizontal=True, key="amz_section",
 )
 
@@ -110,6 +111,8 @@ if section == "Traffic":
         display["revenue"] = display["revenue"].map(lambda x: f"{x:,.0f}")
         display.columns = ["ASIN", "Market", "Sessions", "Page Views", "Buy Box%", "Units", "Revenue", "Conv%"]
         st.dataframe(display, use_container_width=True, hide_index=True)
+        _traf_csv = display.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _traf_csv, "amazon_traffic_asins.csv", "text/csv", key="dl_amz_traffic")
 
 
 # ==================== INVENTORY ====================
@@ -162,6 +165,79 @@ elif section == "Inventory":
         inv_show.columns = ["SKU", "ASIN", "Product", "Country", "Stock"]
         inv_show = inv_show.sort_values(["SKU", "Country"])
         st.dataframe(inv_show, use_container_width=True, hide_index=True)
+        _inv_csv = inv_show.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _inv_csv, "amazon_inventory.csv", "text/csv", key="dl_amz_inventory")
+
+    # --- Inventory Velocity ---
+    st.markdown('<div class="section-header">INVENTORY VELOCITY</div>', unsafe_allow_html=True)
+
+    velocity = load_inventory_velocity(days=days)
+    if not velocity.empty:
+        avg_str = velocity["sell_through_rate"].mean()
+        high_doi = len(velocity[velocity["days_of_inventory"] > 180])
+        low_doi = len(velocity[velocity["days_of_inventory"] < 14])
+
+        v1, v2, v3 = st.columns(3)
+        v1.metric("Avg Sell-Through Rate", f"{avg_str:.1f}%")
+        v2.metric("SKUs DOI > 180d", f"{high_doi}",
+                  delta="slow movers" if high_doi > 0 else None, delta_color="inverse")
+        v3.metric("SKUs DOI < 14d", f"{low_doi}",
+                  delta="restock needed" if low_doi > 0 else None, delta_color="inverse")
+
+        # DOI status column
+        vel_display = velocity.copy()
+        vel_display["doi_status"] = vel_display["days_of_inventory"].apply(
+            lambda d: "CRITICAL (<14d)" if d < 14 else
+                      ("LOW (14-30d)" if d < 30 else
+                       ("OK (30-90d)" if d <= 90 else
+                        ("SLOW (90-180d)" if d <= 180 else "EXCESS (>180d)")))
+        )
+        vel_display = vel_display[["sku", "product_name", "current_stock", "avg_daily_sales",
+                                    "sell_through_rate", "days_of_inventory", "doi_status"]].copy()
+        vel_display.columns = ["SKU", "Product", "Stock", "Avg Daily Sales",
+                               "Sell-Through %", "DOI (days)", "Status"]
+        vel_display["Avg Daily Sales"] = vel_display["Avg Daily Sales"].map(lambda x: f"{x:.1f}")
+        vel_display["Sell-Through %"] = vel_display["Sell-Through %"].map(lambda x: f"{x:.1f}%")
+        vel_display["DOI (days)"] = vel_display["DOI (days)"].map(lambda x: f"{x:.0f}" if x < 999 else "999+")
+
+        st.dataframe(vel_display, use_container_width=True, hide_index=True)
+        _vel_csv = velocity.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _vel_csv, "inventory_velocity.csv", "text/csv", key="dl_inv_vel")
+
+        # Bar charts: fastest and slowest selling
+        fastest = velocity[velocity["avg_daily_sales"] > 0].head(10)
+        slowest = velocity[velocity["days_of_inventory"] < 999].sort_values(
+            "days_of_inventory", ascending=False
+        ).head(10)
+
+        b1, b2 = st.columns(2)
+        with b1:
+            if not fastest.empty:
+                import plotly.graph_objects as go
+                fig_fast = go.Figure(go.Bar(
+                    y=fastest["sku"], x=fastest["days_of_inventory"],
+                    orientation="h", marker_color=COLORS["success"],
+                    text=fastest["days_of_inventory"].map(lambda x: f"{x:.0f}d"),
+                    textposition="outside",
+                ))
+                fig_fast.update_layout(height=max(200, len(fastest) * 30),
+                                       title="Fastest Selling (lowest DOI)")
+                st.plotly_chart(fig_fast, use_container_width=True)
+
+        with b2:
+            if not slowest.empty:
+                import plotly.graph_objects as go
+                fig_slow = go.Figure(go.Bar(
+                    y=slowest["sku"], x=slowest["days_of_inventory"],
+                    orientation="h", marker_color=COLORS["danger"],
+                    text=slowest["days_of_inventory"].map(lambda x: f"{x:.0f}d"),
+                    textposition="outside",
+                ))
+                fig_slow.update_layout(height=max(200, len(slowest) * 30),
+                                       title="Slowest Selling (highest DOI)")
+                st.plotly_chart(fig_slow, use_container_width=True)
+    else:
+        st.info("No inventory velocity data. Need both inventory and sales data.")
 
 
 # ==================== RETURNS ====================
@@ -215,6 +291,8 @@ elif section == "Returns":
     else:
         by_sku.columns = ["SKU", "Product", "Returns"]
     st.dataframe(by_sku, use_container_width=True, hide_index=True)
+    _ret_csv = by_sku.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _ret_csv, "amazon_returns_by_sku.csv", "text/csv", key="dl_amz_returns")
 
     # Financial impact summary
     if est_refund_cost > 0:
@@ -259,6 +337,8 @@ elif section == "BSR & Pricing":
         bsr_show.columns = ["ASIN", "Market", "Category", "Rank"]
         bsr_show = bsr_show.sort_values("Rank")
         st.dataframe(bsr_show, use_container_width=True, hide_index=True)
+        _bsr_csv = bsr_show.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _bsr_csv, "amazon_bsr.csv", "text/csv", key="dl_amz_bsr")
 
         # Top 10 by rank
         top_bsr = latest_bsr.sort_values("rank").head(10)
@@ -293,21 +373,323 @@ elif section == "BSR & Pricing":
     else:
         st.info("No BSR data. Run: python3.11 -m etl.run --amzdata")
 
-    # Pricing
-    st.markdown('<div class="section-header">COMPETITIVE PRICING</div>', unsafe_allow_html=True)
+    # Buy Box Comparison (Our Price vs Buy Box)
+    st.markdown('<div class="section-header">OUR PRICE vs BUY BOX</div>', unsafe_allow_html=True)
     if not pricing.empty:
         pricing["marketplace"] = pricing["marketplace_id"].map(mkt_names).fillna(pricing["marketplace_id"])
-        for col in ["landed_price", "listing_price", "shipping_price"]:
+        for col in ["our_price", "buy_box_price", "buy_box_landed_price",
+                     "lowest_fba_price", "lowest_fbm_price",
+                     "landed_price", "listing_price", "shipping_price"]:
             if col in pricing.columns:
-                pricing[col] = pd.to_numeric(pricing[col], errors="coerce").fillna(0)
+                pricing[col] = pd.to_numeric(pricing[col], errors="coerce")
 
-        latest_pr = pricing[pricing["snapshot_date"] == pricing["snapshot_date"].max()]
+        for col in ["num_offers_new", "num_offers_used"]:
+            if col in pricing.columns:
+                pricing[col] = pd.to_numeric(pricing[col], errors="coerce").fillna(0).astype(int)
 
-        pr_show = latest_pr[["asin", "marketplace", "landed_price", "listing_price", "shipping_price", "currency", "condition_value"]].copy()
-        pr_show.columns = ["ASIN", "Market", "Landed", "Listing", "Shipping", "Currency", "Condition"]
-        for col in ["Landed", "Listing", "Shipping"]:
-            pr_show[col] = pr_show[col].map(lambda x: f"{x:.2f}")
-        pr_show = pr_show.sort_values(["ASIN", "Market"])
-        st.dataframe(pr_show, use_container_width=True, hide_index=True)
+        latest_pr = pricing[pricing["snapshot_date"] == pricing["snapshot_date"].max()].copy()
+        snapshot_date = pricing["snapshot_date"].max()
+        st.caption(f"Snapshot: {snapshot_date}")
+
+        # Compute difference and status
+        has_our = latest_pr["our_price"].notna() & (latest_pr["our_price"] > 0)
+        has_bb = latest_pr["buy_box_price"].notna() & (latest_pr["buy_box_price"] > 0)
+
+        latest_pr["diff_eur"] = np.where(
+            has_our & has_bb,
+            latest_pr["our_price"] - latest_pr["buy_box_price"],
+            np.nan,
+        )
+        latest_pr["diff_pct"] = np.where(
+            has_our & has_bb & (latest_pr["buy_box_price"] > 0),
+            (latest_pr["our_price"] - latest_pr["buy_box_price"]) / latest_pr["buy_box_price"] * 100,
+            np.nan,
+        )
+
+        def _bb_status(row):
+            if pd.isna(row.get("buy_box_price")) or row.get("buy_box_price", 0) == 0:
+                return "No BB"
+            if pd.isna(row.get("our_price")) or row.get("our_price", 0) == 0:
+                return "No Price"
+            pct = row.get("diff_pct")
+            if pd.isna(pct):
+                return "N/A"
+            if abs(pct) < 0.5:
+                return "Won"
+            if pct > 0:
+                return "Lost"
+            return "Won"
+        latest_pr["status"] = latest_pr.apply(_bb_status, axis=1)
+
+        # KPIs
+        total_with_data = latest_pr[has_our & has_bb].shape[0]
+        won = latest_pr[latest_pr["status"] == "Won"].shape[0]
+        lost = latest_pr[latest_pr["status"] == "Lost"].shape[0]
+        above_10 = latest_pr[has_our & has_bb & (latest_pr["diff_pct"] > 10)].shape[0]
+        win_rate = (won / total_with_data * 100) if total_with_data > 0 else 0
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("BUY BOX WIN RATE", f"{win_rate:.0f}%")
+        k2.metric("ASINs AT BUY BOX", f"{won}")
+        k3.metric("ASINs ABOVE BB", f"{lost}")
+        k4.metric("ASINs >10% ABOVE", f"{above_10}")
+
+        # Build display table
+        bb_show = latest_pr[["asin", "marketplace", "our_price", "buy_box_price",
+                              "diff_eur", "diff_pct", "status", "num_offers_new"]].copy()
+        bb_show.columns = ["ASIN", "Market", "Our Price", "Buy Box", "Diff (EUR)", "Diff (%)", "Status", "Sellers"]
+
+        # Format numeric columns
+        for col in ["Our Price", "Buy Box", "Diff (EUR)"]:
+            bb_show[col] = bb_show[col].apply(lambda x: f"{x:.2f}" if pd.notna(x) else "N/A")
+        bb_show["Diff (%)"] = bb_show["Diff (%)"].apply(lambda x: f"{x:+.1f}%" if pd.notna(x) else "N/A")
+
+        bb_show = bb_show.sort_values("Status", ascending=True).reset_index(drop=True)
+
+        # Color-coded status styling
+        def _color_status(val):
+            if val == "Won":
+                return f"color: {COLORS['success']}; font-weight: bold"
+            if val == "Lost":
+                return f"color: {COLORS['danger']}; font-weight: bold"
+            if val in ("No BB", "No Price"):
+                return f"color: {COLORS['muted']}"
+            return ""
+
+        def _color_diff(val):
+            if val == "N/A":
+                return f"color: {COLORS['muted']}"
+            try:
+                pct = float(val.replace("%", "").replace("+", ""))
+            except (ValueError, AttributeError):
+                return ""
+            if abs(pct) < 0.5:
+                return f"color: {COLORS['success']}"
+            if pct > 10:
+                return f"color: {COLORS['danger']}; font-weight: bold"
+            if pct > 0:
+                return f"color: {COLORS['warning']}"
+            return f"color: {COLORS['success']}"
+
+        styled = bb_show.style.map(_color_status, subset=["Status"])
+        styled = styled.map(_color_diff, subset=["Diff (%)"])
+        st.dataframe(styled, use_container_width=True, hide_index=True)
+
+        _bb_csv = bb_show.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _bb_csv, "buybox_comparison.csv", "text/csv", key="dl_bb_compare")
+
+        # Buy Box Win Rate Trend
+        st.markdown('<div class="section-header">BUY BOX WIN RATE TREND</div>', unsafe_allow_html=True)
+        bb_history = load_buybox_history(days=days)
+        if not bb_history.empty and len(bb_history) > 1:
+            bb_hist_chart = bb_history.copy()
+            bb_hist_chart["snapshot_date"] = pd.to_datetime(bb_hist_chart["snapshot_date"])
+
+            fig_bb_trend = go.Figure()
+            fig_bb_trend.add_trace(go.Scatter(
+                x=bb_hist_chart["snapshot_date"], y=bb_hist_chart["win_rate_pct"],
+                mode="lines", name="Win Rate %",
+                line=dict(color=COLORS["muted"], width=1), opacity=0.4,
+            ))
+            fig_bb_trend.add_trace(go.Scatter(
+                x=bb_hist_chart["snapshot_date"], y=bb_hist_chart["win_rate_7d"],
+                mode="lines", name="7d MA",
+                line=dict(color=COLORS["success"], width=2),
+            ))
+            fig_bb_trend.update_layout(
+                height=300, title="Buy Box Win Rate Trend",
+                yaxis=dict(range=[0, 105], title="Win Rate %"),
+                legend=dict(orientation="h", y=-0.15),
+            )
+            st.plotly_chart(fig_bb_trend, use_container_width=True)
+
+            # ASINs that lost Buy Box (last two snapshots)
+            _snapshots = sorted(pricing["snapshot_date"].unique())
+            if len(_snapshots) >= 2:
+                _today_snap = _snapshots[-1]
+                _yest_snap = _snapshots[-2]
+                _today_pr = pricing[pricing["snapshot_date"] == _today_snap].copy()
+                _yest_pr = pricing[pricing["snapshot_date"] == _yest_snap].copy()
+
+                for _c in ["our_price", "buy_box_price"]:
+                    if _c in _today_pr.columns:
+                        _today_pr[_c] = pd.to_numeric(_today_pr[_c], errors="coerce")
+                    if _c in _yest_pr.columns:
+                        _yest_pr[_c] = pd.to_numeric(_yest_pr[_c], errors="coerce")
+
+                # Won yesterday
+                _yest_valid = _yest_pr[
+                    _yest_pr["our_price"].notna() & (_yest_pr["our_price"] > 0) &
+                    _yest_pr["buy_box_price"].notna() & (_yest_pr["buy_box_price"] > 0)
+                ].copy()
+                _yest_won = set(_yest_valid[_yest_valid["our_price"] <= _yest_valid["buy_box_price"] * 1.005]["asin"])
+
+                # Lost today
+                _today_valid = _today_pr[
+                    _today_pr["our_price"].notna() & (_today_pr["our_price"] > 0) &
+                    _today_pr["buy_box_price"].notna() & (_today_pr["buy_box_price"] > 0) &
+                    _today_pr["asin"].isin(_yest_won)
+                ].copy()
+                _lost = _today_valid[_today_valid["our_price"] > _today_valid["buy_box_price"] * 1.005]
+
+                if not _lost.empty:
+                    _lost_display = _lost[["asin", "our_price", "buy_box_price"]].copy()
+                    _lost_display["diff_pct"] = (
+                        (_lost_display["our_price"] - _lost_display["buy_box_price"]) /
+                        _lost_display["buy_box_price"] * 100
+                    )
+                    _lost_display.columns = ["ASIN", "Our Price", "Buy Box", "Diff %"]
+                    _lost_display["Our Price"] = _lost_display["Our Price"].map(lambda x: f"{x:.2f}")
+                    _lost_display["Buy Box"] = _lost_display["Buy Box"].map(lambda x: f"{x:.2f}")
+                    _lost_display["Diff %"] = _lost_display["Diff %"].map(lambda x: f"{x:+.1f}%")
+                    st.markdown(f"**ASINs that lost Buy Box** ({_yest_snap} -> {_today_snap})")
+                    st.dataframe(_lost_display, use_container_width=True, hide_index=True)
+        else:
+            st.info("Not enough pricing snapshots for trend. Need at least 2 days of data.")
+
+        # Expandable: full competitive pricing detail (old view)
+        with st.expander("Full Pricing Detail (landed/listing/shipping)"):
+            for col in ["landed_price", "listing_price", "shipping_price"]:
+                if col in latest_pr.columns:
+                    latest_pr[col] = pd.to_numeric(latest_pr[col], errors="coerce").fillna(0)
+            detail_cols = ["asin", "marketplace"]
+            for c in ["landed_price", "listing_price", "shipping_price", "currency", "condition_value"]:
+                if c in latest_pr.columns:
+                    detail_cols.append(c)
+            pr_detail = latest_pr[detail_cols].copy()
+            rename = {"asin": "ASIN", "marketplace": "Market", "landed_price": "Landed",
+                      "listing_price": "Listing", "shipping_price": "Shipping",
+                      "currency": "Currency", "condition_value": "Condition"}
+            pr_detail.rename(columns=rename, inplace=True)
+            for col in ["Landed", "Listing", "Shipping"]:
+                if col in pr_detail.columns:
+                    pr_detail[col] = pr_detail[col].map(lambda x: f"{x:.2f}")
+            pr_detail = pr_detail.sort_values(["ASIN", "Market"])
+            st.dataframe(pr_detail, use_container_width=True, hide_index=True)
     else:
-        st.info("No pricing data. Run: python3.11 -m etl.run --amzdata")
+        st.info("No pricing data. Run: python3.11 -m etl.competitor_prices --limit 50")
+
+
+# ==================== RESTOCK ====================
+elif section == "Restock":
+    st.markdown('<div class="section-header">RESTOCK RECOMMENDATIONS</div>', unsafe_allow_html=True)
+
+    restock = load_amazon_restock()
+    if restock.empty:
+        st.info("No restock data. Run: python3.11 -m etl.run --restock")
+        st.stop()
+
+    for col in ["recommended_qty", "days_of_cover"]:
+        if col in restock.columns:
+            restock[col] = pd.to_numeric(restock[col], errors="coerce").fillna(0)
+
+    snapshot = restock["snapshot_date"].max()
+    st.caption(f"Snapshot: {snapshot}")
+
+    # KPIs
+    k1, k2, k3 = st.columns(3)
+    k1.metric("SKUs TO RESTOCK", f"{len(restock[restock['recommended_qty'] > 0])}")
+    critical = restock[restock["days_of_cover"] < 14].shape[0]
+    k2.metric("CRITICAL (< 14d)", f"{critical}")
+    warning = restock[(restock["days_of_cover"] >= 14) & (restock["days_of_cover"] < 30)].shape[0]
+    k3.metric("WARNING (14-30d)", f"{warning}")
+
+    # Search filter
+    search = st.text_input("Filter by SKU", key="restock_search")
+    df_show = restock.copy()
+    if search:
+        df_show = df_show[df_show["sku"].str.contains(search, case=False, na=False)]
+
+    display = df_show[["sku", "product_name", "days_of_cover", "recommended_qty", "reorder_date"]].copy()
+    display["status"] = display["days_of_cover"].apply(
+        lambda v: "🔴 CRITICAL" if v < 14 else ("🟡 WARNING" if v < 30 else "🟢 OK")
+    )
+    display = display[["sku", "product_name", "status", "days_of_cover", "recommended_qty", "reorder_date"]]
+    display.columns = ["SKU", "Product", "Status", "Days of Cover", "Recommended Qty", "Reorder Date"]
+    display = display.sort_values("Days of Cover", ascending=True).reset_index(drop=True)
+
+    st.dataframe(display, use_container_width=True, hide_index=True)
+    _restock_csv = display.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _restock_csv, "amazon_restock.csv", "text/csv", key="dl_amz_restock")
+
+
+# ==================== AGED INVENTORY ====================
+elif section == "Aged Inventory":
+    st.markdown('<div class="section-header">FBA AGED INVENTORY</div>', unsafe_allow_html=True)
+
+    aged = load_amazon_aged_inventory()
+    if aged.empty:
+        st.info("No aged inventory data. Run: python3.11 -m etl.run --aged")
+        st.stop()
+
+    age_cols = ["inv_age_0_to_90_days", "inv_age_91_to_180_days",
+                "inv_age_181_to_270_days", "inv_age_271_plus_days"]
+    for col in age_cols + ["qty_to_be_charged_ltsf", "days_of_supply"]:
+        if col in aged.columns:
+            aged[col] = pd.to_numeric(aged[col], errors="coerce").fillna(0)
+
+    snapshot = aged["snapshot_date"].max()
+    st.caption(f"Snapshot: {snapshot}")
+
+    # Alert banner: any inventory in 181+ days
+    at_risk = aged[aged["inv_age_181_to_270_days"] + aged["inv_age_271_plus_days"] > 0]
+    if not at_risk.empty:
+        total_at_risk = int(at_risk["inv_age_181_to_270_days"].sum() + at_risk["inv_age_271_plus_days"].sum())
+        st.error(
+            f"LTSF RISK: {len(at_risk)} SKUs with {total_at_risk} units aged 181+ days — "
+            f"Long-Term Storage Fees incoming. Consider running a removal order or liquidation.",
+            icon="🚨",
+        )
+
+    # KPIs
+    k1, k2, k3, k4 = st.columns(4)
+    k1.metric("0-90 DAYS", f"{int(aged['inv_age_0_to_90_days'].sum()):,}")
+    k2.metric("91-180 DAYS", f"{int(aged['inv_age_91_to_180_days'].sum()):,}")
+    k3.metric("181-270 DAYS", f"{int(aged['inv_age_181_to_270_days'].sum()):,}")
+    k4.metric("271+ DAYS", f"{int(aged['inv_age_271_plus_days'].sum()):,}")
+
+    # Full inventory table
+    display = aged[["sku", "product_name", "inv_age_0_to_90_days", "inv_age_91_to_180_days",
+                    "inv_age_181_to_270_days", "inv_age_271_plus_days", "qty_to_be_charged_ltsf"]].copy()
+    display.columns = ["SKU", "Product", "0-90d", "91-180d", "181-270d", "271+d", "Qty for LTSF"]
+    display = display.sort_values("271+d", ascending=False).reset_index(drop=True)
+    st.dataframe(display, use_container_width=True, hide_index=True)
+    _aged_csv = display.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _aged_csv, "amazon_aged_inventory.csv", "text/csv", key="dl_amz_aged")
+
+    # Bar chart: top 10 SKUs with most 181+ days inventory
+    aged["ltsf_risk"] = aged["inv_age_181_to_270_days"] + aged["inv_age_271_plus_days"]
+    top10 = aged[aged["ltsf_risk"] > 0].sort_values("ltsf_risk", ascending=False).head(10)
+
+    if not top10.empty:
+        st.markdown('<div class="section-header">TOP 10 SKUS — AGE BUCKET BREAKDOWN</div>', unsafe_allow_html=True)
+        import plotly.graph_objects as go
+        palette = {
+            "0-90d":   COLORS["success"],
+            "91-180d": COLORS["warning"],
+            "181-270d": COLORS["danger"],
+            "271+d":   "#7f1d1d",
+        }
+        labels = top10["sku"].tolist()
+        fig_aged = go.Figure()
+        for col_key, col_label in [
+            ("inv_age_0_to_90_days", "0-90d"),
+            ("inv_age_91_to_180_days", "91-180d"),
+            ("inv_age_181_to_270_days", "181-270d"),
+            ("inv_age_271_plus_days", "271+d"),
+        ]:
+            fig_aged.add_trace(go.Bar(
+                name=col_label,
+                x=labels,
+                y=top10[col_key].tolist(),
+                marker_color=palette[col_label],
+            ))
+        fig_aged.update_layout(
+            barmode="stack",
+            height=400,
+            title="Age Buckets — Top 10 SKUs at LTSF Risk",
+            xaxis_title="SKU",
+            yaxis_title="Units",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        )
+        st.plotly_chart(fig_aged, use_container_width=True)

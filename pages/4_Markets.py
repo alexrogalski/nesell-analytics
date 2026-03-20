@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_fx_rates
+from lib.data import load_daily_metrics, load_platforms, load_fx_rates, load_marketplace_pnl
 from lib.metrics import calc_contribution_margins, platform_summary
 from lib.charts import heatmap, treemap, bar_chart
 
@@ -175,3 +175,62 @@ if not plat_current.empty:
 
         fig_tree = treemap(labels, parents, values, title="", height=400)
         st.plotly_chart(fig_tree, use_container_width=True)
+
+# --- 6. P&L by Marketplace ---
+st.markdown('<div class="section-header">P&L BY MARKETPLACE</div>', unsafe_allow_html=True)
+
+mkt_pnl = load_marketplace_pnl(days=days)
+if not mkt_pnl.empty:
+    # KPI cards for top marketplaces
+    top_mkts = mkt_pnl.head(6)
+    mkt_cols = st.columns(min(6, len(top_mkts)))
+    for _col, (_, _row) in zip(mkt_cols, top_mkts.iterrows()):
+        with _col:
+            st.markdown(f"**{_row['marketplace']}**")
+            st.metric("Revenue", f"{_row['revenue_pln']:,.0f} PLN")
+            st.metric("Profit", f"{_row['gross_profit']:,.0f} PLN",
+                      delta=f"{_row['margin_pct']:.1f}% margin")
+
+    # Full P&L table
+    pnl_display = mkt_pnl[["marketplace", "revenue_pln", "cogs", "platform_fees",
+                            "shipping_cost", "gross_profit", "margin_pct",
+                            "orders_count", "units"]].copy()
+    pnl_display.columns = ["Marketplace", "Revenue", "COGS", "Fees", "Shipping",
+                            "Profit", "Margin %", "Orders", "Units"]
+    for _c in ["Revenue", "COGS", "Fees", "Shipping", "Profit"]:
+        pnl_display[_c] = pnl_display[_c].map(lambda x: f"{x:,.0f}")
+    pnl_display["Margin %"] = pnl_display["Margin %"].map(lambda x: f"{x:.1f}%")
+
+    st.dataframe(pnl_display, use_container_width=True, hide_index=True)
+
+    _mkt_csv = mkt_pnl.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _mkt_csv, "marketplace_pnl.csv", "text/csv", key="dl_mkt_pnl")
+
+    # Horizontal stacked bar: cost breakdown per marketplace
+    import plotly.graph_objects as go
+    bar_data = mkt_pnl.sort_values("revenue_pln", ascending=True)
+    fig_mkt = go.Figure()
+    fig_mkt.add_trace(go.Bar(
+        y=bar_data["marketplace"], x=bar_data["cogs"],
+        name="COGS", orientation="h", marker_color=COLORS["danger"],
+    ))
+    fig_mkt.add_trace(go.Bar(
+        y=bar_data["marketplace"], x=bar_data["platform_fees"],
+        name="Fees", orientation="h", marker_color=COLORS["warning"],
+    ))
+    fig_mkt.add_trace(go.Bar(
+        y=bar_data["marketplace"], x=bar_data["shipping_cost"],
+        name="Shipping", orientation="h", marker_color=COLORS["info"],
+    ))
+    fig_mkt.add_trace(go.Bar(
+        y=bar_data["marketplace"], x=bar_data["gross_profit"],
+        name="Profit", orientation="h", marker_color=COLORS["success"],
+    ))
+    fig_mkt.update_layout(
+        barmode="stack", height=max(250, len(bar_data) * 40),
+        title="Revenue Breakdown by Marketplace",
+        legend=dict(orientation="h", y=-0.15),
+    )
+    st.plotly_chart(fig_mkt, use_container_width=True)
+else:
+    st.info("No marketplace P&L data available.")
