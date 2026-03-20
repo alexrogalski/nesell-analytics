@@ -32,17 +32,22 @@ MARKETPLACE_IDS = {
     "PL": "A1C3SOZRARQ6R3",
     "SE": "A2NODRKZP88ZB9",
     "BE": "AMEN7PMS3EDWL",
+    "GB": "A1F83G8C2ARO7P",
 }
 
-# All MEGA parents and their primary marketplace
+# All MEGA parents: (api_marketplace, target_locale)
+# api_marketplace = where to query/patch listings
+# target_locale = which color/style normalization to use
 MEGA_PARENTS = {
-    "MEGA-GERMANY-OLD":  "DE",
-    "PFT-MEGA-FR":       "DE",
-    "PFT-MEGA-IT":       "DE",
-    "PFT-MEGA-PL":       "DE",
-    "PFT-MEGA-BE2":      "DE",
-    "PFT-MEGA-NL2":      "DE",
-    "PFT-MEGA-GB":       "DE",
+    "MEGA-GERMANY-OLD":  ("DE", "DE"),
+    "PFT-MEGA-FR":       ("FR", "FR"),
+    "PFT-MEGA-IT":       ("DE", "IT"),
+    "PFT-MEGA-PL":       ("DE", "PL"),
+    "PFT-MEGA-BE2":      ("BE", "BE"),
+    "PFT-MEGA-NL2":      ("DE", "NL"),
+    "PFT-MEGA-GB":       ("DE", "GB"),
+    "MEGA-BELGIUM":      ("BE", "BE"),
+    "MEGA-BRITAIN":      ("DE", "GB"),
 }
 
 # FL parent SKU prefixes per MEGA parent (children of these = "mit Flagge")
@@ -54,6 +59,8 @@ FL_PARENT_PREFIXES = {
     "PFT-MEGA-BE2":      ["PFT-93855556"],
     "PFT-MEGA-NL2":      ["PFT-93855915"],
     "PFT-MEGA-GB":       ["PFT-93856110"],
+    "MEGA-BELGIUM":      ["PFT-93855556"],
+    "MEGA-BRITAIN":      ["PFT-93856110"],
 }
 
 # NF parent SKU prefixes per MEGA parent (children of these = "ohne Flagge")
@@ -64,6 +71,8 @@ NF_PARENT_PREFIXES = {
     "PFT-MEGA-BE2":      ["PFT-93856238"],
     "PFT-MEGA-NL2":      ["PFT-93856209"],
     "PFT-MEGA-GB":       ["PFT-93856169"],
+    "MEGA-BELGIUM":      ["PFT-93856238"],
+    "MEGA-BRITAIN":      ["PFT-93856169"],
 }
 
 # For Europe mega-parent (if it exists)
@@ -84,7 +93,219 @@ COLOR_NORMALIZE_DE = {
     "Dark Grey":  "Dunkelgrau",
 }
 
-# German style names
+# German/English -> French (aligned with merge_belgium.py / merge_britain.py COLORS)
+COLOR_NORMALIZE_FR = {
+    "Weiss": "Blanc",
+    "Schwarz": "Noir",
+    "Beige": "Beige",
+    "Hellblau": "Bleu Clair",
+    "Marineblau": "Bleu Marine",
+    "Rosa": "Rose",
+    "Steingrau": "Gris Pierre",
+    "Tannengruen": "Sapin",
+    "Fichte": "Sapin",
+    "Gruenes Tarnmuster": "Camouflage Vert",
+    "Cranberry": "Canneberge",
+    "Dunkelgrau": "Gris Fonce",
+    # English -> French
+    "White": "Blanc",
+    "Black": "Noir",
+    "Khaki": "Beige",
+    "Light Blue": "Bleu Clair",
+    "Navy": "Bleu Marine",
+    "Pink": "Rose",
+    "Stone": "Gris Pierre",
+    "Spruce": "Sapin",
+    "Green Camo": "Camouflage Vert",
+    "Dark Grey": "Gris Fonce",
+}
+
+# German/English -> Dutch (aligned with merge_belgium.py COLORS NL)
+COLOR_NORMALIZE_NL = {
+    "Weiss": "Wit",
+    "Schwarz": "Zwart",
+    "Beige": "Beige",
+    "Hellblau": "Lichtblauw",
+    "Marineblau": "Marineblauw",
+    "Rosa": "Roze",
+    "Steingrau": "Steengrijs",
+    "Tannengruen": "Spargroen",
+    "Gruenes Tarnmuster": "Groen Camouflage",
+    "Cranberry": "Cranberry",
+    "Dunkelgrau": "Donkergrijs",
+    # English -> Dutch
+    "White": "Wit",
+    "Black": "Zwart",
+    "Khaki": "Beige",
+    "Light Blue": "Lichtblauw",
+    "Navy": "Marineblauw",
+    "Pink": "Roze",
+    "Stone": "Steengrijs",
+    "Spruce": "Spargroen",
+    "Green Camo": "Groen Camouflage",
+    "Dark Grey": "Donkergrijs",
+}
+
+# German -> English (for GB marketplace)
+COLOR_NORMALIZE_EN = {
+    "Weiss": "White",
+    "Schwarz": "Black",
+    "Beige": "Khaki",
+    "Hellblau": "Light Blue",
+    "Marineblau": "Navy",
+    "Rosa": "Pink",
+    "Steingrau": "Stone",
+    "Tannengruen": "Spruce",
+    "Fichte": "Spruce",
+    "Gruenes Tarnmuster": "Green Camo",
+    "Cranberry": "Cranberry",
+    "Dunkelgrau": "Dark Grey",
+}
+
+# German/English -> Italian (aligned with merge_belgium.py COLORS IT)
+COLOR_NORMALIZE_IT = {
+    "Weiss": "Bianco",
+    "Schwarz": "Nero",
+    "Beige": "Beige",
+    "Hellblau": "Azzurro",
+    "Marineblau": "Blu Navy",
+    "Rosa": "Rosa",
+    "Steingrau": "Grigio Pietra",
+    "Tannengruen": "Abete",
+    "Gruenes Tarnmuster": "Mimetico Verde",
+    "Cranberry": "Mirtillo Rosso",
+    "Dunkelgrau": "Grigio Scuro",
+    # English -> Italian
+    "White": "Bianco",
+    "Black": "Nero",
+    "Khaki": "Beige",
+    "Light Blue": "Azzurro",
+    "Navy": "Blu Navy",
+    "Pink": "Rosa",
+    "Stone": "Grigio Pietra",
+    "Spruce": "Abete",
+    "Green Camo": "Mimetico Verde",
+    "Dark Grey": "Grigio Scuro",
+}
+
+# German/English -> Polish (aligned with merge_belgium.py COLORS PL)
+COLOR_NORMALIZE_PL = {
+    "Weiss": "Bialy",
+    "Schwarz": "Czarny",
+    "Beige": "Bezowy",
+    "Hellblau": "Jasnoniebieski",
+    "Marineblau": "Granatowy",
+    "Rosa": "Rozowy",
+    "Steingrau": "Szary Kamien",
+    "Tannengruen": "Ciemnozielony",
+    "Gruenes Tarnmuster": "Zielony Kamuflaz",
+    "Cranberry": "Zurawinowy",
+    "Dunkelgrau": "Ciemnoszary",
+    # English -> Polish
+    "White": "Bialy",
+    "Black": "Czarny",
+    "Khaki": "Bezowy",
+    "Light Blue": "Jasnoniebieski",
+    "Navy": "Granatowy",
+    "Pink": "Rozowy",
+    "Stone": "Szary Kamien",
+    "Spruce": "Ciemnozielony",
+    "Green Camo": "Zielony Kamuflaz",
+    "Dark Grey": "Ciemnoszary",
+}
+
+# German/English -> Swedish (aligned with merge_belgium.py COLORS SE)
+COLOR_NORMALIZE_SE = {
+    "Weiss": "Vit",
+    "Schwarz": "Svart",
+    "Beige": "Beige",
+    "Hellblau": "Ljusbla",
+    "Marineblau": "Marinbla",
+    "Rosa": "Rosa",
+    "Steingrau": "Stengra",
+    "Tannengruen": "Grangren",
+    "Gruenes Tarnmuster": "Groen Camouflage",
+    "Cranberry": "Tranbar",
+    "Dunkelgrau": "Morkgra",
+    # English -> Swedish
+    "White": "Vit",
+    "Black": "Svart",
+    "Khaki": "Beige",
+    "Light Blue": "Ljusbla",
+    "Navy": "Marinbla",
+    "Pink": "Rosa",
+    "Stone": "Stengra",
+    "Spruce": "Grangren",
+    "Green Camo": "Groen Camouflage",
+    "Dark Grey": "Morkgra",
+}
+
+# German/English -> Spanish (aligned with merge_belgium.py COLORS ES)
+COLOR_NORMALIZE_ES = {
+    "Weiss": "Blanco",
+    "Schwarz": "Negro",
+    "Beige": "Beige",
+    "Hellblau": "Azul Claro",
+    "Marineblau": "Azul Marino",
+    "Rosa": "Rosa",
+    "Steingrau": "Gris Piedra",
+    "Tannengruen": "Abeto",
+    "Gruenes Tarnmuster": "Camuflaje Verde",
+    "Cranberry": "Arandano",
+    "Dunkelgrau": "Gris Oscuro",
+    # English -> Spanish
+    "White": "Blanco",
+    "Black": "Negro",
+    "Khaki": "Beige",
+    "Light Blue": "Azul Claro",
+    "Navy": "Azul Marino",
+    "Pink": "Rosa",
+    "Stone": "Gris Piedra",
+    "Spruce": "Abeto",
+    "Green Camo": "Camuflaje Verde",
+    "Dark Grey": "Gris Oscuro",
+}
+
+# Dispatch map: marketplace code -> normalization dict
+COLOR_NORMALIZE_MAP = {
+    "DE": COLOR_NORMALIZE_DE,
+    "FR": COLOR_NORMALIZE_FR,
+    "IT": COLOR_NORMALIZE_IT,
+    "ES": COLOR_NORMALIZE_ES,
+    "NL": COLOR_NORMALIZE_NL,
+    "BE": COLOR_NORMALIZE_FR,   # Belgium uses French colors (aligned with merge_belgium.py COLORS BE)
+    "PL": COLOR_NORMALIZE_PL,
+    "SE": COLOR_NORMALIZE_SE,
+    "GB": COLOR_NORMALIZE_EN,
+}
+
+# Language tags per marketplace (for PATCH requests)
+LANGUAGE_TAGS = {
+    "DE": "de_DE",
+    "FR": "fr_FR",
+    "IT": "it_IT",
+    "ES": "es_ES",
+    "NL": "nl_NL",
+    "PL": "pl_PL",
+    "SE": "sv_SE",
+    "BE": "fr_BE",
+    "GB": "en_GB",
+}
+
+# Localized style names per marketplace
+STYLE_NAMES = {
+    "DE": {"flag": "mit Flagge",    "no_flag": "ohne Flagge"},
+    "FR": {"flag": "avec Drapeau",  "no_flag": "sans Drapeau"},
+    "IT": {"flag": "con Bandiera",  "no_flag": "senza Bandiera"},
+    "ES": {"flag": "con Bandera",   "no_flag": "sin Bandera"},
+    "NL": {"flag": "met Vlag",      "no_flag": "zonder Vlag"},
+    "PL": {"flag": "z Flaga",       "no_flag": "bez Flagi"},
+    "SE": {"flag": "med Flagga",    "no_flag": "utan Flagga"},
+    "BE": {"flag": "avec Drapeau",  "no_flag": "sans Drapeau"},
+    "GB": {"flag": "with Flag",     "no_flag": "without Flag"},
+}
+
+# German style names (kept for backward compat)
 STYLE_MIT_FLAGGE = "mit Flagge"
 STYLE_OHNE_FLAGGE = "ohne Flagge"
 
@@ -146,51 +367,61 @@ def get_children_skus(parent_sku, marketplace_id):
     return children, data
 
 
-def determine_style(child_sku, mega_parent):
-    """Determine correct style_name based on SKU pattern."""
+def determine_style(child_sku, mega_parent, mkt_code="DE"):
+    """Determine correct style_name based on SKU pattern and marketplace."""
+    styles = STYLE_NAMES.get(mkt_code, STYLE_NAMES["DE"])
+    style_flag = styles["flag"]
+    style_no_flag = styles["no_flag"]
+
     # FL parent prefixes for this mega parent
     fl_prefixes = FL_PARENT_PREFIXES.get(mega_parent, [])
     for prefix in fl_prefixes:
         if child_sku.startswith(prefix):
-            return STYLE_MIT_FLAGGE
+            return style_flag
 
     # NF parent prefixes for this mega parent
     nf_prefixes = NF_PARENT_PREFIXES.get(mega_parent, [])
     for prefix in nf_prefixes:
         if child_sku.startswith(prefix):
-            return STYLE_OHNE_FLAGGE
+            return style_no_flag
 
     # Special case: MEGA-GERMANY-OLD
     # PFT-100032925-* = FL, everything else (old manual SKUs) = NF
     if mega_parent == "MEGA-GERMANY-OLD":
         if child_sku.startswith("PFT-100032925"):
-            return STYLE_MIT_FLAGGE
-        return STYLE_OHNE_FLAGGE
+            return style_flag
+        return style_no_flag
 
     # Special case: Europe mega-parent (if it exists)
     if "EUROPE" in mega_parent.upper():
         if child_sku.startswith("PFT-88471944"):
-            return STYLE_MIT_FLAGGE
+            return style_flag
         # FBA-6843674_* and PFT-82980216-* are NF
-        return STYLE_OHNE_FLAGGE
+        return style_no_flag
 
-    # Default: if SKU contains known FL parent prefix from any country
-    return STYLE_OHNE_FLAGGE
+    # Default
+    return style_no_flag
 
 
 def normalize_color(current_color, marketplace_code):
     """Normalize color name to marketplace language."""
-    if marketplace_code == "DE":
-        return COLOR_NORMALIZE_DE.get(current_color, current_color)
-    # Other marketplaces: no normalization needed (already correct)
+    norm_dict = COLOR_NORMALIZE_MAP.get(marketplace_code)
+    if norm_dict:
+        return norm_dict.get(current_color, current_color)
     return current_color
 
 
-def audit_parent(parent_sku, mkt_code, dry_run=True):
-    """Audit and optionally fix all children of a MEGA parent."""
+def audit_parent(parent_sku, mkt_code, locale_code=None, dry_run=True):
+    """Audit and optionally fix all children of a MEGA parent.
+
+    mkt_code: marketplace for API calls (where listings live)
+    locale_code: target locale for color/style normalization (defaults to mkt_code)
+    """
+    if locale_code is None:
+        locale_code = mkt_code
     mkt_id = MARKETPLACE_IDS[mkt_code]
     print(f"\n{'='*70}")
-    print(f"  MEGA Parent: {parent_sku} on {mkt_code} ({mkt_id})")
+    print(f"  MEGA Parent: {parent_sku} on {mkt_code} ({mkt_id}), locale: {locale_code}")
     print(f"{'='*70}")
 
     # Get parent listing
@@ -205,12 +436,18 @@ def audit_parent(parent_sku, mkt_code, dry_run=True):
     vt_name = vt[0].get("name", "N/A") if vt else "N/A"
     print(f"  Variation theme: {vt_name}")
 
-    # Find children via relationships
+    # Find children via relationships (handles nested structure)
     relationships = parent_data.get("relationships", [])
     child_skus = []
     for rel in relationships:
+        # Direct childSkus at top level
         for child in rel.get("childSkus", []):
             child_skus.append(child)
+        # Nested relationships (Amazon sometimes nests: relationships[].relationships[].childSkus)
+        for inner_rel in rel.get("relationships", []):
+            for child in inner_rel.get("childSkus", []):
+                if child not in child_skus:
+                    child_skus.append(child)
 
     if not child_skus:
         print(f"  [WARN] No children found via relationships API")
@@ -233,16 +470,17 @@ def audit_parent(parent_sku, mkt_code, dry_run=True):
 
         child_attrs = child_data.get("attributes", {})
 
-        # Current values
-        current_style_list = child_attrs.get("style_name", [])
+        # Current values -- some SKUs use "style_name", others use "style"
+        style_attr_name = "style_name" if "style_name" in child_attrs else "style"
+        current_style_list = child_attrs.get(style_attr_name, [])
         current_style = current_style_list[0].get("value", "N/A") if current_style_list else "N/A"
 
         current_color_list = child_attrs.get("color", [])
         current_color = current_color_list[0].get("value", "N/A") if current_color_list else "N/A"
 
         # Determine correct values
-        correct_style = determine_style(child_sku, parent_sku)
-        correct_color = normalize_color(current_color, mkt_code)
+        correct_style = determine_style(child_sku, parent_sku, locale_code)
+        correct_color = normalize_color(current_color, locale_code)
 
         style_needs_fix = current_style != correct_style
         color_needs_fix = current_color != correct_color
@@ -265,18 +503,19 @@ def audit_parent(parent_sku, mkt_code, dry_run=True):
             continue
 
         # Build PATCH
+        lang_tag = LANGUAGE_TAGS.get(locale_code, "de_DE")
         patches = []
         if style_needs_fix:
             patches.append({
                 "op": "replace",
-                "path": "/attributes/style_name",
-                "value": [{"value": correct_style, "language_tag": "de_DE", "marketplace_id": mkt_id}]
+                "path": f"/attributes/{style_attr_name}",
+                "value": [{"value": correct_style, "language_tag": lang_tag, "marketplace_id": mkt_id}]
             })
         if color_needs_fix:
             patches.append({
                 "op": "replace",
                 "path": "/attributes/color",
-                "value": [{"value": correct_color, "language_tag": "de_DE", "marketplace_id": mkt_id}]
+                "value": [{"value": correct_color, "language_tag": lang_tag, "marketplace_id": mkt_id}]
             })
 
         path = f"/listings/2021-08-01/items/{SELLER_ID}/{child_sku}"
@@ -355,7 +594,8 @@ def main():
     print(f"{'#'*70}")
 
     if args.parent:
-        parents = {args.parent: MEGA_PARENTS.get(args.parent, "DE")}
+        entry = MEGA_PARENTS.get(args.parent, ("DE", "DE"))
+        parents = {args.parent: entry}
         if args.parent not in MEGA_PARENTS:
             print(f"\n[WARN] {args.parent} not in known MEGA_PARENTS dict, using DE marketplace")
     else:
@@ -365,8 +605,8 @@ def main():
     total_skipped = 0
     total_errors = 0
 
-    for parent_sku, mkt_code in parents.items():
-        fixed, skipped, errors = audit_parent(parent_sku, mkt_code, dry_run=args.dry_run)
+    for parent_sku, (api_mkt, locale) in parents.items():
+        fixed, skipped, errors = audit_parent(parent_sku, api_mkt, locale_code=locale, dry_run=args.dry_run)
         total_fixed += fixed
         total_skipped += skipped
         total_errors += errors
