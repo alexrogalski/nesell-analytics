@@ -11,6 +11,8 @@ Usage:
     python3.11 -m etl.run --fees         # real Amazon fees (Finances API)
     python3.11 -m etl.run --allegro-fees # real Allegro fees (Billing API)
     python3.11 -m etl.run --reports      # Amazon reports (traffic, inventory, etc.)
+    python3.11 -m etl.run --restock      # Amazon Restock Recommendations Report
+    python3.11 -m etl.run --aged         # Amazon FBA Aged Inventory Report
     python3.11 -m etl.run --amzdata      # Amazon live API (BSR, pricing, inventory)
     python3.11 -m etl.run --aggregate    # re-aggregate daily metrics
     python3.11 -m etl.run --images       # fetch missing product images
@@ -22,6 +24,7 @@ Usage:
     python3.11 -m etl.run --cogs-csv filled.csv  # import COGS from filled CSV
     python3.11 -m etl.run --printful-orders   # process new Printful orders
     python3.11 -m etl.run --tracking-sync    # sync Printful tracking info
+    python3.11 -m etl.run --shipping-monitor # scan for delivery problems (DPD)
     python3.11 -m etl.run --days 30      # lookback period (default 90)
 """
 import argparse, sys, time, traceback
@@ -65,6 +68,9 @@ def main():
     parser.add_argument("--ads-marketplace", type=str, default=None, help="Marketplace ID for ads CSV (default: DE)")
     parser.add_argument("--cogs-export", type=str, default=None, help="Export top-100 products missing COGS to CSV template")
     parser.add_argument("--cogs-csv", type=str, default=None, help="Import COGS from filled CSV file (see --cogs-export)")
+    parser.add_argument("--restock", action="store_true", help="Fetch Amazon Restock Recommendations Report")
+    parser.add_argument("--aged", action="store_true", help="Fetch Amazon FBA Aged Inventory Report")
+    parser.add_argument("--shipping-monitor", action="store_true", help="Scan DPD shipments for delivery problems (address issues, stuck, lost)")
     parser.add_argument("--availability", action="store_true", help="Check Printful variant availability and deactivate unavailable listings")
     parser.add_argument("--availability-enforce", action="store_true", help="Same as --availability but actually deactivate/reactivate (not dry run)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
@@ -73,6 +79,7 @@ def main():
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
                  args.cogs, args.shipping, args.dpd_email, args.dpd_api, args.dpd_reconcile,
+                 args.restock, args.aged, args.shipping_monitor,
                  args.availability, args.availability_enforce]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = (not any(all_flags) and not args.printful_orders and not args.tracking_sync
@@ -82,7 +89,7 @@ def main():
     print(f"nesell-analytics ETL — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"{'='*60}")
 
-    conn = db.get_conn()
+    db.verify_connection()
     start = time.time()
     step = 0
     total_steps = 9
@@ -91,55 +98,67 @@ def main():
     if run_all or args.fx:
         step += 1
         if not _run_step(step, total_steps, "Syncing FX rates",
-                         fx_rates.sync_fx_rates, conn, days_back=args.days):
+                         fx_rates.sync_fx_rates, days_back=args.days):
             failures.append("FX rates")
 
     if run_all or args.orders:
         step += 1
         if not _run_step(step, total_steps, "Syncing Baselinker orders",
-                         baselinker.sync_orders, conn, days_back=args.days):
+                         baselinker.sync_orders, days_back=args.days):
             failures.append("Baselinker orders")
 
     if run_all or args.fba:
         step += 1
         if not _run_step(step, total_steps, "Syncing Amazon FBA orders",
-                         amazon.sync_orders, conn, days_back=args.days):
+                         amazon.sync_orders, days_back=args.days):
             failures.append("Amazon FBA orders")
 
     if run_all or args.products:
         step += 1
         if not _run_step(step, total_steps, "Syncing product catalog",
-                         baselinker.sync_products, conn):
+                         baselinker.sync_products):
             failures.append("Product catalog")
 
     if run_all or args.fees:
         step += 1
         if not _run_step(step, total_steps, "Fetching real Amazon fees",
-                         amazon_fees.sync_fees, conn, days_back=args.days):
+                         amazon_fees.sync_fees, days_back=args.days):
             failures.append("Amazon fees")
 
     if run_all or args.allegro_fees:
         step += 1
         if not _run_step(step, total_steps, "Fetching real Allegro fees",
-                         allegro_fees.sync_allegro_fees, conn, days_back=args.days):
+                         allegro_fees.sync_allegro_fees, days_back=args.days):
             failures.append("Allegro fees")
 
     if run_all or args.reports:
         step += 1
         if not _run_step(step, total_steps, "Fetching Amazon reports",
-                         amazon_reports.sync_all_reports, conn, days_back=args.days):
+                         amazon_reports.sync_all_reports, days_back=args.days):
             failures.append("Amazon reports")
+
+    if args.restock:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching Amazon Restock Recommendations",
+                         amazon_reports.sync_restock_recommendations):
+            failures.append("Restock recommendations")
+
+    if args.aged:
+        step += 1
+        if not _run_step(step, total_steps, "Fetching Amazon FBA Aged Inventory",
+                         amazon_reports.sync_aged_inventory):
+            failures.append("Aged inventory")
 
     if run_all or args.amzdata:
         step += 1
         if not _run_step(step, total_steps, "Fetching Amazon live data (BSR, pricing, inventory)",
-                         amazon_data.sync_all_data, conn, days_back=min(args.days, 30)):
+                         amazon_data.sync_all_data, days_back=min(args.days, 30)):
             failures.append("Amazon live data")
 
     if run_all or args.aggregate:
         step += 1
         if not _run_step(step, total_steps, "Aggregating daily metrics",
-                         aggregator.aggregate_daily, conn, days_back=args.days):
+                         aggregator.aggregate_daily, days_back=args.days):
             failures.append("Aggregation")
 
     if args.images:
@@ -153,49 +172,49 @@ def main():
         step += 1
         from . import cogs_filler
         if not _run_step(step, total_steps, "Filling missing COGS",
-                         cogs_filler.fill_cogs, conn):
+                         cogs_filler.fill_cogs):
             failures.append("COGS filler")
 
     if run_all or args.shipping:
         step += 1
         from . import shipping_costs
         if not _run_step(step, total_steps, "Estimating DPD shipping costs",
-                         shipping_costs.sync_shipping_costs, conn, days_back=args.days):
+                         shipping_costs.sync_shipping_costs, days_back=args.days):
             failures.append("Shipping costs")
 
     if run_all or args.dpd_email:
         step += 1
         from . import dpd_invoices
         if not _run_step(step, total_steps, "Importing DPD costs from Gmail (Specyfikacja XLSX)",
-                         dpd_invoices.sync_dpd_invoices, conn, days_back=min(args.days, 180)):
+                         dpd_invoices.sync_dpd_invoices, days_back=min(args.days, 180)):
             failures.append("DPD email import")
 
     if args.dpd_csv:
         step += 1
         from . import shipping_costs
         if not _run_step(step, total_steps, f"Importing DPD costs from CSV: {args.dpd_csv}",
-                         shipping_costs.import_dpd_csv, conn, args.dpd_csv):
+                         shipping_costs.import_dpd_csv, args.dpd_csv):
             failures.append("DPD CSV import")
 
     if args.dpd_api:
         step += 1
         from . import dpd_costs
         if not _run_step(step, total_steps, "DPD API: reconcile + enrich shipping costs",
-                         dpd_costs.sync_dpd_costs, conn, args.days, False):
+                         dpd_costs.sync_dpd_costs, args.days, False):
             failures.append("DPD API sync")
 
     if args.dpd_reconcile:
         step += 1
         from . import dpd_costs
         if not _run_step(step, total_steps, "DPD reconcile: fill missing shipping_costs rows",
-                         dpd_costs.sync_dpd_costs, conn, args.days, True):
+                         dpd_costs.sync_dpd_costs, args.days, True):
             failures.append("DPD reconcile")
 
     if args.ads_csv:
         step += 1
         from . import amazon_ads
         if not _run_step(step, total_steps, f"Importing Amazon ads CSV: {args.ads_csv}",
-                         amazon_ads.import_ads_csv, conn, args.ads_csv, args.ads_marketplace):
+                         amazon_ads.import_ads_csv, args.ads_csv, args.ads_marketplace):
             failures.append("Amazon ads CSV import")
 
     if args.cogs_export:
@@ -212,14 +231,22 @@ def main():
                          cogs_csv.import_cogs_csv, args.cogs_csv):
             failures.append("COGS CSV import")
 
-    # ── Printful availability guard ──
+    # ── Shipping Problem Monitor ──
+    if run_all or args.shipping_monitor:
+        step += 1
+        from . import shipping_monitor
+        if not _run_step(step, total_steps, "Scanning DPD shipments for delivery problems",
+                         shipping_monitor.scan, days_back=min(args.days, 30)):
+            failures.append("Shipping monitor")
+
+    # ── EU Variant Guard (replaces old availability_guard) ──
     if run_all or args.availability or args.availability_enforce:
         step += 1
-        from . import availability_guard
+        from . import eu_variant_guard
         dry_run = not args.availability_enforce
-        if not _run_step(step, total_steps, f"Printful availability guard ({'dry run' if dry_run else 'ENFORCE'})",
-                         availability_guard.run_guard, dry_run):
-            failures.append("Availability guard")
+        if not _run_step(step, total_steps, f"EU variant guard ({'dry run' if dry_run else 'ENFORCE'})",
+                         eu_variant_guard.run_guard, dry_run):
+            failures.append("EU variant guard")
 
     # ── Printful auto-fulfillment (opt-in only, never in run_all) ──
     if args.printful_orders or args.tracking_sync:
