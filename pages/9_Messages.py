@@ -27,7 +27,7 @@ def load_conversations(days=30):
 def load_messages_for_conv(conv_id):
     rows = _get("messages", {
         "conversation_id": f"eq.{conv_id}",
-        "select": "direction,sender_name,body_text,email_subject,sent_at,is_read,attachments",
+        "select": "direction,sender_name,body_text,email_subject,sent_at,is_read,attachments,translation_pl,detected_language,draft_reply,draft_reply_local",
         "order": "sent_at.asc",
     })
     return rows or []
@@ -291,6 +291,10 @@ if not filtered.empty:
                 subject = m.get("email_subject") or ""
                 sent = m.get("sent_at") or ""
                 attachments = m.get("attachments") or []
+                translation_pl = m.get("translation_pl") or ""
+                detected_lang = m.get("detected_language") or ""
+                draft_reply = m.get("draft_reply") or ""
+                draft_reply_local = m.get("draft_reply_local") or ""
 
                 # Styling
                 align = "flex-start" if is_inbound else "flex-end"
@@ -299,9 +303,21 @@ if not filtered.empty:
                 label_color = COLORS["danger"] if is_inbound else COLORS["primary"]
                 dir_label = "INBOUND" if is_inbound else "OUTBOUND"
 
+                lang_badge = f' <span style="font-size:0.55rem; background:#334155; color:#94a3b8; padding:1px 5px; border-radius:3px; margin-left:6px;">{detected_lang.upper()}</span>' if detected_lang and detected_lang != "pl" else ""
+
                 subject_html = f'<div style="font-size:0.7rem; color:{COLORS["info"]}; margin-bottom:4px;">{subject}</div>' if subject else ""
                 body_preview = body[:2000] if body else "<em style='color:#64748b;'>No text content</em>"
                 body_preview = body_preview.replace("\n", "<br>")
+
+                # Translation block (only for non-Polish inbound)
+                translation_html = ""
+                if translation_pl and is_inbound and detected_lang != "pl":
+                    tl_preview = translation_pl[:2000].replace("\n", "<br>")
+                    translation_html = f'''
+                    <div style="margin-top:8px; padding:8px 10px; background:#0f172a; border-left:2px solid #8b5cf6; border-radius:4px;">
+                      <div style="font-size:0.6rem; font-weight:600; color:#8b5cf6; margin-bottom:3px;">TLUMACZENIE PL</div>
+                      <div style="font-size:0.7rem; color:#cbd5e1; line-height:1.4;">{tl_preview}</div>
+                    </div>'''
 
                 att_html = ""
                 if attachments and len(attachments) > 0:
@@ -316,17 +332,46 @@ if not filtered.empty:
 
                 msg_html = f'''
                 <div style="display:flex; justify-content:{align}; margin-bottom:8px;">
-                  <div style="max-width:80%; background:{bg}; border-left:3px solid {border_color}; border-radius:6px; padding:10px 14px;">
+                  <div style="max-width:85%; background:{bg}; border-left:3px solid {border_color}; border-radius:6px; padding:10px 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                      <span style="font-size:0.65rem; font-weight:700; color:{label_color};">{dir_label}</span>
+                      <span style="font-size:0.65rem; font-weight:700; color:{label_color};">{dir_label}{lang_badge}</span>
                       <span style="font-size:0.6rem; color:{COLORS["muted"]}; margin-left:12px;">{sender} &middot; {time_display}</span>
                     </div>
                     {subject_html}
                     <div style="font-size:0.72rem; color:{COLORS["text"]}; line-height:1.5; word-break:break-word;">{body_preview}</div>
+                    {translation_html}
                     {att_html}
                   </div>
                 </div>
                 '''
                 st.markdown(msg_html, unsafe_allow_html=True)
+
+            # Show draft reply for the last inbound message
+            last_inbound = None
+            for m in reversed(messages):
+                if m.get("direction") == "inbound" and m.get("draft_reply"):
+                    last_inbound = m
+                    break
+
+            if last_inbound:
+                draft_pl = last_inbound.get("draft_reply") or ""
+                draft_local = last_inbound.get("draft_reply_local") or ""
+                d_lang = last_inbound.get("detected_language") or ""
+
+                st.markdown(f'''
+                <div style="margin-top:16px; padding:14px; background:#1a1a2e; border:1px solid #8b5cf640; border-radius:8px;">
+                  <div style="font-size:0.7rem; font-weight:700; color:#8b5cf6; margin-bottom:10px;">DRAFT ODPOWIEDZI</div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                      <div style="font-size:0.6rem; color:{COLORS["muted"]}; margin-bottom:4px;">PL (dla Ciebie)</div>
+                      <div style="font-size:0.72rem; color:{COLORS["text"]}; line-height:1.5; background:#111827; padding:10px; border-radius:6px; white-space:pre-wrap;">{draft_pl}</div>
+                    </div>
+                    <div>
+                      <div style="font-size:0.6rem; color:{COLORS["muted"]}; margin-bottom:4px;">{d_lang.upper() if d_lang else "?"} (do wyslania kupujacemu)</div>
+                      <div style="font-size:0.72rem; color:{COLORS["text"]}; line-height:1.5; background:#111827; padding:10px; border-radius:6px; white-space:pre-wrap;">{draft_local}</div>
+                    </div>
+                  </div>
+                </div>
+                ''', unsafe_allow_html=True)
         else:
             st.info("No messages found for this conversation.")

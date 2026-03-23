@@ -44,7 +44,14 @@ def sync_messages(days_back=30):
     except Exception as e:
         print(f"  [msg-center] Shipping problem linkage failed: {e}")
 
-    # 4. Discord alert for new messages needing reply
+    # 4. Auto-translate + generate draft replies
+    try:
+        from . import message_ai
+        message_ai.process_messages(batch_size=50)
+    except Exception as e:
+        print(f"  [msg-center] AI processing failed: {e}")
+
+    # 5. Discord alert for new messages needing reply
     if new_inbound > 0:
         try:
             _send_discord_alert(new_inbound)
