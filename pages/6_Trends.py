@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms
+from lib.data import load_daily_metrics, load_platforms, load_orders_enriched
 from lib.metrics import daily_summary, calc_contribution_margins
 from lib.charts import multi_line, heatmap, area_chart
 
@@ -35,12 +35,43 @@ daily = daily_summary(df)
 daily["date"] = pd.to_datetime(daily["date"])
 daily = daily.sort_values("date")
 
+# Load enriched order-level data for accurate profit/margin (net-revenue based)
+_enriched_orders = pd.DataFrame()
+try:
+    _enriched_result = load_orders_enriched(days=180)
+    if isinstance(_enriched_result, tuple) and len(_enriched_result) == 2:
+        _enriched_orders = _enriched_result[0]
+except Exception:
+    pass
+
+# Build daily profit from enriched orders (net-revenue based) if available
+_daily_profit = pd.DataFrame()
+if not _enriched_orders.empty and "profit_pln" in _enriched_orders.columns:
+    _eo = _enriched_orders.copy()
+    _eo["_date"] = pd.to_datetime(_eo["order_date"], errors="coerce").dt.date.astype(str)
+    _daily_profit = _eo.groupby("_date").agg(
+        profit_net=("profit_pln", "sum"),
+        revenue_net=("revenue_net_pln", "sum"),
+        revenue_brutto=("revenue_pln", "sum"),
+        total_costs=("total_costs_pln", "sum"),
+    ).reset_index().rename(columns={"_date": "date"})
+    _daily_profit["date"] = pd.to_datetime(_daily_profit["date"])
+    _daily_profit["margin_net_pct"] = np.where(
+        _daily_profit["revenue_net"] > 0,
+        _daily_profit["profit_net"] / _daily_profit["revenue_net"] * 100,
+        0,
+    )
+    # Rolling averages for profit
+    _daily_profit = _daily_profit.sort_values("date")
+    _daily_profit["profit_net_7d"] = _daily_profit["profit_net"].rolling(7, min_periods=1).mean()
+    _daily_profit["profit_net_30d"] = _daily_profit["profit_net"].rolling(30, min_periods=1).mean()
+
 # --- 1. Revenue decomposition ---
 st.markdown('<div class="section-header">REVENUE DECOMPOSITION</div>', unsafe_allow_html=True)
 
 if not daily.empty:
     y_cols = ["revenue_pln"]
-    names = ["Revenue (daily)"]
+    names = ["Revenue brutto (daily)"]
     colors = [COLORS["primary"]]
 
     if "revenue_pln_7d" in daily.columns:
@@ -54,6 +85,26 @@ if not daily.empty:
 
     fig_decomp = multi_line(daily, "date", y_cols, colors=colors, names=names, height=400)
     st.plotly_chart(fig_decomp, use_container_width=True)
+
+# --- 1b. Profit trend (net-revenue based) ---
+if not _daily_profit.empty:
+    st.markdown('<div class="section-header">PROFIT TREND (NET REVENUE BASED)</div>', unsafe_allow_html=True)
+
+    _profit_cols = ["profit_net"]
+    _profit_names = ["Profit (daily)"]
+    _profit_colors = [COLORS.get("cm3", COLORS["success"])]
+
+    if "profit_net_7d" in _daily_profit.columns:
+        _profit_cols.append("profit_net_7d")
+        _profit_names.append("Profit 7d MA")
+        _profit_colors.append(COLORS.get("info", COLORS["primary"]))
+    if "profit_net_30d" in _daily_profit.columns:
+        _profit_cols.append("profit_net_30d")
+        _profit_names.append("Profit 30d MA")
+        _profit_colors.append(COLORS["warning"])
+
+    fig_profit = multi_line(_daily_profit, "date", _profit_cols, colors=_profit_colors, names=_profit_names, height=400)
+    st.plotly_chart(fig_profit, use_container_width=True)
 
 # --- 2. Month-over-month comparison ---
 st.markdown('<div class="section-header">MONTH-OVER-MONTH COMPARISON</div>', unsafe_allow_html=True)
@@ -71,15 +122,55 @@ if len(available_months) >= 2:
     m1_data = daily[daily["month"] == month1].copy()
     m2_data = daily[daily["month"] == month2].copy()
 
+    # Merge enriched profit data if available
+    def _merge_enriched(mdf, month_str):
+        if _daily_profit.empty:
+            return mdf
+        _ep = _daily_profit.copy()
+        _ep["month"] = _ep["date"].dt.to_period("M").astype(str)
+        _ep_month = _ep[_ep["month"] == month_str]
+        if _ep_month.empty:
+            return mdf
+        _ep_month = _ep_month.rename(columns={"date": "_ep_date"})
+        mdf = mdf.copy()
+        mdf["_date_str"] = mdf["date"].dt.strftime("%Y-%m-%d")
+        _ep_month = _ep_month.copy()
+        _ep_month["_date_str"] = _ep_month["_ep_date"].dt.strftime("%Y-%m-%d")
+        mdf = mdf.merge(
+            _ep_month[["_date_str", "profit_net", "revenue_net", "total_costs", "margin_net_pct"]],
+            on="_date_str", how="left",
+        )
+        for c in ["profit_net", "revenue_net", "total_costs", "margin_net_pct"]:
+            if c in mdf.columns:
+                mdf[c] = mdf[c].fillna(0)
+        mdf.drop(columns=["_date_str"], inplace=True, errors="ignore")
+        return mdf
+
+    m1_data = _merge_enriched(m1_data, month1)
+    m2_data = _merge_enriched(m2_data, month2)
+
     # Comparison table
+    _has_enriched = "profit_net" in m1_data.columns and m1_data["profit_net"].abs().sum() > 0
+
     def month_agg(mdf):
-        return {
-            "Revenue": mdf["revenue_pln"].sum(),
-            "CM3": mdf["cm3"].sum() if "cm3" in mdf.columns else 0,
-            "Margin %": (mdf["cm3"].sum() / mdf["revenue_pln"].sum() * 100) if mdf["revenue_pln"].sum() > 0 and "cm3" in mdf.columns else 0,
-            "Orders": int(mdf["orders_count"].sum()),
-            "Units": int(mdf["units"].sum()),
+        result = {
+            "Revenue (brutto)": mdf["revenue_pln"].sum(),
         }
+        if _has_enriched and "revenue_net" in mdf.columns:
+            result["Revenue (netto)"] = mdf["revenue_net"].sum()
+        if _has_enriched and "profit_net" in mdf.columns:
+            _profit = mdf["profit_net"].sum()
+            _rev_net = mdf["revenue_net"].sum() if "revenue_net" in mdf.columns else 0
+            result["Profit"] = _profit
+            result["Margin %"] = (_profit / _rev_net * 100) if _rev_net > 0 else 0
+        else:
+            _cm3 = mdf["cm3"].sum() if "cm3" in mdf.columns else 0
+            _rev = mdf["revenue_pln"].sum()
+            result["Profit (CM3)"] = _cm3
+            result["Margin %"] = (_cm3 / _rev * 100) if _rev > 0 and _cm3 != 0 else 0
+        result["Orders"] = int(mdf["orders_count"].sum())
+        result["Units"] = int(mdf["units"].sum())
+        return result
 
     s1 = month_agg(m1_data)
     s2 = month_agg(m2_data)
@@ -102,7 +193,10 @@ if len(available_months) >= 2:
             v2_fmt = f"{v2:,}"
         comp_rows.append({"Metric": key, month1: v1_fmt, month2: v2_fmt, "Change": delta})
 
-    st.dataframe(pd.DataFrame(comp_rows), use_container_width=True, hide_index=True)
+    _mom_df = pd.DataFrame(comp_rows)
+    st.dataframe(_mom_df, use_container_width=True, hide_index=True)
+    _mom_csv = _mom_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _mom_csv, "mom_comparison.csv", "text/csv", key="dl_mom_comp")
 
     # Daily overlay
     import plotly.graph_objects as go
@@ -253,7 +347,62 @@ if not daily.empty and len(daily) >= 14:
         st.plotly_chart(fig_growth, use_container_width=True)
 
         # Growth stats
-        g1, g2, g3 = st.columns(3)
-        g1.metric("Monthly Trend", f"{monthly_growth_pct:+.1f}%")
+        g1, g2, g3, g4 = st.columns(4)
+        g1.metric("Revenue Trend", f"{monthly_growth_pct:+.1f}%/mo")
         g2.metric("Current 30d Revenue", f"{valid['rolling_30d_rev'].iloc[-1]:,.0f} PLN")
         g3.metric("Trend Fit (R2)", f"{1 - np.var(residuals) / np.var(y_vals):.3f}" if np.var(y_vals) > 0 else "N/A")
+
+        # Show rolling 30d profit from enriched data if available
+        if not _daily_profit.empty:
+            _dp_sorted = _daily_profit.sort_values("date").copy()
+            _dp_sorted["rolling_30d_profit"] = _dp_sorted["profit_net"].rolling(30, min_periods=7).sum()
+            _dp_valid = _dp_sorted[_dp_sorted["rolling_30d_profit"].notna()]
+            if not _dp_valid.empty:
+                g4.metric("Current 30d Profit", f"{_dp_valid['rolling_30d_profit'].iloc[-1]:,.0f} PLN")
+            else:
+                g4.metric("Current 30d Profit", "N/A")
+        else:
+            g4.metric("Current 30d Profit", "N/A")
+
+    # --- Profit growth trajectory (net-revenue based) ---
+    if not _daily_profit.empty and len(_daily_profit) >= 14:
+        _dp_sorted = _daily_profit.sort_values("date").copy()
+        _dp_sorted["rolling_30d_profit"] = _dp_sorted["profit_net"].rolling(30, min_periods=7).sum()
+        _dp_valid = _dp_sorted[_dp_sorted["rolling_30d_profit"].notna()].copy()
+
+        if len(_dp_valid) >= 7:
+            _x_num = np.arange(len(_dp_valid))
+            _y_profit = _dp_valid["rolling_30d_profit"].values
+            _coeffs_p = np.polyfit(_x_num, _y_profit, 1)
+            _trend_p = np.polyval(_coeffs_p, _x_num)
+            _resid_p = _y_profit - _trend_p
+            _std_p = np.std(_resid_p)
+            _monthly_growth_p = (_coeffs_p[0] * 30 / np.mean(_y_profit) * 100) if np.mean(_y_profit) != 0 else 0
+
+            import plotly.graph_objects as go
+            fig_profit_growth = go.Figure()
+            fig_profit_growth.add_trace(go.Scatter(
+                x=_dp_valid["date"], y=_trend_p + _std_p,
+                mode="lines", line=dict(width=0), showlegend=False,
+            ))
+            fig_profit_growth.add_trace(go.Scatter(
+                x=_dp_valid["date"], y=_trend_p - _std_p,
+                mode="lines", line=dict(width=0), showlegend=False,
+                fill="tonexty", fillcolor="rgba(16,185,129,0.1)",
+            ))
+            fig_profit_growth.add_trace(go.Scatter(
+                x=_dp_valid["date"], y=_dp_valid["rolling_30d_profit"],
+                mode="lines", name="Rolling 30d Profit",
+                line=dict(color=COLORS.get("cm3", COLORS["success"]), width=2),
+            ))
+            fig_profit_growth.add_trace(go.Scatter(
+                x=_dp_valid["date"], y=_trend_p,
+                mode="lines", name="Linear Trend",
+                line=dict(color=COLORS["warning"], width=1.5, dash="dash"),
+            ))
+            fig_profit_growth.update_layout(
+                height=400,
+                title=f"Rolling 30d Profit (trend: {_monthly_growth_p:+.1f}%/month)",
+                yaxis_title="PLN (rolling 30d profit)",
+            )
+            st.plotly_chart(fig_profit_growth, use_container_width=True)

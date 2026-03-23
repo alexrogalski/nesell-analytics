@@ -1,13 +1,19 @@
 """Command Center - Overview + signals."""
 import streamlit as st
 import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage, load_products, load_refund_summary
+from lib.data import load_daily_metrics, load_platforms, load_cogs_gaps, load_data_coverage, load_products, load_refund_summary, load_orders_enriched
 from lib.metrics import calc_period_kpis, daily_summary, product_profitability, platform_summary
 from lib.charts import area_chart, multi_line, bar_chart
 from lib.signals import generate_signals
+from lib.html_tables import render_table_css, render_alert_banner, render_cogs_gap_table
 
 setup_page("Command Center")
+
+# Inject shared HTML table CSS
+st.markdown(render_table_css(), unsafe_allow_html=True)
 
 # --- Header ---
 st.markdown('<div class="section-header">COMMAND CENTER</div>', unsafe_allow_html=True)
@@ -46,9 +52,61 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Load enriched order-level data for accurate profit/margin (net-revenue based)
+_enriched_orders = pd.DataFrame()
+try:
+    _enriched_result = load_orders_enriched(days=days * 2)
+    if isinstance(_enriched_result, tuple) and len(_enriched_result) == 2:
+        _enriched_orders = _enriched_result[0]
+except Exception:
+    pass
+
+# Compute net-revenue-based KPIs from enriched orders
+_enriched_kpis = {}
+if not _enriched_orders.empty and "profit_pln" in _enriched_orders.columns:
+    _eo = _enriched_orders.copy()
+    _eo["order_date"] = pd.to_datetime(_eo["order_date"], errors="coerce")
+    _eo["_date"] = _eo["order_date"].dt.date
+
+    _now = pd.Timestamp.now().date()
+    _current_start = _now - timedelta(days=days)
+    _prev_start = _current_start - timedelta(days=days)
+
+    _cur = _eo[(_eo["_date"] >= _current_start) & (_eo["_date"] <= _now)]
+    _prev = _eo[(_eo["_date"] >= _prev_start) & (_eo["_date"] < _current_start)]
+
+    def _eo_agg(subset):
+        return {
+            "revenue_brutto": subset["revenue_pln"].sum() if "revenue_pln" in subset.columns else 0,
+            "revenue_net": subset["revenue_net_pln"].sum() if "revenue_net_pln" in subset.columns else 0,
+            "profit": subset["profit_pln"].sum() if "profit_pln" in subset.columns else 0,
+            "total_costs": subset["total_costs_pln"].sum() if "total_costs_pln" in subset.columns else 0,
+            "cogs": subset["cogs_pln"].sum() if "cogs_pln" in subset.columns else 0,
+            "fees": subset["fees_pln"].sum() if "fees_pln" in subset.columns else 0,
+            "shipping": subset["shipping_pln"].sum() if "shipping_pln" in subset.columns else 0,
+        }
+
+    _c = _eo_agg(_cur)
+    _p = _eo_agg(_prev)
+    _c["margin"] = (_c["profit"] / _c["revenue_net"] * 100) if _c["revenue_net"] > 0 else 0
+    _p["margin"] = (_p["profit"] / _p["revenue_net"] * 100) if _p["revenue_net"] > 0 else 0
+    _enriched_kpis = {
+        "profit": _c["profit"],
+        "profit_prev": _p["profit"],
+        "profit_delta": ((_c["profit"] - _p["profit"]) / abs(_p["profit"]) * 100) if _p["profit"] != 0 else 0,
+        "margin": _c["margin"],
+        "margin_prev": _p["margin"],
+        "revenue_net": _c["revenue_net"],
+        "revenue_net_prev": _p["revenue_net"],
+    }
+
 # --- KPI Strip ---
 refund_data = load_refund_summary(days=days)
 kpis = calc_period_kpis(df, days, refund_summary=refund_data)
+
+# Override profit/margin with enriched values if available
+_use_enriched = bool(_enriched_kpis)
+
 if kpis:
     k1, k2, k3, k4, k5, k6, k7 = st.columns(7)
     k1.metric(
@@ -56,15 +114,22 @@ if kpis:
         f"{kpis.get('revenue', 0):,.0f} PLN",
         delta=f"{kpis.get('revenue_delta', 0):+.1f}%" if kpis.get("revenue_prev", 0) > 0 else None,
     )
+
+    _profit_val = _enriched_kpis.get("profit", kpis.get("profit", 0)) if _use_enriched else kpis.get("profit", 0)
+    _profit_prev = _enriched_kpis.get("profit_prev", kpis.get("profit_prev", 0)) if _use_enriched else kpis.get("profit_prev", 0)
+    _profit_delta = _enriched_kpis.get("profit_delta", kpis.get("profit_delta", 0)) if _use_enriched else kpis.get("profit_delta", 0)
     k2.metric(
-        "CM3 (PROFIT)",
-        f"{kpis.get('profit', 0):,.0f} PLN",
-        delta=f"{kpis.get('profit_delta', 0):+.1f}%" if kpis.get("profit_prev", 0) > 0 else None,
+        "PROFIT",
+        f"{_profit_val:,.0f} PLN",
+        delta=f"{_profit_delta:+.1f}%" if _profit_prev != 0 else None,
     )
+
+    _margin_val = _enriched_kpis.get("margin", kpis.get("margin", 0)) if _use_enriched else kpis.get("margin", 0)
+    _margin_prev = _enriched_kpis.get("margin_prev", kpis.get("margin_prev", 0)) if _use_enriched else kpis.get("margin_prev", 0)
     k3.metric(
-        "MARGIN",
-        f"{kpis.get('margin', 0):.1f}%",
-        delta=f"{kpis.get('margin', 0) - kpis.get('margin_prev', 0):+.1f}pp" if kpis.get("margin_prev", 0) > 0 else None,
+        "MARGIN (NET)",
+        f"{_margin_val:.1f}%",
+        delta=f"{_margin_val - _margin_prev:+.1f}pp" if _margin_prev > 0 else None,
     )
     k4.metric(
         "ORDERS",
@@ -98,29 +163,12 @@ if not cogs_gaps.empty:
     total_rev = df["revenue_pln"].sum() if "revenue_pln" in df.columns else 1
     gap_pct = (total_gap_rev / total_rev * 100) if total_rev > 0 else 0
 
-    st.markdown(f"""
-    <div style="background: #1c1208; border: 1px solid #92400e; border-left: 4px solid #f59e0b;
-                border-radius: 6px; padding: 16px 20px; margin: 16px 0;">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-                <div style="font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase;
-                            letter-spacing: 0.1em; color: #f59e0b; margin-bottom: 6px;">
-                    COGS DATA GAP
-                </div>
-                <div style="font-family: var(--font-mono); font-size: 1.1rem; color: #fbbf24; font-weight: 600;">
-                    {total_gap_skus} products missing costs &mdash; {total_gap_rev:,.0f} PLN unaccounted
-                </div>
-                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #92400e; margin-top: 4px;">
-                    {gap_pct:.1f}% of revenue has no COGS. Margins are overstated. Add costs in Baselinker to fix.
-                </div>
-            </div>
-            <div style="font-family: var(--font-mono); font-size: 2rem; color: #92400e; opacity: 0.4;
-                        line-height: 1; padding-left: 16px;">
-                &#9888;
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(render_alert_banner(
+        title="COGS DATA GAP",
+        body=f"{total_gap_skus} products missing costs &mdash; {total_gap_rev:,.0f} PLN unaccounted",
+        detail=f"{gap_pct:.1f}% of revenue has no COGS. Margins are overstated. Add costs in Baselinker to fix.",
+        variant="warning",
+    ), unsafe_allow_html=True)
 
     # Merge image URLs from products
     products_for_images = load_products()
@@ -132,60 +180,7 @@ if not cogs_gaps.empty:
 
     # Top missing products table (show top 15)
     with st.expander(f"Top {min(15, total_gap_skus)} products missing COGS (by revenue impact)", expanded=total_gap_skus <= 20):
-        top_gaps = cogs_gaps.head(15)
-        rows_html = ""
-        for i, (idx, row) in enumerate(top_gaps.iterrows()):
-            sku = row.get("sku", "unknown")
-            rev = row.get("revenue_pln", 0)
-            units = int(row.get("units", 0))
-            orders = int(row.get("orders_count", 0))
-            img_url = row.get("image_url", None)
-            bl_url = f"https://panel-f.baselinker.com/products.html?search={sku}"
-            row_bg = "#111827" if i % 2 == 0 else "#0f1729"
-
-            # Thumbnail
-            if img_url and str(img_url) != "None" and str(img_url).startswith("http"):
-                img_cell = f'<td style="padding: 5px 8px; vertical-align: middle;"><img src="{img_url}" style="width:36px;height:36px;object-fit:cover;border-radius:4px;border:1px solid #1e293b;" loading="lazy" /></td>'
-            else:
-                img_cell = '<td style="padding: 5px 8px; vertical-align: middle;"><div style="width:36px;height:36px;background:#1e293b;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.45rem;color:#475569;">N/A</div></td>'
-
-            rows_html += (
-                f'<tr style="background: {row_bg};">'
-                f'{img_cell}'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; vertical-align: middle;">{sku}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #fbbf24; vertical-align: middle;">{rev:,.0f}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8; vertical-align: middle;">{units}</td>'
-                f'<td style="padding: 8px 10px; font-family: monospace; font-size: 0.8rem; text-align: right; color: #94a3b8; vertical-align: middle;">{orders}</td>'
-                f'<td style="padding: 8px 10px; text-align: center; vertical-align: middle;">'
-                f'<a href="{bl_url}" target="_blank" style="color: #3b82f6; font-family: monospace; font-size: 0.75rem; text-decoration: none; background: rgba(59,130,246,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(59,130,246,0.2);">Edit in BL &#8594;</a>'
-                f'</td></tr>'
-            )
-
-        cc_th = 'padding: 10px; font-family: monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b;'
-        cc_table_inner = (
-            '<table style="width: 100%; border-collapse: collapse; background: #111827;">'
-            '<thead><tr style="border-bottom: 2px solid #1e293b; background: #0d1117;">'
-            f'<th style="{cc_th} text-align: left; width: 46px;"></th>'
-            f'<th style="{cc_th} text-align: left;">SKU</th>'
-            f'<th style="{cc_th} text-align: right;">Revenue (PLN)</th>'
-            f'<th style="{cc_th} text-align: right;">Units</th>'
-            f'<th style="{cc_th} text-align: right;">Orders</th>'
-            f'<th style="{cc_th} text-align: center;">Action</th>'
-            '</tr></thead>'
-            f'<tbody>{rows_html}</tbody>'
-            '</table>'
-        )
-
-        _cc_row_count = len(top_gaps)
-        _cc_table_height = min(500, 46 + _cc_row_count * 44)
-        st.html(f'''<style>
-html, body {{ margin: 0; padding: 0; background: transparent; overflow: hidden; }}
-a {{ color: #3b82f6; text-decoration: none; }}
-a:hover {{ text-decoration: underline; }}
-</style>
-<div style="overflow-x: auto; border-radius: 6px; border: 1px solid #1e293b;">
-{cc_table_inner}
-</div>''')
+        st.markdown(render_cogs_gap_table(cogs_gaps, max_rows=15), unsafe_allow_html=True)
 
 # --- Data Coverage Indicators ---
 coverage = load_data_coverage(days=days)
@@ -208,26 +203,59 @@ cov3.metric(
 # --- Daily chart + Signals ---
 daily = daily_summary(df)
 
+# Build daily profit from enriched orders for the chart
+_daily_profit_cc = pd.DataFrame()
+if not _enriched_orders.empty and "profit_pln" in _enriched_orders.columns:
+    _eo_cc = _enriched_orders.copy()
+    _eo_cc["_date"] = pd.to_datetime(_eo_cc["order_date"], errors="coerce").dt.date.astype(str)
+    _daily_profit_cc = _eo_cc.groupby("_date").agg(
+        profit_net=("profit_pln", "sum"),
+        revenue_net=("revenue_net_pln", "sum"),
+    ).reset_index().rename(columns={"_date": "date"})
+    _daily_profit_cc["date"] = pd.to_datetime(_daily_profit_cc["date"])
+    _daily_profit_cc = _daily_profit_cc.sort_values("date")
+    _daily_profit_cc["profit_net_7d"] = _daily_profit_cc["profit_net"].rolling(7, min_periods=1).mean()
+
 col_chart, col_signals = st.columns([3, 1])
 
 with col_chart:
-    st.markdown('<div class="section-header">DAILY REVENUE & CM3</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">DAILY REVENUE & PROFIT</div>', unsafe_allow_html=True)
     if not daily.empty:
         daily["date"] = pd.to_datetime(daily["date"])
         # Filter to current period only for charts
-        from datetime import datetime, timedelta
         chart_cutoff = datetime.now() - timedelta(days=days)
         daily_chart = daily[daily["date"] >= chart_cutoff].copy()
 
+        # Merge enriched profit into daily chart if available
+        if not _daily_profit_cc.empty:
+            daily_chart = daily_chart.merge(
+                _daily_profit_cc[["date", "profit_net", "profit_net_7d"]],
+                on="date", how="left",
+            )
+            for _c in ["profit_net", "profit_net_7d"]:
+                if _c in daily_chart.columns:
+                    daily_chart[_c] = daily_chart[_c].fillna(0)
+
         if not daily_chart.empty:
             y_cols = ["revenue_pln"]
-            names = ["Revenue"]
+            names = ["Revenue (brutto)"]
             colors = [COLORS["revenue"]]
-            if "cm3" in daily_chart.columns:
+
+            # Prefer enriched profit_net over old CM3
+            if "profit_net" in daily_chart.columns and daily_chart["profit_net"].abs().sum() > 0:
+                y_cols.append("profit_net")
+                names.append("Profit (net)")
+                colors.append(COLORS.get("cm3", COLORS["success"]))
+            elif "cm3" in daily_chart.columns:
                 y_cols.append("cm3")
                 names.append("CM3")
                 colors.append(COLORS["cm3"])
-            if "revenue_pln_7d" in daily_chart.columns:
+
+            if "profit_net_7d" in daily_chart.columns and daily_chart["profit_net_7d"].abs().sum() > 0:
+                y_cols.append("profit_net_7d")
+                names.append("Profit 7d MA")
+                colors.append(COLORS["muted"])
+            elif "revenue_pln_7d" in daily_chart.columns:
                 y_cols.append("revenue_pln_7d")
                 names.append("Revenue 7d MA")
                 colors.append(COLORS["muted"])
@@ -256,22 +284,83 @@ with col_signals:
 
 # --- Three columns: Platform breakdown, Top 5, Bottom 5 ---
 st.markdown('<div class="section-header">BREAKDOWN</div>', unsafe_allow_html=True)
+
+# Build platform and product profit from enriched orders if available
+_plat_enriched = pd.DataFrame()
+_prod_enriched = pd.DataFrame()
+if not _enriched_orders.empty and "profit_pln" in _enriched_orders.columns:
+    _eo_bd = _enriched_orders.copy()
+    _eo_bd["order_date"] = pd.to_datetime(_eo_bd["order_date"], errors="coerce")
+    _eo_bd["_date"] = _eo_bd["order_date"].dt.date
+    _bd_cutoff = (pd.Timestamp.now() - timedelta(days=days)).date()
+    _eo_bd = _eo_bd[_eo_bd["_date"] >= _bd_cutoff]
+
+    if not _eo_bd.empty:
+        # Platform summary from enriched data
+        _plat_enriched = _eo_bd.groupby("platform_name").agg(
+            revenue_pln=("revenue_pln", "sum"),
+            revenue_net=("revenue_net_pln", "sum"),
+            profit=("profit_pln", "sum"),
+            total_costs=("total_costs_pln", "sum"),
+            orders_count=("id", "count"),
+            units=("unit_count", "sum"),
+        ).reset_index().rename(columns={"platform_name": "platform"})
+        _plat_enriched["margin_pct"] = np.where(
+            _plat_enriched["revenue_net"] > 0,
+            _plat_enriched["profit"] / _plat_enriched["revenue_net"] * 100,
+            0,
+        )
+        _plat_enriched = _plat_enriched.sort_values("revenue_pln", ascending=False)
+
+        # Product summary from enriched data
+        _prod_enriched = _eo_bd.groupby("first_sku").agg(
+            revenue_pln=("revenue_pln", "sum"),
+            revenue_net=("revenue_net_pln", "sum"),
+            profit=("profit_pln", "sum"),
+            units=("unit_count", "sum"),
+        ).reset_index().rename(columns={"first_sku": "sku"})
+        _prod_enriched["margin_pct"] = np.where(
+            _prod_enriched["revenue_net"] > 0,
+            _prod_enriched["profit"] / _prod_enriched["revenue_net"] * 100,
+            0,
+        )
+        _prod_enriched = _prod_enriched[_prod_enriched["sku"] != ""]
+        _prod_enriched = _prod_enriched.sort_values("profit", ascending=False)
+
 col_plat, col_top, col_bottom = st.columns(3)
 
 with col_plat:
     st.markdown("**Platform Summary**")
-    plat_df = platform_summary(df, platforms)
-    if not plat_df.empty:
-        display = plat_df[["platform", "revenue_pln", "cm3", "cm3_pct", "orders_count", "units"]].copy()
-        display.columns = ["Platform", "Revenue", "CM3", "Margin%", "Orders", "Units"]
+    if not _plat_enriched.empty:
+        display = _plat_enriched[["platform", "revenue_pln", "profit", "margin_pct", "orders_count", "units"]].copy()
+        display.columns = ["Platform", "Revenue", "Profit", "Margin%", "Orders", "Units"]
         display["Revenue"] = display["Revenue"].map(lambda x: f"{x:,.0f}")
-        display["CM3"] = display["CM3"].map(lambda x: f"{x:,.0f}")
+        display["Profit"] = display["Profit"].map(lambda x: f"{x:,.0f}")
         display["Margin%"] = display["Margin%"].map(lambda x: f"{x:.1f}%")
         st.dataframe(display, use_container_width=True, hide_index=True)
+        _plat_csv = display.to_csv(index=False).encode("utf-8")
+        st.download_button("Download CSV", _plat_csv, "platform_summary.csv", "text/csv", key="dl_plat_summary")
+    else:
+        plat_df = platform_summary(df, platforms)
+        if not plat_df.empty:
+            display = plat_df[["platform", "revenue_pln", "cm3", "cm3_pct", "orders_count", "units"]].copy()
+            display.columns = ["Platform", "Revenue", "CM3", "Margin%", "Orders", "Units"]
+            display["Revenue"] = display["Revenue"].map(lambda x: f"{x:,.0f}")
+            display["CM3"] = display["CM3"].map(lambda x: f"{x:,.0f}")
+            display["Margin%"] = display["Margin%"].map(lambda x: f"{x:.1f}%")
+            st.dataframe(display, use_container_width=True, hide_index=True)
+            _plat_csv = display.to_csv(index=False).encode("utf-8")
+            st.download_button("Download CSV", _plat_csv, "platform_summary.csv", "text/csv", key="dl_plat_summary")
 
 with col_top:
-    st.markdown("**Top 5 by CM3**")
-    if not product_df.empty:
+    st.markdown("**Top 5 by Profit**")
+    if not _prod_enriched.empty:
+        top5 = _prod_enriched.head(5)[["sku", "profit", "margin_pct", "units"]].copy()
+        top5.columns = ["SKU", "Profit", "Margin%", "Units"]
+        top5["Profit"] = top5["Profit"].map(lambda x: f"{x:,.0f}")
+        top5["Margin%"] = top5["Margin%"].map(lambda x: f"{x:.1f}%")
+        st.dataframe(top5, use_container_width=True, hide_index=True)
+    elif not product_df.empty:
         top5 = product_df.head(5)[["sku", "cm3", "cm3_pct", "units"]].copy()
         top5.columns = ["SKU", "CM3", "Margin%", "Units"]
         top5["CM3"] = top5["CM3"].map(lambda x: f"{x:,.0f}")
@@ -279,8 +368,14 @@ with col_top:
         st.dataframe(top5, use_container_width=True, hide_index=True)
 
 with col_bottom:
-    st.markdown("**Bottom 5 by CM3**")
-    if not product_df.empty:
+    st.markdown("**Bottom 5 by Profit**")
+    if not _prod_enriched.empty:
+        bottom5 = _prod_enriched.tail(5)[["sku", "profit", "margin_pct", "units"]].copy()
+        bottom5.columns = ["SKU", "Profit", "Margin%", "Units"]
+        bottom5["Profit"] = bottom5["Profit"].map(lambda x: f"{x:,.0f}")
+        bottom5["Margin%"] = bottom5["Margin%"].map(lambda x: f"{x:.1f}%")
+        st.dataframe(bottom5, use_container_width=True, hide_index=True)
+    elif not product_df.empty:
         bottom5 = product_df.tail(5)[["sku", "cm3", "cm3_pct", "units"]].copy()
         bottom5.columns = ["SKU", "CM3", "Margin%", "Units"]
         bottom5["CM3"] = bottom5["CM3"].map(lambda x: f"{x:,.0f}")
@@ -290,7 +385,6 @@ with col_bottom:
 # --- Revenue by platform stacked area ---
 st.markdown('<div class="section-header">REVENUE BY PLATFORM</div>', unsafe_allow_html=True)
 if not df.empty:
-    from datetime import datetime, timedelta
     chart_cutoff = datetime.now() - timedelta(days=days)
     plat_daily = df[pd.to_datetime(df["date"]) >= chart_cutoff].copy()
     plat_daily["date"] = pd.to_datetime(plat_daily["date"])

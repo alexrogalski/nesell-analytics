@@ -4,9 +4,16 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
-from lib.data import load_daily_metrics, load_platforms, load_fx_rates, load_marketplace_pnl
+from lib.data import load_daily_metrics, load_platforms, load_fx_rates, load_marketplace_pnl, load_orders_enriched
 from lib.metrics import calc_contribution_margins, platform_summary
 from lib.charts import heatmap, treemap, bar_chart
+
+
+def _safe_col(df, col, default=0):
+    """Get column from DataFrame, returning default Series if missing."""
+    if col in df.columns:
+        return df[col]
+    return pd.Series(default, index=df.index)
 
 setup_page("Markets")
 
@@ -179,9 +186,142 @@ if not plat_current.empty:
 # --- 6. P&L by Marketplace ---
 st.markdown('<div class="section-header">P&L BY MARKETPLACE</div>', unsafe_allow_html=True)
 
+# Load enriched order data for detailed cost breakdown
+_mkt_enriched = False
+_mkt_enr_agg = pd.DataFrame()
+
+with st.spinner("Loading enriched P&L data..."):
+    _mkt_enr_result = load_orders_enriched(days=days)
+
+if isinstance(_mkt_enr_result, tuple) and len(_mkt_enr_result) == 2:
+    _mkt_ord_df, _ = _mkt_enr_result
+    if not _mkt_ord_df.empty and "platform_name" in _mkt_ord_df.columns:
+        _mkt_enriched = True
+        _enr_agg_dict = {"revenue_pln": "sum", "id": "count"}
+        for _ec in ["revenue_net_pln", "vat_amount_pln", "cogs_pln", "fees_pln",
+                     "shipping_pln", "fulfillment_cost_pln", "ppc_cost_pln",
+                     "storage_fee_pln", "fx_spread_pln", "total_costs_pln", "profit_pln"]:
+            if _ec in _mkt_ord_df.columns:
+                _enr_agg_dict[_ec] = "sum"
+        _mkt_enr_agg = _mkt_ord_df.groupby("platform_name").agg(_enr_agg_dict).reset_index()
+        _mkt_enr_agg.rename(columns={"platform_name": "marketplace", "id": "orders_count"}, inplace=True)
+        _mkt_enr_agg = _mkt_enr_agg.sort_values("revenue_pln", ascending=False).reset_index(drop=True)
+
+        # Compute margin based on net revenue
+        if "revenue_net_pln" in _mkt_enr_agg.columns and "profit_pln" in _mkt_enr_agg.columns:
+            _mkt_enr_agg["margin_pct"] = np.where(
+                _mkt_enr_agg["revenue_net_pln"] > 0,
+                _mkt_enr_agg["profit_pln"] / _mkt_enr_agg["revenue_net_pln"] * 100,
+                0,
+            )
+        else:
+            _mkt_enr_agg["margin_pct"] = 0.0
+
+# Fallback to basic marketplace P&L if enriched data unavailable
 mkt_pnl = load_marketplace_pnl(days=days)
-if not mkt_pnl.empty:
-    # KPI cards for top marketplaces
+
+if _mkt_enriched and not _mkt_enr_agg.empty:
+    _display_df = _mkt_enr_agg
+
+    # KPI cards for top marketplaces (show net revenue and profit)
+    top_mkts = _display_df.head(6)
+    mkt_cols = st.columns(min(6, len(top_mkts)))
+    for _col, (_, _row) in zip(mkt_cols, top_mkts.iterrows()):
+        with _col:
+            st.markdown(f"**{_row['marketplace']}**")
+            _rev_net = _row.get("revenue_net_pln", _row["revenue_pln"])
+            _profit = _row.get("profit_pln", 0)
+            st.metric("Revenue (net)", f"{_rev_net:,.0f} PLN")
+            st.metric("Profit", f"{_profit:,.0f} PLN",
+                      delta=f"{_row['margin_pct']:.1f}% margin")
+            st.metric("Orders", f"{int(_row['orders_count']):,}")
+
+    # Full P&L table with new cost columns
+    _tbl_cols = ["marketplace", "revenue_pln"]
+    _tbl_names = ["Marketplace", "Rev (gross)"]
+
+    if "revenue_net_pln" in _display_df.columns:
+        _tbl_cols.append("revenue_net_pln")
+        _tbl_names.append("Rev (net)")
+    if "vat_amount_pln" in _display_df.columns:
+        _tbl_cols.append("vat_amount_pln")
+        _tbl_names.append("VAT")
+    if "cogs_pln" in _display_df.columns:
+        _tbl_cols.append("cogs_pln")
+        _tbl_names.append("COGS")
+    if "fees_pln" in _display_df.columns:
+        _tbl_cols.append("fees_pln")
+        _tbl_names.append("Fees")
+    if "shipping_pln" in _display_df.columns:
+        _tbl_cols.append("shipping_pln")
+        _tbl_names.append("Shipping")
+    if "fulfillment_cost_pln" in _display_df.columns:
+        _tbl_cols.append("fulfillment_cost_pln")
+        _tbl_names.append("3PL")
+    if "ppc_cost_pln" in _display_df.columns:
+        _tbl_cols.append("ppc_cost_pln")
+        _tbl_names.append("PPC")
+    if "storage_fee_pln" in _display_df.columns:
+        _tbl_cols.append("storage_fee_pln")
+        _tbl_names.append("Storage")
+    if "fx_spread_pln" in _display_df.columns:
+        _tbl_cols.append("fx_spread_pln")
+        _tbl_names.append("FX Spread")
+    if "profit_pln" in _display_df.columns:
+        _tbl_cols.append("profit_pln")
+        _tbl_names.append("Profit")
+
+    _tbl_cols.extend(["margin_pct", "orders_count"])
+    _tbl_names.extend(["Margin %", "Orders"])
+
+    pnl_display = _display_df[_tbl_cols].copy()
+    pnl_display.columns = _tbl_names
+
+    # Format numeric columns
+    _money_cols = [c for c in _tbl_names if c not in ("Marketplace", "Margin %", "Orders")]
+    for _c in _money_cols:
+        pnl_display[_c] = pnl_display[_c].map(lambda x: f"{x:,.0f}")
+    pnl_display["Margin %"] = pnl_display["Margin %"].map(lambda x: f"{x:.1f}%")
+    pnl_display["Orders"] = pnl_display["Orders"].map(lambda x: f"{int(x):,}")
+
+    st.dataframe(pnl_display, use_container_width=True, hide_index=True)
+
+    _mkt_csv = _display_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", _mkt_csv, "marketplace_pnl.csv", "text/csv", key="dl_mkt_pnl")
+
+    # Horizontal stacked bar: full cost breakdown per marketplace
+    import plotly.graph_objects as go
+    bar_data = _display_df.sort_values("revenue_pln", ascending=True)
+    fig_mkt = go.Figure()
+
+    # Cost components in stacking order
+    _bar_components = [
+        ("cogs_pln", "COGS", COLORS["danger"]),
+        ("fees_pln", "Fees", COLORS["warning"]),
+        ("shipping_pln", "Shipping", COLORS["info"]),
+        ("fulfillment_cost_pln", "3PL", "#a78bfa"),
+        ("ppc_cost_pln", "PPC", "#f472b6"),
+        ("storage_fee_pln", "Storage", "#fb923c"),
+        ("fx_spread_pln", "FX Spread", "#94a3b8"),
+        ("profit_pln", "Profit", COLORS["success"]),
+    ]
+
+    for _bcol, _bname, _bcolor in _bar_components:
+        if _bcol in bar_data.columns and bar_data[_bcol].sum() != 0:
+            fig_mkt.add_trace(go.Bar(
+                y=bar_data["marketplace"], x=bar_data[_bcol],
+                name=_bname, orientation="h", marker_color=_bcolor,
+            ))
+
+    fig_mkt.update_layout(
+        barmode="stack", height=max(250, len(bar_data) * 45),
+        title="Net Revenue Breakdown by Marketplace",
+        legend=dict(orientation="h", y=-0.15),
+    )
+    st.plotly_chart(fig_mkt, use_container_width=True)
+
+elif not mkt_pnl.empty:
+    # Fallback: use basic marketplace P&L (no enriched columns)
     top_mkts = mkt_pnl.head(6)
     mkt_cols = st.columns(min(6, len(top_mkts)))
     for _col, (_, _row) in zip(mkt_cols, top_mkts.iterrows()):
@@ -191,7 +331,6 @@ if not mkt_pnl.empty:
             st.metric("Profit", f"{_row['gross_profit']:,.0f} PLN",
                       delta=f"{_row['margin_pct']:.1f}% margin")
 
-    # Full P&L table
     pnl_display = mkt_pnl[["marketplace", "revenue_pln", "cogs", "platform_fees",
                             "shipping_cost", "gross_profit", "margin_pct",
                             "orders_count", "units"]].copy()
@@ -206,7 +345,6 @@ if not mkt_pnl.empty:
     _mkt_csv = mkt_pnl.to_csv(index=False).encode("utf-8")
     st.download_button("Download CSV", _mkt_csv, "marketplace_pnl.csv", "text/csv", key="dl_mkt_pnl")
 
-    # Horizontal stacked bar: cost breakdown per marketplace
     import plotly.graph_objects as go
     bar_data = mkt_pnl.sort_values("revenue_pln", ascending=True)
     fig_mkt = go.Figure()

@@ -12,6 +12,13 @@ from lib.html_tables import (
     render_alert_banner,
 )
 
+
+def _safe_col(df, col, default=0):
+    """Get column from DataFrame, returning default Series if missing."""
+    if col in df.columns:
+        return df[col]
+    return pd.Series(default, index=df.index)
+
 setup_page("Products")
 
 # Inject shared HTML table CSS
@@ -157,49 +164,106 @@ if selected_sku_idx is not None:
 
             _sku_orders = _sku_orders.merge(_item_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_sku"))
 
-            # Calculate per-SKU profit and margin within each order
-            # Allocate fees proportionally: (sku_revenue / order_revenue) * order_fees
-            _sku_orders["fee_share"] = np.where(
+            # Revenue share for proportional cost allocation
+            _rev_share = np.where(
                 _sku_orders["revenue_pln"] > 0,
-                (_sku_orders["sku_revenue_pln"] / _sku_orders["revenue_pln"]) * _sku_orders["fees_pln"],
+                _sku_orders["sku_revenue_pln"] / _sku_orders["revenue_pln"],
                 0,
             )
-            _sku_orders["sku_profit"] = _sku_orders["sku_revenue_pln"] - _sku_orders["sku_cogs_pln"] - _sku_orders["fee_share"]
+
+            # Allocate fees proportionally: (sku_revenue / order_revenue) * order_fees
+            _sku_orders["fee_share"] = _rev_share * _safe_col(_sku_orders, "fees_pln")
+
+            # Allocate new cost components proportionally
+            _sku_orders["fulfillment_share"] = _rev_share * _safe_col(_sku_orders, "fulfillment_cost_pln")
+            _sku_orders["ppc_share"] = _rev_share * _safe_col(_sku_orders, "ppc_cost_pln")
+            _sku_orders["storage_share"] = _rev_share * _safe_col(_sku_orders, "storage_fee_pln")
+            _sku_orders["fx_spread_share"] = _rev_share * _safe_col(_sku_orders, "fx_spread_pln")
+
+            # Compute net revenue for this SKU (proportional VAT deduction)
+            _has_net = "revenue_net_pln" in _sku_orders.columns
+            if _has_net:
+                _net_share = np.where(
+                    _sku_orders["revenue_pln"] > 0,
+                    _sku_orders["revenue_net_pln"] / _sku_orders["revenue_pln"],
+                    0,
+                )
+                _sku_orders["sku_revenue_net"] = _sku_orders["sku_revenue_pln"] * _net_share
+            else:
+                _sku_orders["sku_revenue_net"] = _sku_orders["sku_revenue_pln"]
+
+            # Total allocated costs per SKU-order
+            _sku_orders["sku_total_costs"] = (
+                _sku_orders["sku_cogs_pln"]
+                + _sku_orders["fee_share"]
+                + _sku_orders["fulfillment_share"]
+                + _sku_orders["ppc_share"]
+                + _sku_orders["storage_share"]
+                + _sku_orders["fx_spread_share"]
+            )
+
+            # Profit = net revenue - total costs
+            _sku_orders["sku_profit"] = _sku_orders["sku_revenue_net"] - _sku_orders["sku_total_costs"]
             _sku_orders["sku_margin"] = np.where(
-                _sku_orders["sku_revenue_pln"] > 0,
-                _sku_orders["sku_profit"] / _sku_orders["sku_revenue_pln"] * 100,
+                _sku_orders["sku_revenue_net"] > 0,
+                _sku_orders["sku_profit"] / _sku_orders["sku_revenue_net"] * 100,
                 0,
             )
 
             # Summary stats
             _total_orders = len(_sku_orders)
             _total_units = int(_sku_orders["sku_qty"].sum())
-            _total_revenue = _sku_orders["sku_revenue_pln"].sum()
+            _total_revenue_gross = _sku_orders["sku_revenue_pln"].sum()
+            _total_revenue_net = _sku_orders["sku_revenue_net"].sum()
             _total_cogs = _sku_orders["sku_cogs_pln"].sum()
             _total_fees = _sku_orders["fee_share"].sum()
+            _total_fulfillment = _sku_orders["fulfillment_share"].sum()
+            _total_ppc = _sku_orders["ppc_share"].sum()
+            _total_storage = _sku_orders["storage_share"].sum()
+            _total_fx = _sku_orders["fx_spread_share"].sum()
             _total_profit = _sku_orders["sku_profit"].sum()
-            _avg_margin = (_total_profit / _total_revenue * 100) if _total_revenue > 0 else 0
+            _avg_margin = (_total_profit / _total_revenue_net * 100) if _total_revenue_net > 0 else 0
 
-            # Display summary KPIs
-            k1, k2, k3, k4, k5 = st.columns(5)
+            # Display summary KPIs (two rows for more detail)
+            k1, k2, k3, k4, k5, k6 = st.columns(6)
             k1.metric("Orders", f"{_total_orders}")
             k2.metric("Units Sold", f"{_total_units}")
-            k3.metric("Revenue", f"{_total_revenue:,.0f} PLN")
-            k4.metric("Profit", f"{_total_profit:,.0f} PLN")
-            k5.metric("Avg Margin", f"{_avg_margin:.1f}%")
+            k3.metric("Revenue (gross)", f"{_total_revenue_gross:,.0f} PLN")
+            k4.metric("Revenue (net)", f"{_total_revenue_net:,.0f} PLN")
+            k5.metric("Profit", f"{_total_profit:,.0f} PLN")
+            k6.metric("Avg Margin", f"{_avg_margin:.1f}%")
 
-            # Build display table
-            _display = _sku_orders[["order_date", "platform_order_id", "platform_name", "fulfillment",
-                                     "sku_qty", "sku_unit_price_pln", "sku_revenue_pln",
-                                     "sku_cogs_pln", "fee_share", "sku_profit", "sku_margin"]].copy()
-            _display.columns = ["Date", "Order ID", "Marketplace", "Channel",
-                                "Qty", "Unit Price", "Revenue",
-                                "COGS", "Fees", "Profit", "Margin %"]
+            # Cost breakdown summary (second row)
+            _extra_costs = _total_fulfillment + _total_ppc + _total_storage + _total_fx
+            if _extra_costs > 0:
+                c1, c2, c3, c4, c5 = st.columns(5)
+                c1.metric("COGS", f"{_total_cogs:,.0f} PLN")
+                c2.metric("Fees", f"{_total_fees:,.0f} PLN")
+                if _total_fulfillment > 0:
+                    c3.metric("3PL", f"{_total_fulfillment:,.0f} PLN")
+                if _total_ppc > 0:
+                    c4.metric("PPC", f"{_total_ppc:,.0f} PLN")
+                _other = _total_storage + _total_fx
+                if _other > 0:
+                    c5.metric("Storage+FX", f"{_other:,.0f} PLN")
+
+            # Build display table with new cost columns
+            _disp_cols = ["order_date", "platform_order_id", "platform_name", "fulfillment",
+                          "sku_qty", "sku_unit_price_pln", "sku_revenue_pln", "sku_revenue_net",
+                          "sku_cogs_pln", "fee_share", "fulfillment_share", "ppc_share",
+                          "sku_profit", "sku_margin"]
+            _disp_names = ["Date", "Order ID", "Marketplace", "Channel",
+                           "Qty", "Unit Price", "Rev (gross)", "Rev (net)",
+                           "COGS", "Fees", "3PL", "PPC",
+                           "Profit", "Margin %"]
+
+            _display = _sku_orders[_disp_cols].copy()
+            _display.columns = _disp_names
             _display["Date"] = pd.to_datetime(_display["Date"]).dt.strftime("%Y-%m-%d")
             _display = _display.sort_values("Date", ascending=False).reset_index(drop=True)
 
             # Format numeric columns
-            for _col in ["Unit Price", "Revenue", "COGS", "Fees", "Profit"]:
+            for _col in ["Unit Price", "Rev (gross)", "Rev (net)", "COGS", "Fees", "3PL", "PPC", "Profit"]:
                 _display[_col] = _display[_col].map(lambda x: f"{x:,.2f}")
             _display["Margin %"] = _display["Margin %"].map(lambda x: f"{x:.1f}%")
 
@@ -246,41 +310,98 @@ if _pnl_sku_idx is not None:
     _units = int(_pnl_row.get("units", 0))
     _cost_pln = float(_pnl_row.get("cost_pln", 0))
 
-    # KPI row
-    _k1, _k2, _k3, _k4, _k5, _k6 = st.columns(6)
-    _k1.metric("Revenue", f"{_rev:,.0f} PLN")
-    _k2.metric("COGS", f"{_cogs:,.0f} PLN",
-               delta=f"{-_cogs/_rev*100:.1f}%" if _rev > 0 else None,
-               delta_color="inverse")
-    _k3.metric("CM1", f"{_cm1:,.0f} PLN",
-               delta=f"{_cm1/_rev*100:.1f}%" if _rev > 0 else None)
-    _k4.metric("Platform Fees", f"{_fees:,.0f} PLN",
-               delta=f"{-_fees/_rev*100:.1f}%" if _rev > 0 else None,
-               delta_color="inverse")
-    _k5.metric("CM2", f"{_cm2:,.0f} PLN",
-               delta=f"{_cm2/_rev*100:.1f}%" if _rev > 0 else None)
-    _k6.metric("CM3 / Profit", f"{_cm3:,.0f} PLN",
-               delta=f"{_cm3/_rev*100:.1f}%" if _rev > 0 else None)
+    # Load enriched orders for this SKU to get new cost components
+    _pnl_enriched_loaded = False
+    _vat_total = 0.0
+    _fulfillment_total = 0.0
+    _ppc_total = 0.0
+    _storage_total = 0.0
+    _fx_spread_total = 0.0
+    _rev_net = _rev  # fallback: use gross if no enriched data
 
-    # Build waterfall steps
-    _wf_labels = ["Revenue", "COGS"]
-    _wf_values = [_rev, -_cogs]
+    with st.spinner("Loading enriched cost data..."):
+        _pnl_enr_result = load_orders_enriched(days=days)
+
+    if isinstance(_pnl_enr_result, tuple) and len(_pnl_enr_result) == 2:
+        _pnl_ord, _pnl_items = _pnl_enr_result
+        if not _pnl_items.empty and not _pnl_ord.empty:
+            _pnl_sku_items = _pnl_items[_pnl_items["sku"] == _pnl_sku]
+            if not _pnl_sku_items.empty:
+                _pnl_oids = _pnl_sku_items["order_id"].unique()
+                _pnl_ords = _pnl_ord[_pnl_ord["id"].isin(_pnl_oids)].copy()
+                if not _pnl_ords.empty:
+                    _pnl_enriched_loaded = True
+                    # Sum SKU revenue share for proportional allocation
+                    _item_rev = _pnl_sku_items.groupby("order_id")["line_revenue_pln"].sum()
+                    _pnl_ords = _pnl_ords.set_index("id")
+                    _pnl_ords["_sku_rev"] = _item_rev.reindex(_pnl_ords.index).fillna(0)
+                    _share = np.where(
+                        _pnl_ords["revenue_pln"] > 0,
+                        _pnl_ords["_sku_rev"] / _pnl_ords["revenue_pln"],
+                        0,
+                    )
+                    if "vat_amount_pln" in _pnl_ords.columns:
+                        _vat_total = (_pnl_ords["vat_amount_pln"] * _share).sum()
+                    if "revenue_net_pln" in _pnl_ords.columns:
+                        _rev_net = (_pnl_ords["revenue_net_pln"] * _share).sum()
+                    _fulfillment_total = (_safe_col(_pnl_ords, "fulfillment_cost_pln") * _share).sum()
+                    _ppc_total = (_safe_col(_pnl_ords, "ppc_cost_pln") * _share).sum()
+                    _storage_total = (_safe_col(_pnl_ords, "storage_fee_pln") * _share).sum()
+                    _fx_spread_total = (_safe_col(_pnl_ords, "fx_spread_pln") * _share).sum()
+
+    # Compute net-based profit
+    _other_costs = _fulfillment_total + _ppc_total + _storage_total + _fx_spread_total
+    _net_profit = _rev_net - _cogs - _fees - _shipping - _other_costs
+
+    # KPI row (show both gross and net revenue)
+    _k1, _k2, _k3, _k4, _k5, _k6 = st.columns(6)
+    _k1.metric("Revenue (gross)", f"{_rev:,.0f} PLN")
+    _k2.metric("Revenue (net)", f"{_rev_net:,.0f} PLN",
+               delta=f"VAT: {_vat_total:,.0f}" if _vat_total > 0 else None,
+               delta_color="inverse")
+    _k3.metric("COGS", f"{_cogs:,.0f} PLN",
+               delta=f"{-_cogs/_rev_net*100:.1f}%" if _rev_net > 0 else None,
+               delta_color="inverse")
+    _k4.metric("Platform Fees", f"{_fees:,.0f} PLN",
+               delta=f"{-_fees/_rev_net*100:.1f}%" if _rev_net > 0 else None,
+               delta_color="inverse")
+    _k5.metric("Other Costs", f"{_other_costs:,.0f} PLN",
+               delta=f"3PL+PPC+Stor+FX" if _other_costs > 0 else None,
+               delta_color="off")
+    _k6.metric("Net Profit", f"{_net_profit:,.0f} PLN",
+               delta=f"{_net_profit/_rev_net*100:.1f}%" if _rev_net > 0 else None)
+
+    # Build waterfall steps (starts from net revenue, not gross)
+    _wf_labels = ["Revenue (gross)", "VAT"]
+    _wf_values = [_rev, -_vat_total]
     _wf_measures = ["absolute", "relative"]
-    _wf_labels.append("= CM1")
-    _wf_values.append(_cm1)
+    _wf_labels.append("= Net Revenue")
+    _wf_values.append(_rev_net)
     _wf_measures.append("total")
+    _wf_labels.append("COGS")
+    _wf_values.append(-_cogs)
+    _wf_measures.append("relative")
     _wf_labels.append("Fees")
     _wf_values.append(-_fees)
     _wf_measures.append("relative")
     if _shipping > 0:
-        _wf_labels.append("= CM2")
-        _wf_values.append(_cm2)
-        _wf_measures.append("total")
         _wf_labels.append("Shipping")
         _wf_values.append(-_shipping)
         _wf_measures.append("relative")
-    _wf_labels.append("= CM3")
-    _wf_values.append(_cm3)
+    if _fulfillment_total > 0:
+        _wf_labels.append("3PL")
+        _wf_values.append(-_fulfillment_total)
+        _wf_measures.append("relative")
+    if _ppc_total > 0:
+        _wf_labels.append("PPC")
+        _wf_values.append(-_ppc_total)
+        _wf_measures.append("relative")
+    if _storage_total + _fx_spread_total > 0:
+        _wf_labels.append("Storage+FX")
+        _wf_values.append(-(_storage_total + _fx_spread_total))
+        _wf_measures.append("relative")
+    _wf_labels.append("= Profit")
+    _wf_values.append(_net_profit)
     _wf_measures.append("total")
 
     _fig_wf = _go.Figure(_go.Waterfall(
@@ -297,7 +418,7 @@ if _pnl_sku_idx is not None:
         textposition="outside",
     ))
     _fig_wf.update_layout(
-        height=380,
+        height=400,
         showlegend=False,
         plot_bgcolor="#0d1117",
         paper_bgcolor="#0d1117",
@@ -309,17 +430,21 @@ if _pnl_sku_idx is not None:
     st.plotly_chart(_fig_wf, use_container_width=True)
 
     # Per-unit breakdown
-    if _units > 0 and _rev > 0:
+    if _units > 0 and _rev_net > 0:
         _unit_cogs = _cogs / _units
-        _unit_cost_note = f" (cost_pln: {_cost_pln:.2f})" if _cost_pln > 0 else " (NO COGS — margin overstated)"
+        _unit_cost_note = f" (cost_pln: {_cost_pln:.2f})" if _cost_pln > 0 else " (NO COGS, margin overstated)"
+        _unit_other = _other_costs / _units
         _pnl_detail_html = (
             f'<div style="font-family: monospace; font-size: 0.75rem; color: #64748b; padding: 8px 0;">'
             f'Per unit ({_units} units sold): '
-            f'Revenue <span style="color:#e2e8f0">{_rev/_units:,.2f}</span> | '
+            f'Rev net <span style="color:#e2e8f0">{_rev_net/_units:,.2f}</span> | '
             f'COGS <span style="color:#ef4444">{_unit_cogs:,.2f}</span>{_unit_cost_note} | '
-            f'CM1 <span style="color:#fbbf24">{_cm1/_units:,.2f}</span> | '
             f'Fees <span style="color:#94a3b8">{_fees/_units:,.2f}</span> | '
-            f'CM3 <span style="color:#10b981">{_cm3/_units:,.2f}</span> PLN'
+        )
+        if _unit_other > 0:
+            _pnl_detail_html += f'Other <span style="color:#f59e0b">{_unit_other:,.2f}</span> | '
+        _pnl_detail_html += (
+            f'Profit <span style="color:#10b981">{_net_profit/_units:,.2f}</span> PLN'
             f'</div>'
         )
         st.markdown(_pnl_detail_html, unsafe_allow_html=True)
@@ -388,16 +513,25 @@ if not prod_df.empty:
               else (str(x).capitalize() if x and str(x).lower() != "unknown" else "Other/Arbitrage"))
     )
 
-    source_agg = prod_df.groupby("source_group").agg({
+    _src_agg_dict = {
         "revenue_pln": "sum", "cogs": "sum", "fees": "sum", "cm3": "sum",
         "units": "sum", "sku": "nunique",
-    }).reset_index()
+    }
+    if "shipping_cost" in prod_df.columns:
+        _src_agg_dict["shipping_cost"] = "sum"
+
+    source_agg = prod_df.groupby("source_group").agg(_src_agg_dict).reset_index()
+    if "shipping_cost" not in source_agg.columns:
+        source_agg["shipping_cost"] = 0.0
+
+    # Margin note: cm3 from daily_metrics uses gross revenue.
+    # This is a known limitation until daily_metrics stores net revenue.
     source_agg["margin"] = np.where(source_agg["revenue_pln"] > 0, source_agg["cm3"] / source_agg["revenue_pln"] * 100, 0)
     source_agg = source_agg.sort_values("revenue_pln", ascending=False)
 
-    src_display = source_agg.copy()
-    src_display.columns = ["Source", "Revenue", "COGS", "Fees", "CM3", "Units", "SKUs", "Margin%"]
-    for col in ["Revenue", "COGS", "Fees", "CM3"]:
+    src_display = source_agg[["source_group", "revenue_pln", "cogs", "fees", "shipping_cost", "cm3", "units", "sku", "margin"]].copy()
+    src_display.columns = ["Source", "Revenue", "COGS", "Fees", "Shipping", "CM3", "Units", "SKUs", "Margin%"]
+    for col in ["Revenue", "COGS", "Fees", "Shipping", "CM3"]:
         src_display[col] = src_display[col].map(lambda x: f"{x:,.0f}")
     src_display["Margin%"] = src_display["Margin%"].map(lambda x: f"{x:.1f}%")
 
@@ -422,9 +556,10 @@ if not prod_df.empty:
     c3.metric("Revenue without COGS", f"{uncovered_rev:,.0f} PLN")
     if cov_rev > 0:
         real_margin = with_cogs["cm3"].sum() / cov_rev * 100
-        c4.metric("Real Margin (COGS only)", f"{real_margin:.1f}%")
+        c4.metric("Real Margin (COGS SKUs)", f"{real_margin:.1f}%",
+                  help="CM3/Revenue for products with COGS data. Based on gross revenue.")
     else:
-        c4.metric("Real Margin (COGS only)", "N/A")
+        c4.metric("Real Margin (COGS SKUs)", "N/A")
 
     # Coverage status banner
     if coverage_pct < 90:
