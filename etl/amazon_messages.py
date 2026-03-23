@@ -47,8 +47,8 @@ def sync_amazon_messages(days_back=30):
 
     mail = _connect_imap()
     try:
-        # Get already-processed email UIDs
-        processed = _get_processed_uids()
+        # Get already-processed email Message-IDs (stable, unlike IMAP sequence numbers)
+        processed = _get_processed_message_ids()
         print(f"  [amazon-msg] {len(processed)} emails already synced")
 
         # Search for Amazon buyer messages
@@ -60,10 +60,8 @@ def sync_amazon_messages(days_back=30):
         print(f"  [amazon-msg] Found {len(inbound_uids)} Amazon buyer emails (last {days_back}d)")
 
         for uid in inbound_uids:
-            if uid in processed:
-                continue
             try:
-                n = _process_email(mail, uid, "inbound")
+                n = _process_email(mail, uid, "inbound", processed)
                 new_inbound += n
             except Exception as e:
                 print(f"    [WARN] Email UID {uid}: {e}")
@@ -74,10 +72,8 @@ def sync_amazon_messages(days_back=30):
         print(f"  [amazon-msg] Found {len(outbound_uids)} sent replies to Amazon buyers")
 
         for uid in outbound_uids:
-            if uid in processed:
-                continue
             try:
-                _process_email(mail, uid, "outbound")
+                _process_email(mail, uid, "outbound", processed)
             except Exception as e:
                 print(f"    [WARN] Sent UID {uid}: {e}")
 
@@ -97,38 +93,37 @@ def _connect_imap():
     return mail
 
 
-def _get_processed_uids():
-    """Get set of email UIDs already in messages table."""
-    uids = set()
+def _get_processed_message_ids():
+    """Get set of email Message-IDs already in messages table (stable across IMAP sessions)."""
+    ids = set()
     offset = 0
     while True:
         rows = db._get("messages", {
-            "select": "email_uid",
-            "email_uid": "not.is.null",
+            "select": "email_message_id",
+            "email_message_id": "not.is.null",
             "limit": "1000",
             "offset": str(offset),
         })
         for r in rows:
-            if r.get("email_uid"):
-                uids.add(str(r["email_uid"]))
+            mid = r.get("email_message_id")
+            if mid:
+                ids.add(mid)
         if len(rows) < 1000:
             break
         offset += 1000
-    return uids
+    return ids
 
 
 def _search_buyer_emails(mail, days_back):
-    """Search INBOX for Amazon buyer messages."""
+    """Search INBOX for Amazon buyer messages (returns stable IMAP UIDs)."""
     since_str = (date.today() - timedelta(days=days_back)).strftime("%d-%b-%Y")
 
-    # Search for emails from Amazon marketplace addresses
-    # Also check both support@nesell.co and isquaren@icloud.com (old default)
     uids = set()
     for search_query in [
         f'(FROM "@marketplace.amazon" SINCE {since_str})',
         f'(TO "support@nesell.co" FROM "amazon" SINCE {since_str})',
     ]:
-        status, data = mail.search(None, search_query)
+        status, data = mail.uid("search", None, search_query)
         if status == "OK" and data[0]:
             for uid in data[0].split():
                 uids.add(uid.decode())
@@ -136,17 +131,18 @@ def _search_buyer_emails(mail, days_back):
 
 
 def _search_outbound_emails(mail, days_back):
-    """Search Sent folder for replies to Amazon buyers."""
+    """Search Sent folder for replies to Amazon buyers (returns stable IMAP UIDs)."""
     since_str = (date.today() - timedelta(days=days_back)).strftime("%d-%b-%Y")
-    status, data = mail.search(None, f'(TO "@marketplace.amazon" SINCE {since_str})')
+    status, data = mail.uid("search", None, f'(TO "@marketplace.amazon" SINCE {since_str})')
     if status == "OK" and data[0]:
         return {uid.decode() for uid in data[0].split()}
     return set()
 
 
-def _process_email(mail, uid, direction):
+def _process_email(mail, uid, direction, processed_ids=None):
     """Process a single email: parse, match to order, upsert."""
-    status, data = mail.fetch(uid.encode() if isinstance(uid, str) else uid, "(RFC822)")
+    uid_bytes = uid.encode() if isinstance(uid, str) else uid
+    status, data = mail.uid("fetch", uid_bytes, "(RFC822)")
     if status != "OK" or not data or not data[0]:
         return 0
 
@@ -159,6 +155,10 @@ def _process_email(mail, uid, direction):
     subject = _decode_header(msg.get("Subject", ""))
     message_id = msg.get("Message-ID", "")
     date_str = msg.get("Date", "")
+
+    # Skip if already processed (by Message-ID, stable across sessions)
+    if processed_ids and message_id and message_id in processed_ids:
+        return 0
 
     # Parse date
     try:
@@ -189,7 +189,7 @@ def _process_email(mail, uid, direction):
         addr_hash = hashlib.md5(from_addr.encode()).hexdigest()[:8]
         thread_key = f"amazon_email:unknown:{addr_hash}:{day_str}"
 
-    # Find or create conversation
+    # Find or create conversation (without status fields — set those after msg insert)
     conv = {
         "source": "amazon_email",
         "source_thread_id": thread_key,
@@ -203,12 +203,6 @@ def _process_email(mail, uid, direction):
         bl_order = _find_bl_order(order_id)
         if bl_order:
             conv["bl_order_id"] = bl_order
-
-    # Set conversation state
-    conv["last_message_at"] = sent_at.isoformat()
-    conv["last_message_direction"] = direction
-    conv["needs_reply"] = (direction == "inbound")
-    conv["status"] = "open" if direction == "inbound" else "replied"
 
     result = db._post("conversations", [conv], on_conflict="source,source_thread_id")
     conv_id = result[0]["id"] if result else None
@@ -233,14 +227,35 @@ def _process_email(mail, uid, direction):
 
     db._post("messages", [msg_row], on_conflict="conversation_id,source_message_id")
 
-    # Update conversation message count
-    count = len(db._get("messages", {
-        "conversation_id": f"eq.{conv_id}",
-        "select": "id",
-    }))
-    db._patch("conversations", {"id": f"eq.{conv_id}"}, {"message_count": count})
+    # Determine correct status from chronologically latest message in DB
+    _refresh_conversation_status(conv_id)
 
     return 1 if direction == "inbound" else 0
+
+
+def _refresh_conversation_status(conv_id):
+    """Set conversation status based on the chronologically latest message."""
+    msgs = db._get("messages", {
+        "conversation_id": f"eq.{conv_id}",
+        "select": "direction,sent_at",
+        "order": "sent_at.desc",
+        "limit": "1",
+    })
+    all_msgs = db._get("messages", {
+        "conversation_id": f"eq.{conv_id}",
+        "select": "id",
+    })
+    if not msgs:
+        return
+    latest = msgs[0]
+    is_inbound = latest["direction"] == "inbound"
+    db._patch("conversations", {"id": f"eq.{conv_id}"}, {
+        "last_message_at": latest["sent_at"],
+        "last_message_direction": latest["direction"],
+        "needs_reply": is_inbound,
+        "status": "open" if is_inbound else "replied",
+        "message_count": len(all_msgs),
+    })
 
 
 def _decode_header(value):

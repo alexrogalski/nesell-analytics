@@ -241,7 +241,7 @@ def main():
             failures.append("Shipping monitor")
 
     # ── Customer Message Center ──
-    if args.messages:
+    if run_all or args.messages:
         step += 1
         from . import message_center
         if not _run_step(step, total_steps, "Syncing customer messages (Allegro + Amazon)",
