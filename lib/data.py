@@ -616,18 +616,21 @@ def load_orders_enriched(days=30):
             item_count=("sku", "count"),
             unit_count=("quantity", "sum"),
             cogs_pln=("line_cost_pln", "sum"),
+            items_revenue_pln=("line_revenue_pln", "sum"),
             first_sku=("sku", "first"),
             first_name=("name", "first"),
         ).reset_index()
     else:
         items_agg = pd.DataFrame(columns=["order_id", "item_count", "unit_count",
-                                           "cogs_pln", "first_sku", "first_name"])
+                                           "cogs_pln", "items_revenue_pln",
+                                           "first_sku", "first_name"])
 
     # Merge items aggregation into orders
     orders = orders.merge(items_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_items"))
     for col in ["item_count", "unit_count"]:
         orders[col] = pd.to_numeric(orders[col], errors="coerce").fillna(0).astype(int)
     orders["cogs_pln"] = pd.to_numeric(orders["cogs_pln"], errors="coerce").fillna(0)
+    orders["items_revenue_pln"] = pd.to_numeric(orders.get("items_revenue_pln", 0), errors="coerce").fillna(0)
 
     # Convert numeric columns
     for col in ["total_paid", "total_paid_pln", "shipping_cost", "platform_fee", "platform_fee_pln", "seller_shipping_cost_pln"]:
@@ -640,6 +643,22 @@ def load_orders_enriched(days=30):
     orders["platform_display"] = orders["platform_id"].map(
         lambda x: platforms.get(x, {}).get("name", f"#{x}")
     )
+
+    # ------------------------------------------------------------------
+    # Filter out non-sale orders (FBA inbound shipments, cancelled)
+    # ------------------------------------------------------------------
+    _ext_ids = orders["external_id"].fillna("").astype(str)
+    _statuses = orders["status"].fillna("").astype(str).str.lower()
+
+    # FBA inbound shipments have external_id starting with S02- or FBA-
+    _is_fba_inbound = _ext_ids.str.match(r'^(S02-|FBA-)', case=False, na=False)
+    # Mark cancelled orders
+    _is_cancelled = _statuses.isin(["cancelled", "canceled", "refunded"])
+
+    # Flag non-sale orders (keep in dataset but zero out COGS to not pollute P&L)
+    orders["is_sale"] = ~(_is_fba_inbound | _is_cancelled)
+    # Zero out COGS for non-sale orders (inbound shipments, cancellations)
+    orders.loc[~orders["is_sale"], "cogs_pln"] = 0
 
     # Pre-compute FX rates for all unique order (date, currency) pairs [vectorized]
     _order_dates = orders["order_date"].astype(str).str[:10]
@@ -655,6 +674,14 @@ def load_orders_enriched(days=30):
     _has_paid_pln = orders["total_paid_pln"] > 0
     orders["revenue_pln"] = orders["total_paid"] * _order_fx_rates
     orders.loc[_has_paid_pln, "revenue_pln"] = orders.loc[_has_paid_pln, "total_paid_pln"]
+
+    # Fallback: use item prices sum when total_paid is 0 but items have prices
+    _zero_rev = orders["revenue_pln"] <= 0
+    _has_item_rev = orders["items_revenue_pln"] > 0
+    orders.loc[_zero_rev & _has_item_rev, "revenue_pln"] = orders.loc[_zero_rev & _has_item_rev, "items_revenue_pln"]
+
+    # Non-sale orders get zero revenue
+    orders.loc[~orders["is_sale"], "revenue_pln"] = 0
 
     # FBA/FBM detection (needed early for shipping and fulfillment cost)  [vectorized]
     _is_amazon = orders["platform_name"].isin(amazon_platform_names)
