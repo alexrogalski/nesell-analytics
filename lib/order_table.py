@@ -24,6 +24,9 @@ PLATFORM_COLORS = {
     "baselinker_other": "#64748b",
 }
 
+# Currency display suffix (small, muted, appended after the number)
+_CCY_SPAN = '<span style="font-size:0.6rem;color:#64748b;margin-left:2px">'
+
 
 def _fmt(val, decimals=0):
     """Format number: 20982 -> '20,982'. Handles None/NaN."""
@@ -39,6 +42,16 @@ def _fmt_pln(val):
     if abs(val) >= 10000:
         return f"{val/1000:,.1f}K PLN"
     return f"{val:,.0f} PLN"
+
+
+def _val_pln(val):
+    """Format a cell value with 'PLN' suffix in small muted text."""
+    return _fmt(val) + _CCY_SPAN + 'PLN</span>'
+
+
+def _val_ccy(val, ccy):
+    """Format a cell value with the given currency suffix."""
+    return _fmt(val) + _CCY_SPAN + ccy + '</span>'
 
 
 def _plat_badge_html(platform):
@@ -83,7 +96,6 @@ def render_table_html(visible, items_df):
         + '<col class="col-orderid"/>'
         + '<col class="col-platform"/>'
         + '<col class="col-country"/>'
-        + '<col style="width:36px"/>'
         + '<col class="col-items"/>'
         + '<col class="col-revenue"/>'
         + '<col class="col-cogs"/>'
@@ -101,14 +113,13 @@ def render_table_html(visible, items_df):
         + '<th>Order ID</th>'
         + '<th class="c">Platform</th>'
         + '<th class="c">Country</th>'
-        + '<th class="c">CCY</th>'
         + '<th>Items</th>'
-        + '<th class="r">Rev net (PLN)</th>'
-        + '<th class="r">COGS (PLN)</th>'
-        + '<th class="r">Fees (PLN)</th>'
-        + '<th class="r">Ship (PLN)</th>'
-        + '<th class="r">Other (PLN)</th>'
-        + '<th class="r">Profit (PLN)</th>'
+        + '<th class="r">Revenue</th>'
+        + '<th class="r">COGS</th>'
+        + '<th class="r">Fees</th>'
+        + '<th class="r">Ship</th>'
+        + '<th class="r">Other</th>'
+        + '<th class="r">Profit</th>'
         + '<th class="r">Margin</th>'
         + '</tr></thead>'
     )
@@ -141,20 +152,37 @@ def render_table_html(visible, items_df):
         margin = float(row.get("margin_pct", 0) or 0)
         has_cogs = bool(row.get("has_cogs", False))
 
+        # Revenue cell: show PLN value + original amount in tooltip
+        orig_tooltip = f"{total_paid_orig:,.2f} {currency}"
+        rev_td = (
+            '<td class="r rev-cell" title="Orig: ' + orig_tooltip + '">'
+            + _val_pln(revenue_net) + '</td>'
+        )
+
         # COGS display
         if has_cogs:
-            cogs_td = '<td class="r">' + _fmt(cogs) + '</td>'
+            cogs_td = '<td class="r">' + _val_pln(cogs) + '</td>'
         else:
             cogs_td = '<td class="r cogs-missing">n/a</td>'
 
-        # Other costs display: gray if zero
+        # Fees
+        fees_td = '<td class="r fees-cell">' + _val_pln(fees) + '</td>'
+
+        # Shipping
+        ship_td = '<td class="r">' + _val_pln(shipping) + '</td>'
+
+        # Other costs display: gray dash if zero
         if other_costs > 0:
-            other_td = '<td class="r">' + _fmt(other_costs) + '</td>'
+            other_td = '<td class="r">' + _val_pln(other_costs) + '</td>'
         else:
             other_td = '<td class="r" style="color: #475569;">-</td>'
 
-        # Profit class
+        # Profit with currency
         profit_cls = "positive" if profit > 0 else "negative"
+        profit_td = (
+            '<td class="r profit-cell ' + profit_cls + '">'
+            + _val_pln(profit) + '</td>'
+        )
 
         # Items display
         items_text = (
@@ -181,16 +209,13 @@ def render_table_html(visible, items_df):
             + '<td class="c">' + _plat_badge_html(platform) + '</td>'
             + '<td class="c"><span class="country-badge">'
             + country_label + '</span></td>'
-            + '<td class="c" title="' + f"{total_paid_orig:,.2f} {currency}" + '">'
-            + '<span style="font-size:0.65rem;color:#94a3b8;">' + currency + '</span></td>'
             + '<td><span class="items-text">' + items_text + '</span></td>'
-            + '<td class="r rev-cell" title="Orig: ' + f"{total_paid_orig:,.2f} {currency}" + '">' + _fmt(revenue_net) + '</td>'
+            + rev_td
             + cogs_td
-            + '<td class="r fees-cell">' + _fmt(fees) + '</td>'
-            + '<td class="r">' + _fmt(shipping) + '</td>'
+            + fees_td
+            + ship_td
             + other_td
-            + '<td class="r profit-cell ' + profit_cls + '">'
-            + _fmt(profit) + '</td>'
+            + profit_td
             + '<td class="r">' + _margin_pill_html(margin) + '</td>'
             + '</tr>'
         )
