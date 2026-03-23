@@ -651,15 +651,36 @@ def load_orders_enriched(days=30):
         index=orders.index,
     )
 
-    # Revenue in PLN  [vectorized]
+    # Revenue in PLN (brutto / gross)  [vectorized]
     _has_paid_pln = orders["total_paid_pln"] > 0
     orders["revenue_pln"] = orders["total_paid"] * _order_fx_rates
     orders.loc[_has_paid_pln, "revenue_pln"] = orders.loc[_has_paid_pln, "total_paid_pln"]
 
-    # Fees in PLN  [vectorized]
-    # Layer 1: estimate from platform fee rate (default)
+    # FBA/FBM detection (needed early for shipping and fulfillment cost)  [vectorized]
     _is_amazon = orders["platform_name"].isin(amazon_platform_names)
     _is_fbm = orders["external_id"].fillna("").astype(str).apply(str.isdigit)
+    orders["fulfillment"] = ""
+    orders.loc[_is_amazon & ~_is_fbm, "fulfillment"] = "FBA"
+    orders.loc[_is_amazon & _is_fbm, "fulfillment"] = "FBM"
+
+    # ------------------------------------------------------------------
+    # 1. VAT deduction: compute net revenue from gross  [vectorized]
+    # ------------------------------------------------------------------
+    EU_VAT_RATES = {
+        "DE": 0.19, "FR": 0.20, "IT": 0.22, "ES": 0.21,
+        "NL": 0.21, "SE": 0.25, "PL": 0.23, "BE": 0.21,
+        "AT": 0.20, "GB": 0.20, "EE": 0.22, "FI": 0.255,
+        "IE": 0.23, "PT": 0.23, "LU": 0.17, "CZ": 0.21,
+    }
+    _countries = orders["shipping_country"].fillna("").astype(str).str.upper().str.strip()
+    orders["vat_rate"] = _countries.map(EU_VAT_RATES).fillna(0.23)
+    orders["vat_amount_pln"] = orders["revenue_pln"] * orders["vat_rate"] / (1 + orders["vat_rate"])
+    orders["revenue_net_pln"] = orders["revenue_pln"] - orders["vat_amount_pln"]
+
+    # ------------------------------------------------------------------
+    # 2. Fees in PLN  [vectorized]
+    # ------------------------------------------------------------------
+    # Layer 1: estimate from platform fee rate (default)
     _fee_rate = orders["platform_name"].map(platform_fee_rates).fillna(0)
     _fee_rate = _fee_rate.where(~_is_amazon, _is_fbm.map({True: AMAZON_FBM_FEE_RATE, False: AMAZON_FBA_FEE_RATE}))
     orders["fees_pln"] = orders["revenue_pln"] * _fee_rate
@@ -670,28 +691,171 @@ def load_orders_enriched(days=30):
     _has_fee_pln = orders["platform_fee_pln"] > 0
     orders.loc[_has_fee_pln, "fees_pln"] = orders.loc[_has_fee_pln, "platform_fee_pln"]
 
-    # Shipping in PLN  [vectorized]
-    # Default: convert buyer shipping_cost via FX
+    # ------------------------------------------------------------------
+    # 3. Shipping cost: DPD contract estimates for FBM  [vectorized]
+    # ------------------------------------------------------------------
+    DPD_RATES_EUR = {
+        "DE": 2.86, "FR": 3.65, "IT": 3.72, "ES": 3.81,
+        "NL": 2.92, "SE": 5.03, "AT": 3.18, "BE": 3.56,
+        "PL": 0.0,  # domestic handled separately
+    }
+    DPD_SECURITY_FEE = 0.45   # EUR per package
+    DPD_FUEL_SURCHARGE = 0.17  # 17%
+    DPD_PL_DOMESTIC_PLN = 12.0
+
+    # Start with seller_shipping_cost_pln where available (highest priority)
     orders["shipping_pln"] = 0.0
-    _has_ship = orders["shipping_cost"] > 0
-    orders.loc[_has_ship, "shipping_pln"] = orders.loc[_has_ship, "shipping_cost"] * _order_fx_rates[_has_ship]
-    # Override with seller_shipping_cost_pln where available (higher priority)
     _has_seller = orders["seller_shipping_cost_pln"] > 0
     orders.loc[_has_seller, "shipping_pln"] = orders.loc[_has_seller, "seller_shipping_cost_pln"]
 
-    # Profit  [vectorized]
-    orders["profit_pln"] = orders["revenue_pln"] - orders["cogs_pln"] - orders["fees_pln"] - orders["shipping_pln"]
+    # For FBM orders WITHOUT seller_shipping_cost_pln, estimate via DPD rates
+    _is_fbm_mask = orders["fulfillment"] == "FBM"
+    _non_amazon_fbm = ~_is_amazon  # non-Amazon orders also need shipping estimate
+    _needs_ship_estimate = (~_has_seller) & (_is_fbm_mask | _non_amazon_fbm)
+
+    if _needs_ship_estimate.any():
+        _ship_countries = _countries[_needs_ship_estimate]
+        _is_pl = _ship_countries == "PL"
+
+        # Non-PL: DPD rate + security + fuel surcharge, converted to PLN
+        _dpd_base = _ship_countries.map(DPD_RATES_EUR).fillna(4.0)
+        _dpd_total_eur = (_dpd_base + DPD_SECURITY_FEE) * (1 + DPD_FUEL_SURCHARGE)
+
+        # Get EUR FX rates for shipping estimate
+        _ship_dates = _order_dates[_needs_ship_estimate]
+        _eur_fx_ship = pd.Series(
+            [_order_fx_cache.get((d, "EUR"), get_fx(d, "EUR")) for d in _ship_dates],
+            index=orders.index[_needs_ship_estimate],
+        )
+        _dpd_pln = _dpd_total_eur * _eur_fx_ship
+
+        # PL domestic: flat 12 PLN
+        _dpd_pln[_is_pl] = DPD_PL_DOMESTIC_PLN
+
+        orders.loc[_needs_ship_estimate, "shipping_pln"] = _dpd_pln.values
+
+    # FBA orders: shipping = 0 (already included in platform fees)
+    _is_fba_mask = orders["fulfillment"] == "FBA"
+    orders.loc[_is_fba_mask, "shipping_pln"] = 0.0
+
+    # ------------------------------------------------------------------
+    # 4. Exportivo 3PL cost: 5 PLN per FBM order  [vectorized]
+    # ------------------------------------------------------------------
+    orders["fulfillment_cost_pln"] = 0.0
+    orders.loc[_is_fbm_mask | _non_amazon_fbm, "fulfillment_cost_pln"] = 5.0
+
+    # ------------------------------------------------------------------
+    # 5. PPC ad cost attribution  [vectorized]
+    # ------------------------------------------------------------------
+    orders["ppc_cost_pln"] = 0.0
+    try:
+        _ads = load_amazon_ad_spend(days=days)
+        if not _ads.empty and "spend" in _ads.columns and "date" in _ads.columns:
+            _eur_rate_latest = latest_fx.get("EUR", 4.30)
+            _ads_daily = _ads.groupby("date").agg(_ad_spend=("spend", "sum")).reset_index()
+            _ads_daily["_ad_spend_pln"] = _ads_daily["_ad_spend"] * _eur_rate_latest
+            _ads_spend_by_date = dict(zip(_ads_daily["date"].astype(str), _ads_daily["_ad_spend_pln"]))
+
+            # Compute daily revenue totals for proportional allocation
+            _odate_str = _order_dates.values
+            orders["_order_date_str"] = _odate_str
+            _daily_rev = orders.groupby("_order_date_str")["revenue_pln"].transform("sum")
+            _daily_rev = _daily_rev.replace(0, float("nan"))
+
+            # Map daily ad spend to each order's date
+            _order_ad_spend = orders["_order_date_str"].map(_ads_spend_by_date).fillna(0)
+
+            # Proportional allocation: order's share = (order_revenue / daily_revenue) * daily_ad_spend
+            orders["ppc_cost_pln"] = (_order_ad_spend * orders["revenue_pln"] / _daily_rev).fillna(0)
+            orders.drop(columns=["_order_date_str"], inplace=True)
+    except Exception:
+        pass  # PPC data unavailable, keep zeros
+
+    # ------------------------------------------------------------------
+    # 6. FBA storage fee allocation  [vectorized]
+    # ------------------------------------------------------------------
+    orders["storage_fee_pln"] = 0.0
+    try:
+        _storage = load_amazon_storage_fees()
+        if not _storage.empty and _is_fba_mask.any():
+            _eur_rate_latest = latest_fx.get("EUR", 4.30)
+            # Aggregate monthly storage fee per ASIN
+            _st_agg = _storage.groupby(["month", "asin"]).agg(
+                _total_fee=("estimated_storage_fee", "sum"),
+            ).reset_index()
+            _st_agg["_fee_pln"] = _st_agg["_total_fee"] * _eur_rate_latest
+
+            # Match orders to storage months via order_date
+            _fba_idx = orders.index[_is_fba_mask]
+            if len(_fba_idx) > 0:
+                _fba_dates = pd.to_datetime(orders.loc[_fba_idx, "order_date"], errors="coerce")
+                _fba_months = _fba_dates.dt.to_period("M").astype(str)
+
+                # Get ASINs from items for FBA orders
+                if not items_df.empty and "asin" in items_df.columns:
+                    _item_asin_map = items_df.groupby("order_id")["asin"].first()
+                    _fba_asins = orders.loc[_fba_idx, "id"].map(_item_asin_map).fillna("")
+                else:
+                    _fba_asins = pd.Series("", index=_fba_idx)
+
+                # Count FBA units sold per (month, asin) for allocation
+                _fba_temp = pd.DataFrame({
+                    "month": _fba_months.values,
+                    "asin": _fba_asins.values,
+                    "unit_count": orders.loc[_fba_idx, "unit_count"].values,
+                }, index=_fba_idx)
+
+                _fba_monthly_units = _fba_temp.groupby(["month", "asin"])["unit_count"].transform("sum")
+                _fba_monthly_units = _fba_monthly_units.replace(0, float("nan"))
+
+                # Build storage fee lookup: (month, asin) -> fee_pln
+                _st_lookup = dict(zip(
+                    zip(_st_agg["month"].astype(str), _st_agg["asin"].astype(str)),
+                    _st_agg["_fee_pln"],
+                ))
+
+                _monthly_fee = pd.Series(
+                    [_st_lookup.get((m, a), 0.0) for m, a in zip(_fba_temp["month"], _fba_temp["asin"])],
+                    index=_fba_idx,
+                )
+
+                # Per-order storage = (order_units / monthly_units_for_asin) * monthly_storage_fee
+                orders.loc[_fba_idx, "storage_fee_pln"] = (
+                    _monthly_fee * _fba_temp["unit_count"] / _fba_monthly_units
+                ).fillna(0).values
+    except Exception:
+        pass  # Storage data unavailable, keep zeros
+
+    # ------------------------------------------------------------------
+    # 7. Amazon ACCS currency conversion spread  [vectorized]
+    # ------------------------------------------------------------------
+    ACCS_SPREAD = 0.012  # ~1.2% spread charged by Amazon
+    orders["fx_spread_pln"] = 0.0
+    _is_amazon_nonpln = _is_amazon & (orders["currency"].fillna("PLN").astype(str).str.upper() != "PLN")
+    orders.loc[_is_amazon_nonpln, "fx_spread_pln"] = orders.loc[_is_amazon_nonpln, "revenue_pln"] * ACCS_SPREAD
+
+    # ------------------------------------------------------------------
+    # 8. Total costs and profit  [vectorized]
+    # ------------------------------------------------------------------
+    orders["total_costs_pln"] = (
+        orders["cogs_pln"]
+        + orders["fees_pln"]
+        + orders["shipping_pln"]
+        + orders["fulfillment_cost_pln"]
+        + orders["ppc_cost_pln"]
+        + orders["storage_fee_pln"]
+        + orders["fx_spread_pln"]
+    )
+
+    orders["profit_pln"] = orders["revenue_net_pln"] - orders["total_costs_pln"]
+
+    # Margin based on net revenue (not brutto)
     orders["margin_pct"] = 0.0
-    _has_rev = orders["revenue_pln"] > 0
-    orders.loc[_has_rev, "margin_pct"] = orders.loc[_has_rev, "profit_pln"] / orders.loc[_has_rev, "revenue_pln"] * 100
+    _has_rev = orders["revenue_net_pln"] > 0
+    orders.loc[_has_rev, "margin_pct"] = orders.loc[_has_rev, "profit_pln"] / orders.loc[_has_rev, "revenue_net_pln"] * 100
 
     # Has COGS flag
     orders["has_cogs"] = orders["cogs_pln"] > 0
-
-    # FBA/FBM flag  [vectorized]
-    orders["fulfillment"] = ""
-    orders.loc[_is_amazon & ~_is_fbm, "fulfillment"] = "FBA"
-    orders.loc[_is_amazon & _is_fbm, "fulfillment"] = "FBM"
 
     # ROI  [vectorized]
     orders["roi_pct"] = 0.0
