@@ -634,12 +634,65 @@ with thread_col:
             label_visibility="collapsed",
         )
 
-        send_col, status_col = st.columns([1, 3])
-        with send_col:
+        # Custom prompt box for Claude regeneration
+        custom_prompt = st.text_input(
+            "Wlasna instrukcja dla Claude (np. 'napisz bardziej empatycznie', 'zaproponuj wymiane')",
+            key=f"custom_prompt_{selected}",
+            placeholder="Wpisz instrukcje i kliknij Regeneruj...",
+        )
+
+        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 2])
+        with btn_col1:
             send_clicked = st.button("Wyslij", key=f"send_{selected}", type="primary")
+        with btn_col2:
+            regen_clicked = st.button("Regeneruj", key=f"regen_{selected}")
+
+        # Regenerate draft with custom prompt via Claude CLI
+        if regen_clicked and custom_prompt.strip():
+            with st.spinner("Claude generuje nowa odpowiedz..."):
+                try:
+                    import subprocess
+                    body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
+                    tl = last_inbound_draft.get("translation_pl") or ""
+
+                    regen_prompt = (
+                        f"E-commerce support for nesell. Generate customer reply.\n"
+                        f"BUYER MESSAGE: {body_clean[:600]}\n"
+                        f"PL TRANSLATION: {tl[:400]}\n"
+                        f"ORDER: {order}\n"
+                        f"PLATFORM: {platform}\n"
+                        f"USER INSTRUCTION: {custom_prompt}\n\n"
+                        f"Reply as JSON: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
+                    )
+
+                    result = subprocess.run(
+                        ["claude", "-p", regen_prompt, "--model", "sonnet", "--max-turns", "1"],
+                        capture_output=True, text=True, timeout=30,
+                    )
+                    import json
+                    json_match = re.search(r'\{.*\}', result.stdout, re.DOTALL)
+                    if json_match:
+                        data = json.loads(json_match.group())
+                        new_pl = data.get("draft_pl", "")
+                        new_local = data.get(f"draft_{d_lang.lower()}", "")
+                        if new_pl:
+                            st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
+                              <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
+                              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
+                            </div>''')
+                        if new_local:
+                            st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
+                              <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
+                              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
+                            </div>''')
+                            st.session_state[f"reply_{selected}"] = new_local
+                    else:
+                        st.warning("Claude nie zwrocil JSON. Sprobuj inaczej sformulowac instrukcje.")
+                except Exception as e:
+                    st.error(f"Blad: {e}")
 
         if send_clicked and reply_text.strip():
-            with status_col:
+            with btn_col3:
                 with st.spinner("Wysylanie..."):
                     if source == "allegro":
                         ok, msg = _send_allegro_reply(thread_id, reply_text)
