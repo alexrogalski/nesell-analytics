@@ -291,15 +291,17 @@ div[data-testid="column"] {
 
 /* Column widths */
 .orders-table colgroup .col-date { width: 88px; }
-.orders-table colgroup .col-orderid { width: 170px; }
-.orders-table colgroup .col-platform { width: 90px; }
-.orders-table colgroup .col-country { width: 52px; }
+.orders-table colgroup .col-orderid { width: 160px; }
+.orders-table colgroup .col-platform { width: 86px; }
+.orders-table colgroup .col-country { width: 48px; }
 .orders-table colgroup .col-items { width: auto; }
-.orders-table colgroup .col-revenue { width: 85px; }
-.orders-table colgroup .col-cogs { width: 72px; }
-.orders-table colgroup .col-fees { width: 72px; }
-.orders-table colgroup .col-profit { width: 85px; }
-.orders-table colgroup .col-margin { width: 68px; }
+.orders-table colgroup .col-revenue { width: 82px; }
+.orders-table colgroup .col-cogs { width: 68px; }
+.orders-table colgroup .col-fees { width: 68px; }
+.orders-table colgroup .col-ship { width: 62px; }
+.orders-table colgroup .col-other { width: 62px; }
+.orders-table colgroup .col-profit { width: 78px; }
+.orders-table colgroup .col-margin { width: 64px; }
 
 .orders-table thead {
     position: sticky;
@@ -503,6 +505,75 @@ div[data-testid="column"] {
     color: var(--text-muted);
     margin-top: 2px;
 }
+
+/* --- Profit Waterfall (Sellerboard-style) --- */
+.profit-waterfall-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+}
+.profit-waterfall-title {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+}
+.profit-waterfall-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+}
+.profit-waterfall-table tr {
+    border-bottom: 1px solid #1a2332;
+}
+.profit-waterfall-table tr.wf-subtotal {
+    border-top: 1px solid #334155;
+    border-bottom: 1px solid #334155;
+}
+.profit-waterfall-table tr.wf-subtotal td {
+    font-weight: 700;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+.profit-waterfall-table tr.wf-result {
+    border-top: 2px solid #334155;
+}
+.profit-waterfall-table tr.wf-result td {
+    font-weight: 700;
+    font-size: 0.82rem;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.profit-waterfall-table td {
+    padding: 6px 0;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+.profit-waterfall-table td.wf-label {
+    color: var(--text-muted);
+    width: 55%;
+}
+.profit-waterfall-table td.wf-amount {
+    text-align: right;
+    width: 25%;
+    font-variant-numeric: tabular-nums;
+}
+.profit-waterfall-table td.wf-pct {
+    text-align: right;
+    width: 20%;
+    color: var(--text-muted);
+    font-size: 0.68rem;
+}
+.profit-waterfall-table .wf-vat td { color: #94a3b8; }
+.profit-waterfall-table .wf-cost td.wf-amount { color: #f87171; }
+.profit-waterfall-table .wf-profit-pos td.wf-amount { color: var(--accent-green); }
+.profit-waterfall-table .wf-profit-neg td.wf-amount { color: var(--accent-red); }
+.profit-waterfall-table .wf-profit-pos td.wf-pct { color: var(--accent-green); }
+.profit-waterfall-table .wf-profit-neg td.wf-pct { color: var(--accent-red); }
 
 /* --- Table pagination / count --- */
 .orders-table-footer {
