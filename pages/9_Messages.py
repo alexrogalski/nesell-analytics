@@ -1,12 +1,10 @@
-"""Messages - Customer conversation hub (Allegro + Amazon)."""
+"""Messages - Inbox-style customer conversation hub."""
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from lib.theme import setup_page, COLORS
 
 setup_page("Messages")
-
-st.markdown('<div class="section-header">MESSAGE CENTER</div>', unsafe_allow_html=True)
 
 # --- Data loading ---
 from lib.data import _get
@@ -23,7 +21,7 @@ def load_conversations(days=30):
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
 
-@st.cache_data(ttl=120)
+@st.cache_data(ttl=60)
 def load_messages_for_conv(conv_id):
     rows = _get("messages", {
         "conversation_id": f"eq.{conv_id}",
@@ -33,162 +31,155 @@ def load_messages_for_conv(conv_id):
     return rows or []
 
 
-# --- Sidebar filters ---
-st.sidebar.markdown('<div class="section-header">FILTERS</div>', unsafe_allow_html=True)
+def _time_ago(ts_str):
+    if not ts_str:
+        return ""
+    try:
+        ts = pd.to_datetime(ts_str, utc=True)
+        delta = pd.Timestamp.now(tz="UTC") - ts
+        if delta.days > 0:
+            return f"{delta.days}d"
+        hours = int(delta.total_seconds() / 3600)
+        if hours > 0:
+            return f"{hours}h"
+        return f"{int(delta.total_seconds() / 60)}m"
+    except Exception:
+        return ""
 
+
+def _esc(text):
+    """Escape HTML entities."""
+    return (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+# --- Sidebar filters ---
 period_map = {7: "7D", 14: "14D", 30: "30D", 90: "90D"}
-days = st.sidebar.selectbox("PERIOD", list(period_map.keys()), index=2,
+days = st.sidebar.selectbox("Period", list(period_map.keys()), index=2,
                             format_func=lambda x: period_map[x], key="msg_period")
 
 df = load_conversations(days=days)
 
 if df.empty:
-    st.warning("No conversations found. Run: python3.11 -m etl.run --messages")
+    st.warning("No conversations. Run: python3.11 -m etl.run --messages")
     st.stop()
 
-# Filters
 all_sources = sorted(df["source"].dropna().unique())
-selected_sources = st.sidebar.multiselect("SOURCE", all_sources, default=all_sources, key="msg_src")
-
-all_platforms = sorted(df["platform"].dropna().unique())
-selected_platforms = st.sidebar.multiselect("PLATFORM", all_platforms, default=all_platforms, key="msg_plat")
+selected_sources = st.sidebar.multiselect("Source", all_sources, default=all_sources, key="msg_src")
 
 status_opts = ["all", "open", "replied", "closed", "escalated"]
-selected_status = st.sidebar.selectbox("STATUS", status_opts, key="msg_status")
+selected_status = st.sidebar.selectbox("Status", status_opts, key="msg_status")
 
-needs_reply_only = st.sidebar.checkbox("Needs reply only", value=False, key="msg_needs_reply")
-search_q = st.sidebar.text_input("SEARCH (buyer, order ID)", key="msg_search")
+needs_reply_only = st.sidebar.checkbox("Needs reply only", key="msg_nr")
+search_q = st.sidebar.text_input("Search", key="msg_q")
 
 # Apply filters
-filtered = df.copy()
-filtered = filtered[filtered["source"].isin(selected_sources)]
-filtered = filtered[filtered["platform"].isin(selected_platforms)]
+filtered = df[df["source"].isin(selected_sources)].copy()
 if selected_status != "all":
     filtered = filtered[filtered["status"] == selected_status]
 if needs_reply_only:
     filtered = filtered[filtered["needs_reply"] == True]
 if search_q:
     q = search_q.lower()
-    mask = (
+    filtered = filtered[
         filtered["buyer_name"].astype(str).str.lower().str.contains(q, na=False)
         | filtered["buyer_login"].astype(str).str.lower().str.contains(q, na=False)
         | filtered["external_order_id"].astype(str).str.lower().str.contains(q, na=False)
-    )
-    filtered = filtered[mask]
+    ]
 
-# ============================================================
-# KPI STRIP (native Streamlit)
-# ============================================================
-total_convs = len(filtered)
+# Sort: needs_reply first, then by last_message_at
+filtered = filtered.sort_values(
+    ["needs_reply", "last_message_at"], ascending=[False, False]
+).reset_index(drop=True)
+
+# KPI bar (compact one-liner)
 needs_reply_count = int(filtered["needs_reply"].sum()) if "needs_reply" in filtered.columns else 0
-open_count = len(filtered[filtered["status"] == "open"]) if "status" in filtered.columns else 0
-escalated_count = len(filtered[filtered["status"] == "escalated"]) if "status" in filtered.columns else 0
-replied_count = len(filtered[filtered["status"] == "replied"]) if "status" in filtered.columns else 0
-
-avg_resp = None
-if "first_response_minutes" in filtered.columns:
-    resp_vals = filtered["first_response_minutes"].dropna()
-    if len(resp_vals) > 0:
-        avg_resp = resp_vals.mean()
-
-allegro_count = len(filtered[filtered["source"] == "allegro"])
-amazon_count = len(filtered[filtered["source"] == "amazon_email"])
-
-resp_display = f"{avg_resp:.0f} min" if avg_resp is not None else "N/A"
-
-k1, k2, k3, k4, k5 = st.columns(5)
-k1.metric("Conversations", total_convs, delta=f"{period_map.get(days,'')} period", delta_color="off")
-k2.metric("Needs Reply", needs_reply_count, delta="action required" if needs_reply_count > 0 else "all good", delta_color="inverse" if needs_reply_count > 0 else "normal")
-k3.metric("Avg Response", resp_display, delta="first reply", delta_color="off")
-k4.metric("Open / Escalated", f"{open_count} / {escalated_count}", delta=f"{replied_count} replied", delta_color="off")
-k5.metric("Sources", f"ALG {allegro_count} | AMZ {amazon_count}")
-
+nr_color = "#ef4444" if needs_reply_count > 0 else "#10b981"
+st.html(f'''<div style="display:flex; gap:24px; align-items:baseline; padding:8px 0 12px; font-family:monospace; border-bottom:1px solid #1e293b; margin-bottom:12px;">
+  <span style="font-size:18px; font-weight:700; color:#e2e8f0;">MESSAGE CENTER</span>
+  <span style="font-size:13px; color:#64748b;">{len(filtered)} conversations</span>
+  <span style="font-size:13px; font-weight:700; color:{nr_color};">{needs_reply_count} needs reply</span>
+  <span style="font-size:13px; color:#64748b;">{period_map.get(days,"")} period</span>
+</div>''')
 
 # ============================================================
-# CONVERSATIONS TABLE (native st.dataframe)
+# TWO-PANEL INBOX LAYOUT
 # ============================================================
-st.markdown('<div class="section-header">CONVERSATIONS</div>', unsafe_allow_html=True)
+list_col, thread_col = st.columns([1, 2], gap="medium")
 
-
-def _time_ago(ts_str):
-    if not ts_str:
-        return ""
-    try:
-        ts = pd.to_datetime(ts_str, utc=True)
-        now = pd.Timestamp.now(tz="UTC")
-        delta = now - ts
-        if delta.days > 0:
-            return f"{delta.days}d ago"
-        hours = int(delta.total_seconds() / 3600)
-        if hours > 0:
-            return f"{hours}h ago"
-        mins = int(delta.total_seconds() / 60)
-        return f"{mins}m ago"
-    except Exception:
-        return ""
-
-
-# Prepare display dataframe
-if not filtered.empty:
-    display_df = pd.DataFrame()
-    display_df["Reply"] = filtered["needs_reply"].map(lambda x: "!!" if x else "")
-    display_df["Src"] = filtered["source"].map({"allegro": "ALG", "amazon_email": "AMZ", "allegro_issue": "ISSUE"}).fillna("?")
-    display_df["Platform"] = filtered["platform"].str.upper().str.replace("_", " ")
-    display_df["Buyer"] = filtered["buyer_name"].fillna(filtered["buyer_login"]).fillna("?")
-    display_df["Order"] = filtered["external_order_id"].fillna("")
-    display_df["Status"] = filtered["status"].fillna("open")
-    display_df["Cat"] = filtered["category"].fillna("")
-    display_df["Dir"] = filtered["last_message_direction"].map({"inbound": "<-", "outbound": "->"}).fillna("")
-    display_df["Msgs"] = filtered["message_count"].fillna(0).astype(int)
-    display_df["Last"] = filtered["last_message_at"].map(_time_ago)
-    display_df.index = filtered["id"].values
-
-    st.dataframe(
-        display_df,
-        use_container_width=True,
-        height=min(len(display_df) * 35 + 38, 600),
-        column_config={
-            "Reply": st.column_config.TextColumn("!", width="small"),
-            "Src": st.column_config.TextColumn("Src", width="small"),
-            "Platform": st.column_config.TextColumn("Platform", width="small"),
-            "Buyer": st.column_config.TextColumn("Buyer", width="medium"),
-            "Order": st.column_config.TextColumn("Order", width="medium"),
-            "Status": st.column_config.TextColumn("Status", width="small"),
-            "Cat": st.column_config.TextColumn("Cat", width="small"),
-            "Dir": st.column_config.TextColumn("Dir", width="small"),
-            "Msgs": st.column_config.NumberColumn("Msgs", width="small"),
-            "Last": st.column_config.TextColumn("Last", width="small"),
-        },
-    )
-
-    st.caption(f"Showing {len(display_df)} conversations ({period_map.get(days,'')} period)")
-
-# ============================================================
-# CONVERSATION DETAIL
-# ============================================================
-st.markdown('<div class="section-header">CONVERSATION DETAIL</div>', unsafe_allow_html=True)
-
-if not filtered.empty:
-    conv_options = {}
-    for _, row in filtered.head(100).iterrows():
-        cid = row.get("id")
+# --- LEFT PANEL: Conversation list ---
+with list_col:
+    # Build radio options
+    conv_ids = filtered["id"].tolist()
+    conv_labels = {}
+    for _, row in filtered.iterrows():
+        cid = row["id"]
         buyer = row.get("buyer_name") or row.get("buyer_login") or "?"
+        if len(buyer) > 18:
+            buyer = buyer[:16] + ".."
         order = row.get("external_order_id") or ""
-        src = (row.get("source") or "").upper().replace("_", " ")
+        if len(order) > 15:
+            order = order[-12:]
+        src = "ALG" if row.get("source") == "allegro" else ("ISS" if row.get("source") == "allegro_issue" else "AMZ")
+        platform = (row.get("platform") or "").replace("amazon_", "").replace("allegro", "alg").upper()
         status = row.get("status", "")
-        needs = " ** NEEDS REPLY **" if row.get("needs_reply") else ""
-        label = f"[{src}] {buyer} | {order} ({status}){needs}"
-        conv_options[cid] = label
+        nr = row.get("needs_reply", False)
+        cat = row.get("category") or ""
+        time = _time_ago(row.get("last_message_at"))
+        msgs = int(row.get("message_count") or 0)
 
-    selected_conv_id = st.selectbox(
-        "Select conversation",
-        list(conv_options.keys()),
-        format_func=lambda x: conv_options.get(x, str(x)),
-        key="msg_conv_select",
+        dot = "● " if nr else "  "
+        cat_tag = f" [{cat}]" if cat else ""
+        conv_labels[cid] = f"{dot}{src} {platform} | {buyer}\n   {order}  {status}{cat_tag}  {msgs}msg  {time}"
+
+    if not conv_ids:
+        st.info("No conversations match filters.")
+        st.stop()
+
+    # Default to first conversation or session state
+    default_idx = 0
+    if "selected_conv" in st.session_state and st.session_state.selected_conv in conv_ids:
+        default_idx = conv_ids.index(st.session_state.selected_conv)
+
+    selected = st.radio(
+        "Conversations",
+        conv_ids,
+        index=default_idx,
+        format_func=lambda x: conv_labels.get(x, str(x)),
+        key="conv_radio",
+        label_visibility="collapsed",
     )
+    st.session_state.selected_conv = selected
 
-    if selected_conv_id:
-        messages = load_messages_for_conv(selected_conv_id)
+# --- RIGHT PANEL: Message thread + draft ---
+with thread_col:
+    if selected:
+        # Conversation header
+        conv_row = filtered[filtered["id"] == selected].iloc[0] if selected in filtered["id"].values else None
+        if conv_row is not None:
+            buyer = conv_row.get("buyer_name") or conv_row.get("buyer_login") or "?"
+            order = conv_row.get("external_order_id") or ""
+            platform = (conv_row.get("platform") or "").upper().replace("_", " ")
+            status = conv_row.get("status", "open")
+            cat = conv_row.get("category") or ""
+            nr = conv_row.get("needs_reply", False)
+
+            status_colors = {"open": "#f59e0b", "replied": "#10b981", "closed": "#64748b", "escalated": "#ef4444"}
+            s_color = status_colors.get(status, "#64748b")
+            nr_badge = '<span style="background:#ef444420; color:#ef4444; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; margin-left:8px;">NEEDS REPLY</span>' if nr else ""
+            cat_badge = f'<span style="background:#334155; color:#94a3b8; padding:2px 6px; border-radius:3px; font-size:10px; margin-left:6px;">{_esc(cat)}</span>' if cat else ""
+
+            st.html(f'''<div style="padding:10px 14px; background:#111827; border:1px solid #1e293b; border-radius:8px; margin-bottom:12px; font-family:monospace;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:15px; font-weight:700; color:#e2e8f0;">{_esc(buyer)}</span>
+                <span style="font-size:12px; color:#64748b;">{_esc(platform)}</span>
+                <span style="background:{s_color}20; color:{s_color}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">{_esc(status)}</span>
+                {nr_badge}{cat_badge}
+              </div>
+              <div style="font-size:11px; color:#64748b; margin-top:4px;">Order: {_esc(order) if order else "no order linked"}</div>
+            </div>''')
+
+        # Messages
+        messages = load_messages_for_conv(selected)
         if messages:
             for m in messages:
                 direction = m.get("direction", "")
@@ -201,44 +192,37 @@ if not filtered.empty:
                 detected_lang = m.get("detected_language") or ""
 
                 time_display = _time_ago(sent)
-                dir_icon = "<<" if is_inbound else ">>"
-                dir_label = "INBOUND" if is_inbound else "OUTBOUND"
-                lang_tag = f" [{detected_lang.upper()}]" if detected_lang and detected_lang != "pl" else ""
-
-                # Message bubble via st.html
                 border_color = "#ef4444" if is_inbound else "#3b82f6"
-                bg = "#1e293b" if is_inbound else "#1a2744"
+                bg = "#1e293b" if is_inbound else "#131d2e"
                 label_color = "#ef4444" if is_inbound else "#3b82f6"
+                dir_label = "BUYER" if is_inbound else "YOU"
+                lang_tag = f' <span style="background:#334155; color:#94a3b8; padding:1px 5px; border-radius:3px; font-size:9px;">{detected_lang.upper()}</span>' if detected_lang and detected_lang != "pl" else ""
 
-                body_safe = (body[:2000] if body else "<em>No text</em>").replace("\n", "<br>").replace("<", "&lt;").replace(">", "&gt;").replace("&lt;br&gt;", "<br>").replace("&lt;em&gt;", "<em>").replace("&lt;/em&gt;", "</em>")
-                subject_safe = subject.replace("<", "&lt;").replace(">", "&gt;") if subject else ""
+                body_safe = _esc(body[:3000]).replace("\n", "<br>")
+                subject_block = f'<div style="font-size:11px; color:#06b6d4; margin-bottom:4px; font-weight:600;">{_esc(subject)}</div>' if subject else ""
 
-                subject_block = f'<div style="font-size:12px; color:#06b6d4; margin-bottom:4px;">{subject_safe}</div>' if subject_safe else ""
-
-                # Translation block
+                # Translation
                 tl_block = ""
                 if translation_pl and is_inbound and detected_lang != "pl":
-                    tl_safe = translation_pl[:2000].replace("\n", "<br>").replace("<", "&lt;").replace(">", "&gt;").replace("&lt;br&gt;", "<br>")
-                    tl_block = f'''<div style="margin-top:8px; padding:8px 10px; background:#0f172a; border-left:2px solid #8b5cf6; border-radius:4px;">
-                      <div style="font-size:10px; font-weight:700; color:#8b5cf6; margin-bottom:3px;">TLUMACZENIE PL</div>
+                    tl_safe = _esc(translation_pl[:2000]).replace("\n", "<br>")
+                    tl_block = f'''<div style="margin-top:8px; padding:8px 10px; background:#0f172a; border-left:2px solid #8b5cf6; border-radius:0 4px 4px 0;">
+                      <div style="font-size:10px; font-weight:700; color:#8b5cf6; margin-bottom:2px;">PO POLSKU</div>
                       <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">{tl_safe}</div>
                     </div>'''
 
-                bubble_html = f'''<div style="margin-bottom:6px; font-family:monospace;">
-                  <div style="max-width:90%; background:{bg}; border-left:3px solid {border_color}; border-radius:6px; padding:10px 14px;">
+                st.html(f'''<div style="margin-bottom:6px; font-family:monospace;">
+                  <div style="background:{bg}; border-left:3px solid {border_color}; border-radius:0 6px 6px 0; padding:10px 14px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                       <span style="font-size:11px; font-weight:700; color:{label_color};">{dir_label}{lang_tag}</span>
-                      <span style="font-size:10px; color:#64748b;">{sender} | {time_display}</span>
+                      <span style="font-size:10px; color:#64748b;">{_esc(sender)} · {time_display}</span>
                     </div>
                     {subject_block}
-                    <div style="font-size:12px; color:#e2e8f0; line-height:1.5; word-break:break-word;">{body_safe}</div>
+                    <div style="font-size:12px; color:#e2e8f0; line-height:1.6; word-break:break-word;">{body_safe if body_safe else "<span style='color:#475569;'>No text content</span>"}</div>
                     {tl_block}
                   </div>
-                </div>'''
+                </div>''')
 
-                st.html(bubble_html)
-
-            # Draft reply panel
+            # Draft reply panel (for last inbound message)
             last_inbound = None
             for m in reversed(messages):
                 if m.get("direction") == "inbound" and m.get("draft_reply"):
@@ -246,11 +230,11 @@ if not filtered.empty:
                     break
 
             if last_inbound:
-                draft_pl = (last_inbound.get("draft_reply") or "").replace("\n", "<br>")
-                draft_local = (last_inbound.get("draft_reply_local") or "").replace("\n", "<br>")
+                draft_pl = _esc(last_inbound.get("draft_reply") or "").replace("\n", "<br>")
+                draft_local = _esc(last_inbound.get("draft_reply_local") or "").replace("\n", "<br>")
                 d_lang = (last_inbound.get("detected_language") or "?").upper()
 
-                draft_html = f'''<div style="margin-top:12px; padding:14px; background:#1a1a2e; border:1px solid rgba(139,92,246,0.25); border-radius:8px; font-family:monospace;">
+                st.html(f'''<div style="margin-top:12px; padding:14px; background:#1a1a2e; border:1px solid rgba(139,92,246,0.3); border-radius:8px; font-family:monospace;">
                   <div style="font-size:12px; font-weight:700; color:#8b5cf6; margin-bottom:10px;">DRAFT ODPOWIEDZI</div>
                   <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                     <div>
@@ -262,8 +246,6 @@ if not filtered.empty:
                       <div style="font-size:12px; color:#e2e8f0; line-height:1.5; background:#111827; padding:10px; border-radius:6px;">{draft_local}</div>
                     </div>
                   </div>
-                </div>'''
-
-                st.html(draft_html)
+                </div>''')
         else:
-            st.info("No messages found for this conversation.")
+            st.info("No messages in this conversation.")
