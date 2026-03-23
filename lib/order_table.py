@@ -83,6 +83,7 @@ def render_table_html(visible, items_df):
         + '<col class="col-orderid"/>'
         + '<col class="col-platform"/>'
         + '<col class="col-country"/>'
+        + '<col style="width:36px"/>'
         + '<col class="col-items"/>'
         + '<col class="col-revenue"/>'
         + '<col class="col-cogs"/>'
@@ -100,13 +101,14 @@ def render_table_html(visible, items_df):
         + '<th>Order ID</th>'
         + '<th class="c">Platform</th>'
         + '<th class="c">Country</th>'
+        + '<th class="c">CCY</th>'
         + '<th>Items</th>'
-        + '<th class="r">Revenue (net)</th>'
-        + '<th class="r">COGS</th>'
-        + '<th class="r">Fees</th>'
-        + '<th class="r">Ship</th>'
-        + '<th class="r">Other</th>'
-        + '<th class="r">Profit</th>'
+        + '<th class="r">Rev net (PLN)</th>'
+        + '<th class="r">COGS (PLN)</th>'
+        + '<th class="r">Fees (PLN)</th>'
+        + '<th class="r">Ship (PLN)</th>'
+        + '<th class="r">Other (PLN)</th>'
+        + '<th class="r">Profit (PLN)</th>'
         + '<th class="r">Margin</th>'
         + '</tr></thead>'
     )
@@ -120,6 +122,8 @@ def render_table_html(visible, items_df):
         platform = str(row.get("platform_name", ""))
         country = str(row.get("shipping_country", "")).upper()[:2]
         country_label = COUNTRY_FLAGS.get(country, country) if country else "--"
+        currency = str(row.get("currency", "EUR")).upper()
+        total_paid_orig = float(row.get("total_paid", 0) or 0)
         unit_count = int(row.get("unit_count", 0))
         first_name = str(row.get("first_name", ""))[:35]
         # Use revenue_net_pln if available, fallback to revenue_pln
@@ -177,8 +181,10 @@ def render_table_html(visible, items_df):
             + '<td class="c">' + _plat_badge_html(platform) + '</td>'
             + '<td class="c"><span class="country-badge">'
             + country_label + '</span></td>'
+            + '<td class="c" title="' + f"{total_paid_orig:,.2f} {currency}" + '">'
+            + '<span style="font-size:0.65rem;color:#94a3b8;">' + currency + '</span></td>'
             + '<td><span class="items-text">' + items_text + '</span></td>'
-            + '<td class="r rev-cell">' + _fmt(revenue_net) + '</td>'
+            + '<td class="r rev-cell" title="Orig: ' + f"{total_paid_orig:,.2f} {currency}" + '">' + _fmt(revenue_net) + '</td>'
             + cogs_td
             + '<td class="r fees-cell">' + _fmt(fees) + '</td>'
             + '<td class="r">' + _fmt(shipping) + '</td>'
