@@ -33,6 +33,174 @@ def load_messages_for_conv(conv_id):
     return rows or []
 
 
+@st.cache_data(ttl=120)
+def load_order_context(order_id):
+    """Look up order details, items, shipping, and problems."""
+    if not order_id:
+        return None
+
+    ctx = {"order_id": order_id}
+
+    # Find order (try both fields)
+    order = None
+    for field in ["platform_order_id", "external_id"]:
+        rows = _get("orders", {field: f"eq.{order_id}", "select": "*", "limit": "1"})
+        if rows:
+            order = rows[0]
+            break
+
+    if not order:
+        ctx["found"] = False
+        return ctx
+
+    ctx["found"] = True
+    ctx["order_date"] = order.get("order_date", "")
+    ctx["status"] = order.get("status", "")
+    ctx["shipping_country"] = order.get("shipping_country", "")
+    ctx["delivery_method"] = order.get("delivery_method", "")
+    ctx["bl_order_id"] = order.get("external_id") or order.get("id")
+    internal_id = order.get("id")
+
+    # Order items
+    items = _get("order_items", {
+        "order_id": f"eq.{internal_id}",
+        "select": "sku,name,quantity",
+    })
+    ctx["items"] = items
+
+    # Shipping info
+    bl_id = str(ctx["bl_order_id"])
+    shipping = _get("shipping_costs", {
+        "order_id": f"eq.{bl_id}",
+        "select": "tracking_number,courier,destination_country,ship_date,cost_pln,cost_source",
+        "limit": "1",
+    })
+    if not shipping:
+        shipping = _get("shipping_costs", {
+            "external_order_id": f"eq.{order_id}",
+            "select": "tracking_number,courier,destination_country,ship_date,cost_pln,cost_source",
+            "limit": "1",
+        })
+    ctx["shipping"] = shipping[0] if shipping else None
+
+    # Shipping problems
+    problems = _get("shipping_problems", {
+        "external_order_id": f"eq.{order_id}",
+        "select": "problem_type,problem_detail,severity,status,resolution,delivery_attempts",
+        "limit": "1",
+    })
+    if not problems and bl_id:
+        problems = _get("shipping_problems", {
+            "bl_order_id": f"eq.{bl_id}",
+            "select": "problem_type,problem_detail,severity,status,resolution,delivery_attempts",
+            "limit": "1",
+        })
+    ctx["problem"] = problems[0] if problems else None
+
+    return ctx
+
+
+def _build_smart_draft(ctx, message_text, detected_lang):
+    """Generate context-aware draft reply based on order data."""
+    lang = (detected_lang or "de").lower()
+    order_id = ctx.get("order_id", "")
+    ref = f" ({order_id})" if order_id else ""
+
+    if not ctx or not ctx.get("found"):
+        # Order not in our system
+        draft_pl = (
+            f"Dzien dobry,\n\n"
+            f"Dziekujemy za wiadomosc{ref}. "
+            f"Nie znalezlismy tego zamowienia w naszym systemie, co moze oznaczac ze zostalo zrealizowane przez Amazon (FBA). "
+            f"Prosimy o kontakt bezposrednio z Amazon w celu uzyskania informacji o statusie przesylki.\n\n"
+            f"Pozdrawiamy,\nZespol nesell"
+        )
+        return draft_pl
+
+    status = ctx.get("status", "")
+    ship = ctx.get("shipping")
+    problem = ctx.get("problem")
+    items = ctx.get("items", [])
+    order_date = ctx.get("order_date", "")[:10]
+
+    item_names = ", ".join(i.get("name", i.get("sku", "?"))[:40] for i in items[:2]) if items else "?"
+
+    if problem:
+        # There's a known shipping problem
+        p_type = problem.get("problem_type", "")
+        p_detail = problem.get("problem_detail", "")
+        attempts = problem.get("delivery_attempts", 0)
+        p_status = problem.get("status", "")
+
+        draft_pl = (
+            f"Dzien dobry,\n\n"
+            f"Dziekujemy za wiadomosc dot. zamowienia{ref}.\n\n"
+            f"Sprawdzilismy status i widzimy problem z dostawa: {p_detail}. "
+        )
+        if attempts and attempts >= 2:
+            draft_pl += f"Kurier podjal juz {attempts} prob dostawy. "
+        if p_status == "open":
+            draft_pl += "Aktywnie pracujemy nad rozwiazaniem tego problemu. "
+        draft_pl += (
+            f"\nProponujemy wyslanie zamowienia ponownie lub pelny zwrot. "
+            f"Prosimy o informacje, ktora opcja jest preferowana.\n\n"
+            f"Pozdrawiamy,\nZespol nesell"
+        )
+        return draft_pl
+
+    if ship:
+        tracking = ship.get("tracking_number", "")
+        courier = ship.get("courier", "DPD").upper()
+        ship_date = ship.get("ship_date", "")
+
+        if "nie" in (message_text or "").lower() or "nicht" in (message_text or "").lower() or "not" in (message_text or "").lower() or "pas" in (message_text or "").lower():
+            # Customer says not received but we have shipping info
+            draft_pl = (
+                f"Dzien dobry,\n\n"
+                f"Dziekujemy za wiadomosc dot. zamowienia{ref}.\n\n"
+                f"Zamowienie zostalo wyslane {ship_date} kurierem {courier}"
+            )
+            if tracking:
+                draft_pl += f", numer przesylki: {tracking}"
+            draft_pl += (
+                f".\n\nSprawdzamy aktualny status przesylki u kuriera. "
+                f"Jesli paczka nie dotrze w ciagu 3 dni roboczych, wysylamy zamowienie ponownie lub oferujemy pelny zwrot.\n\n"
+                f"Pozdrawiamy,\nZespol nesell"
+            )
+            return draft_pl
+
+        # General inquiry about shipped order
+        draft_pl = (
+            f"Dzien dobry,\n\n"
+            f"Dziekujemy za wiadomosc dot. zamowienia{ref}.\n\n"
+            f"Zamowienie zostalo wyslane {ship_date} kurierem {courier}"
+        )
+        if tracking:
+            draft_pl += f" (tracking: {tracking})"
+        draft_pl += f".\n\nCzy mozemy pomoc w czymkolwiek jeszcze?\n\nPozdrawiamy,\nZespol nesell"
+        return draft_pl
+
+    if status == "confirmed":
+        # Order confirmed but not shipped yet
+        draft_pl = (
+            f"Dzien dobry,\n\n"
+            f"Dziekujemy za wiadomosc dot. zamowienia{ref}.\n\n"
+            f"Zamowienie z dnia {order_date} jest w trakcie realizacji i zostanie wyslane najszybciej jak to mozliwe. "
+            f"Powiadomimy o numerze przesylki.\n\n"
+            f"Pozdrawiamy,\nZespol nesell"
+        )
+        return draft_pl
+
+    # Fallback
+    draft_pl = (
+        f"Dzien dobry,\n\n"
+        f"Dziekujemy za wiadomosc dot. zamowienia{ref} (status: {status}, data: {order_date}).\n\n"
+        f"Sprawdzamy sprawe i odpowiemy najszybciej jak to mozliwe.\n\n"
+        f"Pozdrawiamy,\nZespol nesell"
+    )
+    return draft_pl
+
+
 # ── Helpers ──
 
 def _time_ago(ts_str):
@@ -306,8 +474,55 @@ with thread_col:
         <span style="background:{s_col}20; color:{s_col}; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">{_esc(status)}</span>
         {nr_html} {cat_html}
       </div>
-      <div style="font-size:11px; color:#64748b; margin-top:3px;">Zamowienie: {_esc(order) if order else "brak"}</div>
     </div>''')
+
+    # ── Order context panel ──
+    order_ctx = load_order_context(order) if order else None
+    if order_ctx:
+        if order_ctx.get("found"):
+            o_date = (order_ctx.get("order_date") or "")[:10]
+            o_status = order_ctx.get("status", "?")
+            o_country = order_ctx.get("shipping_country", "?")
+            ship = order_ctx.get("shipping")
+            problem = order_ctx.get("problem")
+            items = order_ctx.get("items", [])
+
+            items_html = ""
+            for it in items[:3]:
+                name = _esc((it.get("name") or it.get("sku", "?"))[:50])
+                qty = it.get("quantity", 1)
+                items_html += f'<div style="font-size:11px; color:#94a3b8;">{qty}x {name}</div>'
+
+            ship_html = '<span style="color:#f59e0b;">Brak danych o wysylce</span>'
+            if ship:
+                t = ship.get("tracking_number", "")
+                c = ship.get("courier", "?").upper()
+                sd = ship.get("ship_date", "")
+                ship_html = f'<span style="color:#10b981;">Wyslano {sd} | {c} {t}</span>'
+
+            problem_html = ""
+            if problem:
+                p_type = problem.get("problem_type", "")
+                p_detail = _esc(problem.get("problem_detail", ""))
+                p_sev = problem.get("severity", "")
+                sev_color = "#ef4444" if p_sev == "critical" else "#f59e0b"
+                problem_html = f'<div style="margin-top:4px; padding:4px 8px; background:#ef444415; border-radius:4px; font-size:11px; color:{sev_color};">PROBLEM: {p_type} - {p_detail}</div>'
+
+            st.html(f'''<div style="padding:8px 12px; background:#0f172a; border:1px solid #1e293b; border-radius:6px; margin-bottom:8px; font-family:monospace; font-size:11px;">
+              <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:center;">
+                <span style="color:#64748b;">Zamowienie: <span style="color:#e2e8f0; font-weight:600;">{_esc(order)}</span></span>
+                <span style="color:#64748b;">Data: <span style="color:#e2e8f0;">{o_date}</span></span>
+                <span style="color:#64748b;">Status: <span style="color:#e2e8f0;">{o_status}</span></span>
+                <span style="color:#64748b;">Kraj: <span style="color:#e2e8f0;">{o_country}</span></span>
+              </div>
+              <div style="margin-top:4px;">{ship_html}</div>
+              {items_html}
+              {problem_html}
+            </div>''')
+        else:
+            st.html(f'''<div style="padding:6px 12px; background:#0f172a; border:1px solid #1e293b; border-radius:6px; margin-bottom:8px; font-family:monospace; font-size:11px; color:#f59e0b;">
+              Zamowienie {_esc(order)} nie znalezione w bazie (moze FBA lub sprzed synca)
+            </div>''')
 
     # ── Messages ──
     messages = load_messages_for_conv(selected)
@@ -373,9 +588,19 @@ with thread_col:
     if nr and last_inbound_draft:
         st.html('<div style="height:1px; background:#1e293b; margin:12px 0;"></div>')
 
-        draft_pl = last_inbound_draft.get("draft_reply") or ""
-        draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
         d_lang = (last_inbound_draft.get("detected_language") or "pl").upper()
+        # Generate smart draft based on order context
+        last_body = _clean_body(last_inbound_draft.get("body_text") or "")
+        draft_pl = _build_smart_draft(order_ctx, last_body, d_lang.lower()) if order_ctx else (last_inbound_draft.get("draft_reply") or "")
+
+        # Translate draft to buyer's language
+        draft_local = draft_pl
+        if d_lang != "PL":
+            try:
+                from deep_translator import GoogleTranslator
+                draft_local = GoogleTranslator(source="pl", target=d_lang.lower()).translate(draft_pl)
+            except Exception:
+                draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
 
         # Show draft in Polish (always visible)
         if draft_pl:
