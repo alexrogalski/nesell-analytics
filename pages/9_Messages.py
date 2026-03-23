@@ -60,19 +60,38 @@ def _clean_body(text):
     if not text:
         return ""
 
-    # Extract between Amazon delimiters if present
+    # Normalize line endings
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Extract between Amazon delimiters: --- Message: --- ... --- End message ---
     m = re.search(
-        r'-{5,}\s*Message:?\s*-{5,}\s*\n(.*?)\n\s*-{5,}\s*End message\s*-{5,}',
+        r'-{3,}\s*Message:?\s*-{3,}\s*\n(.*?)\n\s*-{3,}\s*End message\s*-{3,}',
         text, re.DOTALL | re.IGNORECASE
     )
     if m:
         return m.group(1).strip()
 
-    # Otherwise strip known boilerplate lines
+    # For translated text, look for Polish equivalents
+    m = re.search(
+        r'-{3,}\s*Wiadomo[sś][cć]:?\s*-{3,}\s*\n(.*?)\n\s*-{3,}\s*(?:Koniec|Zakończ)',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    if m:
+        return m.group(1).strip()
+
+    # Fallback: strip all known boilerplate
     lines = text.split("\n")
     cleaned = []
+    skip = False
     for line in lines:
         s = line.strip().lower()
+        # Skip everything after "end message" delimiter
+        if re.match(r'^-{3,}\s*end', s):
+            skip = True
+            continue
+        if skip:
+            continue
+        # Skip header boilerplate
         if any(p in s for p in [
             "was this email helpful",
             "resolve case",
@@ -81,20 +100,33 @@ def _clean_body(text):
             "sellercentral.",
             "this message was sent to",
             "you have received a message",
+            "otrzymałeś wiadomość",
+            "otrzymales wiadomosc",
             "amazon.com/messaging/",
             "/gp/satisfaction/",
             "no-response-needed",
             "customattribute",
+            "czy ten e-mail był pomocny",
+            "czy ten email byl pomocny",
+            "rozwiąż sprawę",
+            "rozwiaz sprawe",
+            "zgłoś wątpliwą aktywność",
+            "zglos watpliwa aktywnosc",
         ]):
             continue
         if re.match(r'^https?://', s):
             continue
-        if s.startswith("---") and ("message" in s or "end" in s):
+        if re.match(r'^-{3,}\s*(message|wiadomo)', s):
+            continue
+        # Skip order/product header line (# 123-456-789:)
+        if re.match(r'^#\s*\d{3}-\d{7}-\d{7}', s):
+            continue
+        # Skip ASIN product lines
+        if re.match(r'^\d+\s*/\s+.*\[asin:', s):
             continue
         cleaned.append(line)
 
     result = "\n".join(cleaned).strip()
-    # Remove leading/trailing dashes lines
     result = re.sub(r'^[\s\-]+\n', '', result)
     result = re.sub(r'\n[\s\-]+$', '', result)
     return result
@@ -340,26 +372,28 @@ with thread_col:
     # ── Reply section ──
     if nr and last_inbound_draft:
         st.html('<div style="height:1px; background:#1e293b; margin:12px 0;"></div>')
-        st.html('<div style="font-size:13px; font-weight:700; color:#8b5cf6; font-family:monospace; margin-bottom:6px;">ODPOWIEDZ</div>')
 
-        draft_local = last_inbound_draft.get("draft_reply_local") or last_inbound_draft.get("draft_reply") or ""
+        draft_pl = last_inbound_draft.get("draft_reply") or ""
+        draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
         d_lang = (last_inbound_draft.get("detected_language") or "pl").upper()
 
-        # Editable reply text area
+        # Show draft in Polish (always visible)
+        if draft_pl:
+            st.html(f'''<div style="padding:10px 14px; background:#1a1a2e; border-left:3px solid #8b5cf6; border-radius:0 6px 6px 0; margin-bottom:10px; font-family:monospace;">
+              <div style="font-size:10px; font-weight:700; color:#8b5cf6; margin-bottom:4px;">PROPONOWANA ODPOWIEDZ (PL)</div>
+              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
+            </div>''')
+
+        # Editable text area in buyer's language (this gets sent)
+        st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
         reply_text = st.text_area(
-            f"Odpowiedz ({d_lang})",
+            f"reply_{d_lang}",
             value=draft_local,
-            height=150,
+            height=120,
             key=f"reply_{selected}",
+            label_visibility="collapsed",
         )
 
-        # Draft in Polish for reference
-        draft_pl = last_inbound_draft.get("draft_reply") or ""
-        if draft_pl and d_lang != "PL":
-            with st.expander("Pokaz draft PL (dla Ciebie)"):
-                st.text(draft_pl)
-
-        # Send button
         send_col, status_col = st.columns([1, 3])
         with send_col:
             send_clicked = st.button("Wyslij", key=f"send_{selected}", type="primary")
@@ -386,4 +420,4 @@ with thread_col:
                         st.error(f"Blad: {msg}")
 
     elif not nr:
-        st.html('<div style="text-align:center; padding:12px; font-size:12px; color:#10b981; font-family:monospace;">Odpowiedziano</div>')
+        st.html('<div style="text-align:center; padding:8px; font-size:11px; color:#10b981; font-family:monospace;">Odpowiedziano</div>')
