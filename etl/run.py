@@ -71,6 +71,7 @@ def main():
     parser.add_argument("--restock", action="store_true", help="Fetch Amazon Restock Recommendations Report")
     parser.add_argument("--aged", action="store_true", help="Fetch Amazon FBA Aged Inventory Report")
     parser.add_argument("--shipping-monitor", action="store_true", help="Scan DPD shipments for delivery problems (address issues, stuck, lost)")
+    parser.add_argument("--messages", action="store_true", help="Sync customer messages (Allegro + Amazon Gmail)")
     parser.add_argument("--availability", action="store_true", help="Check Printful variant availability and deactivate unavailable listings")
     parser.add_argument("--availability-enforce", action="store_true", help="Same as --availability but actually deactivate/reactivate (not dry run)")
     parser.add_argument("--days", type=int, default=90, help="Days to look back")
@@ -79,7 +80,7 @@ def main():
     all_flags = [args.fx, args.orders, args.fba, args.products, args.fees,
                  args.allegro_fees, args.reports, args.amzdata, args.aggregate, args.images,
                  args.cogs, args.shipping, args.dpd_email, args.dpd_api, args.dpd_reconcile,
-                 args.restock, args.aged, args.shipping_monitor,
+                 args.restock, args.aged, args.shipping_monitor, args.messages,
                  args.availability, args.availability_enforce]
     # Printful automation flags are opt-in only (never run in "run_all" mode)
     run_all = (not any(all_flags) and not args.printful_orders and not args.tracking_sync
@@ -238,6 +239,14 @@ def main():
         if not _run_step(step, total_steps, "Scanning DPD shipments for delivery problems",
                          shipping_monitor.scan, days_back=min(args.days, 30)):
             failures.append("Shipping monitor")
+
+    # ── Customer Message Center ──
+    if args.messages:
+        step += 1
+        from . import message_center
+        if not _run_step(step, total_steps, "Syncing customer messages (Allegro + Amazon)",
+                         message_center.sync_messages, days_back=min(args.days, 30)):
+            failures.append("Customer messages")
 
     # ── EU Variant Guard (replaces old availability_guard) ──
     if run_all or args.availability or args.availability_enforce:
