@@ -51,7 +51,14 @@ def sync_messages(days_back=30):
     except Exception as e:
         print(f"  [msg-center] AI processing failed: {e}")
 
-    # 5. Discord alert for new messages needing reply
+    # 5. Claude AI analysis (per-case, uses claude CLI)
+    try:
+        from . import message_ai
+        message_ai.analyze_with_claude(batch_size=10)
+    except Exception as e:
+        print(f"  [msg-center] Claude analysis failed: {e}")
+
+    # 6. Discord alert for new messages needing reply
     if new_inbound > 0:
         try:
             _send_discord_alert(new_inbound)

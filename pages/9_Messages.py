@@ -27,7 +27,7 @@ def load_conversations(days=30):
 def load_messages_for_conv(conv_id):
     rows = _get("messages", {
         "conversation_id": f"eq.{conv_id}",
-        "select": "id,direction,sender_name,body_text,email_subject,sent_at,is_read,attachments,translation_pl,detected_language,draft_reply,draft_reply_local,email_from",
+        "select": "id,direction,sender_name,body_text,email_subject,sent_at,is_read,attachments,translation_pl,detected_language,draft_reply,draft_reply_local,email_from,ai_analysis,ai_draft_pl,ai_draft_local",
         "order": "sent_at.asc",
     })
     return rows or []
@@ -589,18 +589,33 @@ with thread_col:
         st.html('<div style="height:1px; background:#1e293b; margin:12px 0;"></div>')
 
         d_lang = (last_inbound_draft.get("detected_language") or "pl").upper()
-        # Generate smart draft based on order context
-        last_body = _clean_body(last_inbound_draft.get("body_text") or "")
-        draft_pl = _build_smart_draft(order_ctx, last_body, d_lang.lower()) if order_ctx else (last_inbound_draft.get("draft_reply") or "")
 
-        # Translate draft to buyer's language
-        draft_local = draft_pl
-        if d_lang != "PL":
-            try:
-                from deep_translator import GoogleTranslator
-                draft_local = GoogleTranslator(source="pl", target=d_lang.lower()).translate(draft_pl)
-            except Exception:
-                draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
+        # AI analysis panel (from Claude)
+        ai_analysis = last_inbound_draft.get("ai_analysis") or ""
+        if ai_analysis:
+            st.html(f'''<div style="padding:8px 12px; background:#0c1222; border-left:3px solid #06b6d4; border-radius:0 6px 6px 0; margin-bottom:8px; font-family:monospace;">
+              <div style="font-size:10px; font-weight:700; color:#06b6d4; margin-bottom:3px;">ANALIZA CLAUDE</div>
+              <div style="font-size:12px; color:#e2e8f0; line-height:1.5;">{_esc(ai_analysis)}</div>
+            </div>''')
+
+        # Prefer Claude AI drafts over template-based
+        ai_draft_pl = last_inbound_draft.get("ai_draft_pl") or ""
+        ai_draft_local = last_inbound_draft.get("ai_draft_local") or ""
+
+        if ai_draft_pl:
+            draft_pl = ai_draft_pl
+            draft_local = ai_draft_local or ai_draft_pl
+        else:
+            # Fallback: context-aware template
+            last_body = _clean_body(last_inbound_draft.get("body_text") or "")
+            draft_pl = _build_smart_draft(order_ctx, last_body, d_lang.lower()) if order_ctx else (last_inbound_draft.get("draft_reply") or "")
+            draft_local = draft_pl
+            if d_lang != "PL":
+                try:
+                    from deep_translator import GoogleTranslator
+                    draft_local = GoogleTranslator(source="pl", target=d_lang.lower()).translate(draft_pl)
+                except Exception:
+                    draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
 
         # Show draft in Polish (always visible)
         if draft_pl:
