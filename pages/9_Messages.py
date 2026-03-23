@@ -410,14 +410,31 @@ st.html(f'''<div style="display:flex; gap:20px; align-items:baseline; padding:6p
 list_col, thread_col = st.columns([2, 5], gap="medium")
 
 with list_col:
-    conv_ids = filtered["id"].tolist()
+    # Tab filter above conversation list
+    tab_options = ["Do odpowiedzi", "Wszystkie", "Odpowiedziane"]
+    if "msg_tab" not in st.session_state:
+        st.session_state.msg_tab = "Do odpowiedzi"
+    tab = st.radio("Filtr", tab_options, index=tab_options.index(st.session_state.msg_tab),
+                   key="msg_tab_radio", horizontal=True, label_visibility="collapsed")
+    st.session_state.msg_tab = tab
+
+    if tab == "Do odpowiedzi":
+        list_df = filtered[filtered["needs_reply"] == True]
+    elif tab == "Odpowiedziane":
+        list_df = filtered[filtered["status"] == "replied"]
+    else:
+        list_df = filtered
+
+    list_df = list_df.reset_index(drop=True)
+    conv_ids = list_df["id"].tolist()
+
     if not conv_ids:
-        st.info("Brak konwersacji.")
+        st.html(f'<div style="font-size:12px; color:#64748b; font-family:monospace; padding:20px; text-align:center;">Brak konwersacji w tej zakladce</div>')
         st.stop()
 
     # Clean conversation labels
     labels = {}
-    for _, row in filtered.iterrows():
+    for _, row in list_df.iterrows():
         cid = row["id"]
         buyer = row.get("buyer_name") or row.get("buyer_login") or "?"
         if len(buyer) > 20:
@@ -425,7 +442,6 @@ with list_col:
         plat = (row.get("platform") or "").replace("amazon_", "").upper()
         src = "ALG" if row.get("source") == "allegro" else "AMZ"
         nr = row.get("needs_reply", False)
-        status = row.get("status", "")
         time = _time_ago(row.get("last_message_at"))
         dot = "● " if nr else "   "
 
