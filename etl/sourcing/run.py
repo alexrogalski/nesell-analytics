@@ -232,6 +232,8 @@ def _process_product(
     """
     ean = product.ean
     weight = product.weight_kg or cfg.default_weight_kg
+    # Will be overridden by Amazon-discovered weight if available
+    amazon_weight_override = None
 
     if not quiet:
         label = product.name[:40] if product.name else ean
@@ -273,6 +275,17 @@ def _process_product(
         except Exception as exc:
             if not quiet:
                 print(f"    Amazon: ERROR {exc}")
+
+            # Use Amazon-discovered weight if supplier didn't provide one
+            if amazon_weight_override is None and not product.weight_kg:
+                for mdata in amazon_data.values():
+                    w = mdata.get("item_weight_kg") or mdata.get("package_weight_kg")
+                    if w and w > 0:
+                        amazon_weight_override = w
+                        weight = w
+                        if not quiet:
+                            print(f"    Weight from Amazon: {w} kg")
+                        break
 
         # Report markets with no data.
         for market in markets_to_fetch:

@@ -1,7 +1,11 @@
 """Amazon SP-API product lookup by EAN for sourcing analysis.
 
 Searches across all 8 EU marketplaces, retrieves competitive offers,
-and estimates referral + FBA fees for margin calculation.
+estimates fees, and extracts rich product data (brand, weight, dimensions,
+MSRP, BSR per market, variation info, seller details).
+
+Data extracted is comparable to Keepa for current-state analysis.
+Historical tracking (price/BSR trends) requires daily polling.
 
 Usage:
     from etl.sourcing.amazon_lookup import lookup_ean
@@ -33,6 +37,9 @@ MARKETPLACE_CURRENCIES = {
     "NL": "EUR", "BE": "EUR", "PL": "PLN", "SE": "SEK",
 }
 
+# Reverse: marketplace_id -> country code
+_ID_TO_MARKET = {v: k for k, v in MARKETPLACE_IDS.items()}
+
 _cfg = SourcingConfig()
 
 
@@ -40,16 +47,20 @@ _cfg = SourcingConfig()
 
 @dataclass
 class AmazonProductData:
-    """Aggregated product data for a single ASIN on a single marketplace."""
+    """Rich product data for a single ASIN on a single marketplace."""
     asin: str
     marketplace: str           # DE, FR, etc.
     title: str = ""
     category: str = ""
+    category_path: str = ""    # full breadcrumb
     bsr_rank: int | None = None
+    bsr_subcategory_rank: int | None = None
+    bsr_subcategory_name: str = ""
     buy_box_price: float | None = None
     buy_box_is_fba: bool | None = None
     lowest_fba_price: float | None = None
     lowest_fbm_price: float | None = None
+    msrp: float | None = None
     num_fba_sellers: int = 0
     num_fbm_sellers: int = 0
     num_total_offers: int = 0
@@ -58,69 +69,157 @@ class AmazonProductData:
     fba_fee: float = 0.0
     total_fee: float = 0.0
     image_url: str = ""
+    # Rich product attributes
+    brand: str = ""
+    manufacturer: str = ""
+    item_weight_kg: float | None = None
+    package_weight_kg: float | None = None
+    item_length_cm: float | None = None
+    item_width_cm: float | None = None
+    item_height_cm: float | None = None
+    package_length_cm: float | None = None
+    package_width_cm: float | None = None
+    package_height_cm: float | None = None
+    launch_date: str = ""
+    variation_theme: str = ""
+    variation_count: int = 0
+    parent_asin: str = ""
+    is_prime: bool = False
+    buy_box_seller_feedback_count: int = 0
+    buy_box_seller_rating: float = 0.0
+    buy_box_ships_from: str = ""
+    top_sellers: list[dict] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
 
-# ── Catalog search ───────────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────
 
-def search_by_ean(ean: str, marketplace: str = "DE") -> list[str]:
-    """Search Amazon catalog by EAN and return list of matching ASINs.
-
-    Uses Catalog Items API 2022-04-01 with EAN identifier lookup.
-    Rate limit: ~2 req/sec, we use 0.6s delay after the call.
-    """
-    marketplace_id = MARKETPLACE_IDS.get(marketplace)
-    if not marketplace_id:
-        print(f"    [WARN] Unknown marketplace: {marketplace}")
-        return []
-
-    params = {
-        "identifiers": ean,
-        "identifiersType": "EAN",
-        "marketplaceIds": marketplace_id,
-        "includedData": "identifiers,salesRanks,summaries,dimensions,images",
-    }
-
+def _parse_amount(price_obj: dict) -> float | None:
+    """Safely extract Amount as float from a price object."""
+    if not price_obj:
+        return None
     try:
-        data = api_get("/catalog/2022-04-01/items", params=params)
-    except Exception as e:
-        print(f"    [ERROR] Catalog search failed for EAN {ean} on {marketplace}: {e}")
-        return []
-
-    time.sleep(0.6)
-
-    if not data or "items" not in data:
-        return []
-
-    asins = []
-    for item in data.get("items", []):
-        asin = item.get("asin", "")
-        if asin:
-            asins.append(asin)
-    return asins
+        return float(price_obj.get("Amount", 0))
+    except (TypeError, ValueError):
+        return None
 
 
-def _extract_catalog_info(ean: str, marketplace: str = "DE") -> dict:
-    """Search by EAN and extract catalog metadata (title, category, BSR, image).
+def _attr_value(attrs: dict, key: str) -> str:
+    """Extract first value from an attributes dict entry."""
+    entries = attrs.get(key, [])
+    if not entries:
+        return ""
+    entry = entries[0]
+    if isinstance(entry, dict):
+        return str(entry.get("value", ""))
+    return str(entry)
 
-    Returns dict with keys: asin, title, category, bsr_rank, image_url.
-    Returns empty dict if nothing found.
+
+def _attr_dimension_cm(attrs: dict, key: str) -> float | None:
+    """Extract a dimension in cm from attributes (may be in mm, inches, etc.)."""
+    entries = attrs.get(key, [])
+    if not entries:
+        return None
+    entry = entries[0]
+    if not isinstance(entry, dict):
+        return None
+
+    # Could be nested: {value: {value: 10, unit: "centimeters"}}
+    val = entry.get("value", entry)
+    if isinstance(val, dict):
+        num = val.get("value")
+        unit = val.get("unit", "")
+    else:
+        num = val
+        unit = entry.get("unit", "")
+
+    if num is None:
+        return None
+    try:
+        num = float(num)
+    except (TypeError, ValueError):
+        return None
+
+    # Convert to cm
+    unit_lower = str(unit).lower()
+    if "milli" in unit_lower or unit_lower == "mm":
+        return round(num / 10, 2)
+    if "inch" in unit_lower or unit_lower == "in":
+        return round(num * 2.54, 2)
+    if "meter" in unit_lower and "centi" not in unit_lower:
+        return round(num * 100, 2)
+    # Assume cm
+    return round(num, 2)
+
+
+def _attr_weight_kg(attrs: dict, key: str) -> float | None:
+    """Extract weight in kg from attributes."""
+    entries = attrs.get(key, [])
+    if not entries:
+        return None
+    entry = entries[0]
+    if not isinstance(entry, dict):
+        return None
+
+    val = entry.get("value", entry)
+    if isinstance(val, dict):
+        num = val.get("value")
+        unit = val.get("unit", "")
+    else:
+        num = val
+        unit = entry.get("unit", "")
+
+    if num is None:
+        return None
+    try:
+        num = float(num)
+    except (TypeError, ValueError):
+        return None
+
+    unit_lower = str(unit).lower()
+    if "gram" in unit_lower and "kilo" not in unit_lower:
+        return round(num / 1000, 4)
+    if "pound" in unit_lower or unit_lower == "lb":
+        return round(num * 0.4536, 4)
+    if "ounce" in unit_lower or unit_lower == "oz":
+        return round(num * 0.02835, 4)
+    # Assume kg
+    return round(num, 4)
+
+
+# ── Catalog search (enriched) ───────────────────────────────────────
+
+def _extract_catalog_info(ean: str, markets: list[str] | None = None) -> dict:
+    """Search by EAN and extract rich catalog metadata.
+
+    Uses a single API call with multiple marketplace IDs to get
+    cross-market BSR data efficiently.
+
+    Returns dict with keys: asin, title, category, category_path,
+    bsr_per_market, image_url, brand, manufacturer, weight, dimensions,
+    launch_date, variation_theme, parent_asin, variation_count.
     """
-    marketplace_id = MARKETPLACE_IDS.get(marketplace)
-    if not marketplace_id:
+    if markets is None:
+        markets = ["DE", "FR", "IT", "ES"]
+
+    marketplace_ids = [MARKETPLACE_IDS[m] for m in markets if m in MARKETPLACE_IDS]
+    if not marketplace_ids:
         return {}
 
     params = {
         "identifiers": ean,
         "identifiersType": "EAN",
-        "marketplaceIds": marketplace_id,
-        "includedData": "identifiers,salesRanks,summaries,dimensions,images",
+        "marketplaceIds": ",".join(marketplace_ids),
+        "includedData": (
+            "attributes,classifications,dimensions,identifiers,"
+            "images,relationships,salesRanks,summaries"
+        ),
     }
 
     try:
         data = api_get("/catalog/2022-04-01/items", params=params)
     except Exception as e:
-        print(f"    [ERROR] Catalog search for EAN {ean} on {marketplace}: {e}")
+        print(f"    [ERROR] Catalog search for EAN {ean}: {e}")
         return {}
 
     time.sleep(0.6)
@@ -131,38 +230,80 @@ def _extract_catalog_info(ean: str, marketplace: str = "DE") -> dict:
 
     item = items[0]
     asin = item.get("asin", "")
+    result = {"asin": asin}
 
-    # Extract title and category from summaries
+    # --- Title and category from summaries ---
     title = ""
     category = ""
+    primary_mid = marketplace_ids[0]  # prefer DE
+
     for summary in item.get("summaries", []):
-        if summary.get("marketplaceId") == marketplace_id:
+        if summary.get("marketplaceId") == primary_mid:
             title = summary.get("itemName", "")
             category = summary.get("browseClassification", {}).get("displayName", "")
             break
-    # Fallback: use first summary if marketplace-specific not found
     if not title and item.get("summaries"):
         first = item["summaries"][0]
         title = first.get("itemName", "")
         category = first.get("browseClassification", {}).get("displayName", "")
 
-    # Extract BSR from salesRanks
-    bsr_rank = None
-    for rank_set in item.get("salesRanks", []):
-        if rank_set.get("marketplaceId") == marketplace_id:
-            for rank in rank_set.get("ranks", []):
-                if rank.get("link", "").count("/") <= 4:
-                    # Top-level category rank (fewer path segments)
-                    bsr_rank = rank.get("rank")
-                    break
-            if bsr_rank is None and rank_set.get("ranks"):
-                bsr_rank = rank_set["ranks"][0].get("rank")
-            break
+    result["title"] = title
+    result["category"] = category
 
-    # Extract main image
+    # --- Full category path from classifications ---
+    category_path = ""
+    for cls in item.get("classifications", []):
+        if cls.get("marketplaceId") == primary_mid:
+            chain = cls.get("classifications", [])
+            if chain:
+                # Build path from leaf to root
+                names = [c.get("displayName", "") for c in chain if c.get("displayName")]
+                if names:
+                    category_path = " > ".join(names)
+            break
+    result["category_path"] = category_path
+
+    # --- BSR per marketplace ---
+    bsr_per_market: dict[str, dict] = {}
+    for rank_set in item.get("salesRanks", []):
+        mid = rank_set.get("marketplaceId", "")
+        market_code = _ID_TO_MARKET.get(mid, "")
+        if not market_code:
+            continue
+
+        ranks = rank_set.get("ranks", [])
+        main_rank = None
+        sub_rank = None
+        sub_name = ""
+
+        for rank in ranks:
+            r = rank.get("rank")
+            link = rank.get("link", "")
+            title_r = rank.get("title", "")
+            # Fewer path segments = more top-level category
+            if link.count("/") <= 4:
+                if main_rank is None or r < main_rank:
+                    main_rank = r
+            else:
+                if sub_rank is None or r < sub_rank:
+                    sub_rank = r
+                    sub_name = title_r
+
+        if main_rank is None and ranks:
+            main_rank = ranks[0].get("rank")
+
+        bsr_per_market[market_code] = {
+            "main": main_rank,
+            "sub": sub_rank,
+            "sub_name": sub_name,
+        }
+
+    result["bsr_per_market"] = bsr_per_market
+
+    # --- Main image ---
     image_url = ""
     for img_set in item.get("images", []):
-        if img_set.get("marketplaceId") == marketplace_id:
+        if img_set.get("marketplaceId") == primary_mid:
             images = img_set.get("images", [])
             for img in images:
                 if img.get("variant", "") == "MAIN":
@@ -171,27 +312,105 @@ def _extract_catalog_info(ean: str, marketplace: str = "DE") -> dict:
             if not image_url and images:
                 image_url = images[0].get("link", "")
             break
+    result["image_url"] = image_url
 
-    return {
-        "asin": asin,
-        "title": title,
-        "category": category,
-        "bsr_rank": bsr_rank,
-        "image_url": image_url,
-    }
+    # --- Product attributes ---
+    attrs = item.get("attributes", {})
+    result["brand"] = _attr_value(attrs, "brand")
+    result["manufacturer"] = _attr_value(attrs, "manufacturer")
+    result["launch_date"] = _attr_value(attrs, "product_site_launch_date")
+    result["variation_theme"] = _attr_value(attrs, "variation_theme")
+
+    # MSRP / list price
+    msrp_str = _attr_value(attrs, "list_price") or _attr_value(attrs, "uvp_list_price")
+    if msrp_str:
+        # Could be nested dict or formatted string
+        if isinstance(msrp_str, str):
+            try:
+                result["msrp"] = float(msrp_str)
+            except ValueError:
+                result["msrp"] = None
+        else:
+            result["msrp"] = None
+    else:
+        result["msrp"] = None
+
+    # Weight
+    result["item_weight_kg"] = _attr_weight_kg(attrs, "item_weight")
+    result["package_weight_kg"] = _attr_weight_kg(attrs, "item_package_weight")
+
+    # Dimensions (item)
+    result["item_length_cm"] = _attr_dimension_cm(attrs, "item_dimensions_length")
+    result["item_width_cm"] = _attr_dimension_cm(attrs, "item_dimensions_width")
+    result["item_height_cm"] = _attr_dimension_cm(attrs, "item_dimensions_height")
+
+    # Dimensions (package)
+    result["package_length_cm"] = _attr_dimension_cm(attrs, "item_package_dimensions_length")
+    result["package_width_cm"] = _attr_dimension_cm(attrs, "item_package_dimensions_width")
+    result["package_height_cm"] = _attr_dimension_cm(attrs, "item_package_dimensions_height")
+
+    # Fallback: dimensions from the structured 'dimensions' section
+    for dim_set in item.get("dimensions", []):
+        if dim_set.get("marketplaceId") == primary_mid:
+            di = dim_set.get("item", {})
+            dp = dim_set.get("package", {})
+
+            if result["item_weight_kg"] is None and "weight" in di:
+                w = di["weight"]
+                try:
+                    val = float(w.get("value", 0))
+                    unit = w.get("unit", "pounds")
+                    if "pound" in unit.lower():
+                        result["item_weight_kg"] = round(val * 0.4536, 4)
+                    elif "gram" in unit.lower() and "kilo" not in unit.lower():
+                        result["item_weight_kg"] = round(val / 1000, 4)
+                    else:
+                        result["item_weight_kg"] = round(val, 4)
+                except (TypeError, ValueError):
+                    pass
+
+            if result["package_weight_kg"] is None and "weight" in dp:
+                w = dp["weight"]
+                try:
+                    val = float(w.get("value", 0))
+                    unit = w.get("unit", "pounds")
+                    if "pound" in unit.lower():
+                        result["package_weight_kg"] = round(val * 0.4536, 4)
+                    elif "gram" in unit.lower() and "kilo" not in unit.lower():
+                        result["package_weight_kg"] = round(val / 1000, 4)
+                    else:
+                        result["package_weight_kg"] = round(val, 4)
+                except (TypeError, ValueError):
+                    pass
+            break
+
+    # --- Relationships (variation parent/child) ---
+    parent_asin = ""
+    variation_count = 0
+    for rel_set in item.get("relationships", []):
+        if rel_set.get("marketplaceId") == primary_mid:
+            rels = rel_set.get("relationships", [])
+            for rel in rels:
+                if rel.get("type") == "VARIATION" and "parentAsins" in rel:
+                    parents = rel["parentAsins"]
+                    if parents:
+                        parent_asin = parents[0]
+                if rel.get("type") == "VARIATION" and "childAsins" in rel:
+                    variation_count = len(rel["childAsins"])
+            break
+    result["parent_asin"] = parent_asin
+    result["variation_count"] = variation_count
+
+    return result
 
 
-# ── Competitive offers ───────────────────────────────────────────────
+# ── Competitive offers (enriched) ───────────────────────────────────
 
 def get_item_offers(asin: str, marketplace: str = "DE") -> dict:
     """Fetch competitive offers for an ASIN on a given marketplace.
 
-    Uses Product Pricing API v0 getItemOffers endpoint.
-    Rate limit: ~1 req/sec, we use 1.2s delay after the call.
-
-    Returns dict with keys:
-        buy_box_price, buy_box_is_fba, lowest_fba_price, lowest_fbm_price,
-        num_fba_sellers, num_fbm_sellers, num_total_offers, currency
+    Extracts: buy box price, seller counts, Prime status, seller feedback,
+    ships-from country, MSRP, top 5 seller details.
     """
     marketplace_id = MARKETPLACE_IDS.get(marketplace)
     if not marketplace_id:
@@ -221,13 +440,25 @@ def get_item_offers(asin: str, marketplace: str = "DE") -> dict:
         "num_fbm_sellers": 0,
         "num_total_offers": 0,
         "currency": MARKETPLACE_CURRENCIES.get(marketplace, "EUR"),
+        "msrp": None,
+        "is_prime": False,
+        "buy_box_seller_feedback_count": 0,
+        "buy_box_seller_rating": 0.0,
+        "buy_box_ships_from": "",
+        "top_sellers": [],
     }
 
-    # The response wraps data in payload.Offers or similar structure
     payload = data.get("payload", data)
-
-    # Summary from numberOfOffers
     summary = payload.get("Summary", {})
+
+    # MSRP from summary
+    list_price = summary.get("ListPrice", {})
+    result["msrp"] = _parse_amount(list_price)
+
+    # Total offer count
+    result["num_total_offers"] = summary.get("TotalOfferCount", 0)
+
+    # Seller counts by channel
     for offer_count in summary.get("NumberOfOffers", []):
         condition = offer_count.get("condition", "")
         channel = offer_count.get("fulfillmentChannel", "")
@@ -238,14 +469,14 @@ def get_item_offers(asin: str, marketplace: str = "DE") -> dict:
             elif channel == "Merchant":
                 result["num_fbm_sellers"] = count
 
-    result["num_total_offers"] = result["num_fba_sellers"] + result["num_fbm_sellers"]
+    if result["num_total_offers"] == 0:
+        result["num_total_offers"] = result["num_fba_sellers"] + result["num_fbm_sellers"]
 
-    # Lowest prices from Summary
+    # Lowest prices
     for lowest in summary.get("LowestPrices", []):
-        condition = lowest.get("condition", "")
-        channel = lowest.get("fulfillmentChannel", "")
-        if condition != "New":
+        if lowest.get("condition") != "New":
             continue
+        channel = lowest.get("fulfillmentChannel", "")
         landed = lowest.get("LandedPrice", {})
         price = _parse_amount(landed)
         if price is not None:
@@ -254,53 +485,150 @@ def get_item_offers(asin: str, marketplace: str = "DE") -> dict:
             elif channel == "Merchant":
                 result["lowest_fbm_price"] = price
 
-    # Buy box from BuyBoxPrices
+    # Buy box price
     for bb in summary.get("BuyBoxPrices", []):
         if bb.get("condition") == "New":
-            landed = bb.get("LandedPrice", {})
-            result["buy_box_price"] = _parse_amount(landed)
-            # Determine if buy box winner is FBA
-            # BuyBoxPrices doesn't directly say, but we can infer from Offers list
+            result["buy_box_price"] = _parse_amount(bb.get("LandedPrice", {}))
             break
 
-    # Parse individual offers for buy box winner details
+    # Individual offers (up to 20)
     offers = payload.get("Offers", [])
+    top_sellers = []
+
     for offer in offers:
+        seller_info = {
+            "seller_id": offer.get("SellerId", ""),
+            "is_fba": offer.get("IsFulfilledByAmazon", False),
+            "is_buy_box_winner": offer.get("IsBuyBoxWinner", False),
+            "is_featured_merchant": offer.get("IsFeaturedMerchant", False),
+        }
+
+        # Price
+        lp = _parse_amount(offer.get("ListingPrice", {}))
+        sp = _parse_amount(offer.get("Shipping", {}))
+        seller_info["price"] = (lp or 0) + (sp or 0)
+        seller_info["listing_price"] = lp
+        seller_info["shipping_price"] = sp
+
+        # Prime
+        prime = offer.get("PrimeInformation", {})
+        seller_info["is_prime"] = prime.get("IsPrime", False)
+
+        # Seller feedback
+        feedback = offer.get("SellerFeedbackRating", {})
+        seller_info["feedback_count"] = feedback.get("FeedbackCount", 0)
+        seller_info["feedback_rating"] = feedback.get("SellerPositiveFeedbackRating", 0.0)
+
+        # Ships from
+        ships_from = offer.get("ShipsFrom", {})
+        seller_info["ships_from"] = ships_from.get("Country", "")
+
+        # Shipping time
+        ship_time = offer.get("ShippingTime", {})
+        seller_info["min_hours"] = ship_time.get("minimumHours")
+        seller_info["max_hours"] = ship_time.get("maximumHours")
+
+        top_sellers.append(seller_info)
+
+        # Extract buy box winner details
         if offer.get("IsBuyBoxWinner"):
-            channel = offer.get("IsFulfilledByAmazon", False)
-            result["buy_box_is_fba"] = channel
-            # Also grab buy box price from the winner if not set
-            if result["buy_box_price"] is None:
-                landed = offer.get("ListingPrice", {})
-                shipping = offer.get("Shipping", {})
-                lp = _parse_amount(landed)
-                sp = _parse_amount(shipping)
-                if lp is not None:
-                    result["buy_box_price"] = lp + (sp or 0.0)
-            break
+            result["buy_box_is_fba"] = offer.get("IsFulfilledByAmazon", False)
+            result["is_prime"] = prime.get("IsPrime", False)
+            result["buy_box_seller_feedback_count"] = feedback.get("FeedbackCount", 0)
+            result["buy_box_seller_rating"] = feedback.get("SellerPositiveFeedbackRating", 0.0)
+            result["buy_box_ships_from"] = ships_from.get("Country", "")
+
+            if result["buy_box_price"] is None and lp is not None:
+                result["buy_box_price"] = (lp or 0) + (sp or 0)
+
+    result["top_sellers"] = top_sellers[:5]
 
     return result
 
 
-def _parse_amount(price_obj: dict) -> float | None:
-    """Safely extract Amount as float from a price object."""
-    if not price_obj:
-        return None
+# ── Competitive pricing (batch) ─────────────────────────────────────
+
+def get_competitive_pricing(asins: list[str], marketplace: str = "DE") -> dict:
+    """Batch competitive pricing for up to 20 ASINs in one call.
+
+    Returns dict {asin: {competitive_price, offer_count, bsr, bsr_subcategory}}.
+    """
+    marketplace_id = MARKETPLACE_IDS.get(marketplace)
+    if not marketplace_id:
+        return {}
+
+    params = {
+        "MarketplaceId": marketplace_id,
+        "Asins": ",".join(asins[:20]),
+        "ItemType": "Asin",
+    }
+
     try:
-        return float(price_obj.get("Amount", 0))
-    except (TypeError, ValueError):
-        return None
+        data = api_get("/products/pricing/v0/competitivePrice", params=params)
+    except Exception as e:
+        print(f"    [WARN] getCompetitivePricing failed: {e}")
+        return {}
+
+    time.sleep(0.5)
+
+    if not data:
+        return {}
+
+    results = {}
+    payload_list = data.get("payload", data) if isinstance(data, dict) else data
+    if not isinstance(payload_list, list):
+        payload_list = [payload_list]
+
+    for item in payload_list:
+        asin = item.get("ASIN", "")
+        if not asin:
+            continue
+
+        product = item.get("Product", {})
+        comp_prices = product.get("CompetitivePricing", {})
+
+        entry = {
+            "competitive_price": None,
+            "offer_count_new": 0,
+            "bsr_main": None,
+            "bsr_sub": None,
+            "bsr_sub_name": "",
+        }
+
+        # Competitive prices
+        for cp in comp_prices.get("CompetitivePrices", []):
+            if cp.get("condition") == "New":
+                landed = cp.get("Price", {}).get("LandedPrice", {})
+                entry["competitive_price"] = _parse_amount(landed)
+                break
+
+        # Number of offer listings
+        for nol in comp_prices.get("NumberOfOfferListings", []):
+            if nol.get("condition") == "New":
+                entry["offer_count_new"] = nol.get("Count", 0)
+
+        # Sales rankings
+        for sr in product.get("SalesRankings", []):
+            cat_id = sr.get("ProductCategoryId", "")
+            rank = sr.get("Rank")
+            # Main category has shorter ID (no underscore prefix)
+            if "_" not in cat_id:
+                entry["bsr_main"] = rank
+            else:
+                if entry["bsr_sub"] is None or rank < entry["bsr_sub"]:
+                    entry["bsr_sub"] = rank
+                    entry["bsr_sub_name"] = cat_id
+
+        results[asin] = entry
+
+    return results
 
 
 # ── Fee estimation ───────────────────────────────────────────────────
 
 def estimate_fees(asin: str, price: float, marketplace: str = "DE",
                   is_fba: bool = True) -> dict:
-    """Estimate referral + FBA fees for an ASIN at a given price.
-
-    Uses My Fees Estimate API (Product Fees v0).
-    Returns dict with keys: referral_fee, fba_fee, total_fee, currency.
-    """
+    """Estimate referral + FBA fees for an ASIN at a given price."""
     marketplace_id = MARKETPLACE_IDS.get(marketplace)
     if not marketplace_id:
         return {"error": f"Unknown marketplace: {marketplace}"}
@@ -343,7 +671,6 @@ def estimate_fees(asin: str, price: float, marketplace: str = "DE",
     estimate = payload.get("FeesEstimateResult", {}).get("FeesEstimate", {})
 
     if not estimate:
-        # Check for error in response
         err = payload.get("FeesEstimateResult", {}).get("Error", {})
         if err:
             result["error"] = err.get("Message", str(err))
@@ -367,15 +694,24 @@ def estimate_fees(asin: str, price: float, marketplace: str = "DE",
 # ── Main pipeline ────────────────────────────────────────────────────
 
 def _find_asin_for_ean(ean: str) -> tuple[str, str, dict]:
-    """Try to find an ASIN for the given EAN, searching DE first, then FR, IT.
+    """Find ASIN for EAN, searching DE first, then FR, IT.
 
-    Returns (asin, found_marketplace, catalog_info) or ("", "", {}).
+    Returns (asin, found_marketplace, rich_catalog_info) or ("", "", {}).
+    Now uses enriched catalog call with attributes, classifications, etc.
     """
-    for market in ["DE", "FR", "IT"]:
-        info = _extract_catalog_info(ean, marketplace=market)
+    # Try DE first with full data across 4 main markets
+    info = _extract_catalog_info(ean, markets=["DE", "FR", "IT", "ES"])
+    if info and info.get("asin"):
+        print(f"    Found ASIN {info['asin']} for EAN {ean} on DE")
+        return info["asin"], "DE", info
+
+    # Fallback: try individual markets
+    for market in ["FR", "IT"]:
+        info = _extract_catalog_info(ean, markets=[market])
         if info and info.get("asin"):
             print(f"    Found ASIN {info['asin']} for EAN {ean} on {market}")
             return info["asin"], market, info
+
     return "", "", {}
 
 
@@ -392,13 +728,35 @@ def _lookup_single_market(
         currency=MARKETPLACE_CURRENCIES.get(market, "EUR"),
     )
 
+    # Populate from catalog info
     if catalog_info:
         product.title = catalog_info.get("title", "")
         product.category = catalog_info.get("category", "")
-        product.bsr_rank = catalog_info.get("bsr_rank")
+        product.category_path = catalog_info.get("category_path", "")
         product.image_url = catalog_info.get("image_url", "")
+        product.brand = catalog_info.get("brand", "")
+        product.manufacturer = catalog_info.get("manufacturer", "")
+        product.launch_date = catalog_info.get("launch_date", "")
+        product.variation_theme = catalog_info.get("variation_theme", "")
+        product.variation_count = catalog_info.get("variation_count", 0)
+        product.parent_asin = catalog_info.get("parent_asin", "")
+        product.item_weight_kg = catalog_info.get("item_weight_kg")
+        product.package_weight_kg = catalog_info.get("package_weight_kg")
+        product.item_length_cm = catalog_info.get("item_length_cm")
+        product.item_width_cm = catalog_info.get("item_width_cm")
+        product.item_height_cm = catalog_info.get("item_height_cm")
+        product.package_length_cm = catalog_info.get("package_length_cm")
+        product.package_width_cm = catalog_info.get("package_width_cm")
+        product.package_height_cm = catalog_info.get("package_height_cm")
 
-    # Get competitive offers
+        # BSR per market from catalog
+        bsr_map = catalog_info.get("bsr_per_market", {})
+        if market in bsr_map:
+            product.bsr_rank = bsr_map[market].get("main")
+            product.bsr_subcategory_rank = bsr_map[market].get("sub")
+            product.bsr_subcategory_name = bsr_map[market].get("sub_name", "")
+
+    # Get competitive offers (enriched)
     try:
         offers = get_item_offers(asin, marketplace=market)
         if "error" in offers:
@@ -411,12 +769,21 @@ def _lookup_single_market(
             product.num_fba_sellers = offers.get("num_fba_sellers", 0)
             product.num_fbm_sellers = offers.get("num_fbm_sellers", 0)
             product.num_total_offers = offers.get("num_total_offers", 0)
+            product.is_prime = offers.get("is_prime", False)
+            product.buy_box_seller_feedback_count = offers.get("buy_box_seller_feedback_count", 0)
+            product.buy_box_seller_rating = offers.get("buy_box_seller_rating", 0.0)
+            product.buy_box_ships_from = offers.get("buy_box_ships_from", "")
+            product.top_sellers = offers.get("top_sellers", [])
+
+            # MSRP from offers (if not in catalog)
+            if product.msrp is None:
+                product.msrp = offers.get("msrp")
     except Exception as e:
         product.errors.append(f"offers: {e}")
 
     time.sleep(delay_sec)
 
-    # Estimate fees using buy box price (or lowest FBA, or lowest FBM)
+    # Estimate fees
     sell_price = (
         product.buy_box_price
         or product.lowest_fba_price
@@ -444,19 +811,10 @@ def lookup_ean(ean: str,
                markets: list[str] | None = None,
                delay_sec: float | None = None,
                max_workers: int = 4) -> dict[str, AmazonProductData]:
-    """Full lookup pipeline: search EAN across EU marketplaces, get offers + fees.
+    """Full lookup: EAN -> ASIN -> offers + fees across EU marketplaces.
 
-    Uses a thread pool to query multiple marketplaces in parallel.
-
-    Args:
-        ean: European Article Number (barcode).
-        markets: List of marketplace codes to check. Defaults to all 8 EU markets.
-        delay_sec: Delay between API call groups. Defaults to SourcingConfig.amazon_delay_sec.
-        max_workers: Max parallel threads for marketplace lookups.
-
-    Returns:
-        dict mapping marketplace code (e.g. "DE") to AmazonProductData.
-        Empty dict if EAN not found on Amazon at all.
+    Now extracts rich data: brand, weight, dimensions, MSRP, BSR per market,
+    variation info, seller feedback, Prime status, ships-from country.
     """
     if markets is None:
         markets = list(MARKETPLACE_IDS.keys())
@@ -465,13 +823,23 @@ def lookup_ean(ean: str,
 
     results: dict[str, AmazonProductData] = {}
 
-    # Step 1: Find ASIN via catalog search (DE -> FR -> IT)
+    # Step 1: Find ASIN with enriched catalog data
     asin, found_market, catalog_info = _find_asin_for_ean(ean)
     if not asin:
         print(f"    EAN {ean} not found on Amazon (searched DE, FR, IT)")
         return results
 
-    # Step 2: Parallel lookup across all target marketplaces
+    # Step 2: Get BSR for remaining markets not covered by initial catalog call
+    initial_markets = set(catalog_info.get("bsr_per_market", {}).keys())
+    missing_bsr_markets = [m for m in markets if m not in initial_markets]
+    if missing_bsr_markets:
+        extra_info = _extract_catalog_info(ean, markets=missing_bsr_markets)
+        if extra_info and extra_info.get("bsr_per_market"):
+            existing = catalog_info.get("bsr_per_market", {})
+            existing.update(extra_info["bsr_per_market"])
+            catalog_info["bsr_per_market"] = existing
+
+    # Step 3: Parallel lookup across all target marketplaces
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         futures = {
             pool.submit(
