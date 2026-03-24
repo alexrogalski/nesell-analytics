@@ -323,12 +323,24 @@ def _send_amazon_reply(to_addr, subject, text, order_id=""):
     try:
         import smtplib
         from email.mime.text import MIMEText
-        from etl import config
 
-        creds = config._load_env_file(config.KEYS_DIR / "nesell-support-gmail.env")
-        user = creds.get("NESELL_SUPPORT_IMAP_USER", "")
-        password = creds.get("NESELL_SUPPORT_IMAP_PASSWORD", "")
-        from_addr = creds.get("NESELL_SUPPORT_EMAIL", "support@nesell.co")
+        # Try local keys first, then st.secrets
+        user, password, from_addr = "", "", "support@nesell.co"
+        try:
+            from etl import config
+            creds = config._load_env_file(config.KEYS_DIR / "nesell-support-gmail.env")
+            user = creds.get("NESELL_SUPPORT_IMAP_USER", "")
+            password = creds.get("NESELL_SUPPORT_IMAP_PASSWORD", "")
+            from_addr = creds.get("NESELL_SUPPORT_EMAIL", from_addr)
+        except Exception:
+            pass
+        if not user or not password:
+            try:
+                user = st.secrets.get("NESELL_SUPPORT_IMAP_USER", "")
+                password = st.secrets.get("NESELL_SUPPORT_IMAP_PASSWORD", "")
+                from_addr = st.secrets.get("NESELL_SUPPORT_EMAIL", from_addr)
+            except Exception:
+                pass
 
         if not user or not password:
             return False, "No SMTP credentials configured"
