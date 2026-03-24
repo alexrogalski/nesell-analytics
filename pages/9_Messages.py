@@ -796,33 +796,33 @@ with thread_col:
                     try:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
-                        tone_rules = (
-                            "TONE: Write like a real person from a small e-commerce team, not AI. "
-                            "Short sentences, no filler, no em dashes, no 'I understand your concern', "
-                            "no 'I apologize for the inconvenience', no 'rest assured', no exclamation marks. "
-                            "Be warm but brief (2-4 sentences). Sign: Pozdrawiamy, Zespol nesell"
-                        )
-
                         if user_text and user_text != draft_local:
+                            # User wrote their own text: ONLY translate and polish, keep meaning exact
                             regen_prompt = (
-                                f"Rewrite this seller reply for nesell (e-commerce, hats).\n"
-                                f"DRAFT: \"{user_text}\"\n\n"
-                                f"BUYER MESSAGE: {body_clean[:400]}\n"
-                                f"PLATFORM: {platform} | ORDER: {order}\n"
+                                f"The seller typed this message to send to a buyer:\n"
+                                f"\"{user_text}\"\n\n"
                                 f"BUYER LANGUAGE: {d_lang}\n"
-                                f"{f'INSTRUCTION: {extra}' if extra else ''}\n"
-                                f"{tone_rules}\n\n"
-                                f"Reply as JSON only: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
+                                f"{f'EXTRA INSTRUCTION: {extra}' if extra else ''}\n\n"
+                                f"RULES:\n"
+                                f"- Translate the seller's text to {d_lang} and to Polish\n"
+                                f"- Keep the EXACT same meaning. Do NOT add information, do NOT change what the seller is saying\n"
+                                f"- Only fix grammar and make it sound professional\n"
+                                f"- Do NOT invent details, promises, or actions the seller did not mention\n"
+                                f"- End with: Pozdrawiamy, Zespol nesell\n\n"
+                                f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
                             )
                         else:
+                            # No user text: generate new reply from instruction
                             regen_prompt = (
-                                f"Write a customer reply for nesell (e-commerce, hats).\n"
+                                f"Write a customer reply for nesell (small e-commerce, hats).\n"
                                 f"BUYER MESSAGE: {body_clean[:400]}\n"
                                 f"PLATFORM: {platform} | ORDER: {order}\n"
                                 f"BUYER LANGUAGE: {d_lang}\n"
-                                f"INSTRUCTION: {extra}\n"
-                                f"{tone_rules}\n\n"
-                                f"Reply as JSON only: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
+                                f"INSTRUCTION: {extra}\n\n"
+                                f"TONE: Like a real person, not AI. Short sentences, no filler, no em dashes, "
+                                f"no 'I understand your concern', no 'rest assured'. 2-4 sentences max. "
+                                f"End with: Pozdrawiamy, Zespol nesell\n\n"
+                                f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
                             )
 
                         output = _call_ai_from_dashboard(regen_prompt)
