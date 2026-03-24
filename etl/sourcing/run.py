@@ -348,16 +348,25 @@ def _process_product(
     for a in analyses:
         if a.platform.startswith("amazon_"):
             market_code = a.platform.replace("amazon_", "").upper()
-            sales = estimate_monthly_sales_amazon(a.bsr_rank, marketplace=market_code)
-            monthly_sales[a.platform] = sales
-            a.estimated_monthly_sales = sales
+            # Get enriched data for this market from amazon_data
+            mdata = amazon_data.get(market_code, {})
+            est = estimate_monthly_sales_amazon(
+                bsr_rank=a.bsr_rank,
+                marketplace=market_code,
+                category=mdata.get("category", ""),
+                num_sellers=mdata.get("num_total_offers", 0),
+                has_fba=bool(mdata.get("num_fba_sellers", 0)),
+                subcategory_bsr=mdata.get("bsr_subcategory_rank"),
+            )
+            monthly_sales[a.platform] = int(est)
+            a.estimated_monthly_sales = int(est)
         elif a.platform == "allegro" and allegro_data:
-            sales = estimate_monthly_sales_allegro(
+            est = estimate_monthly_sales_allegro(
                 offer_count=allegro_data.get("offer_count", 0),
                 avg_price=allegro_data.get("avg_price", 100.0),
             )
-            monthly_sales["allegro"] = sales
-            a.estimated_monthly_sales = sales
+            monthly_sales["allegro"] = int(est)
+            a.estimated_monthly_sales = int(est)
 
     # ------------------------------------------------------------------
     # Purchase recommendation
