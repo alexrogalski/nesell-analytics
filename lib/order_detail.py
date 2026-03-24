@@ -393,6 +393,7 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
                 li_header = (
                     '<table class="line-items-table">'
                     '<thead><tr>'
+                    '<th style="width:40px"></th>'
                     '<th>SKU</th><th>Name</th>'
                     '<th class="r">Qty</th>'
                     '<th class="r">Price</th>'
@@ -420,9 +421,17 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
                     margin_color_i = COLORS["success"] if item_margin > 0 else COLORS["danger"]
                     margin_str = f'{item_margin:,.0f} <span style="font-size:0.55rem;color:#64748b">PLN</span>' if u_cost > 0 else '<span class="cogs-missing">?</span>'
 
+                    img_url = str(item.get("image_url", "")) if item.get("image_url") else ""
+                    img_td = (
+                        f'<td style="width:36px;padding:3px"><img src="{img_url}" '
+                        f'style="width:32px;height:32px;object-fit:cover;border-radius:4px;'
+                        f'border:1px solid #1e293b" onerror="this.style.display=\'none\'"/></td>'
+                    ) if img_url else '<td style="width:36px"></td>'
+
                     li_rows += (
                         '<tr>'
-                        f'<td class="primary" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{sku}</td>'
+                        + img_td
+                        + f'<td class="primary" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{sku}</td>'
                         f'<td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{name}</td>'
                         f'<td class="r">{qty}</td>'
                         f'<td class="r" title="{price_title}">{u_price:,.0f} <span style="font-size:0.55rem;color:#64748b">PLN</span></td>'

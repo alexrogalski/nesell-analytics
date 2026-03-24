@@ -604,11 +604,16 @@ def load_orders_enriched(days=30):
 
         items_df["line_cost_pln"] = items_df["unit_cost_pln"] * items_df["quantity"]
         items_df["line_revenue_pln"] = items_df["unit_price_pln"] * items_df["quantity"]
+
+        # Add product image_url to items
+        items_df["image_url"] = items_df["sku"].astype(str).map(
+            lambda s: (prod_lookup.get(s) or {}).get("image_url", "")
+        ).fillna("")
     else:
         items_df = pd.DataFrame(columns=["order_id", "sku", "name", "quantity",
                                           "unit_price", "unit_price_pln", "unit_cost_pln",
                                           "line_cost_pln", "line_revenue_pln", "asin",
-                                          "currency", "product_id"])
+                                          "currency", "product_id", "image_url"])
 
     # Aggregate items per order
     if not items_df.empty:
@@ -619,11 +624,12 @@ def load_orders_enriched(days=30):
             items_revenue_pln=("line_revenue_pln", "sum"),
             first_sku=("sku", "first"),
             first_name=("name", "first"),
+            first_image=("image_url", "first"),
         ).reset_index()
     else:
         items_agg = pd.DataFrame(columns=["order_id", "item_count", "unit_count",
                                            "cogs_pln", "items_revenue_pln",
-                                           "first_sku", "first_name"])
+                                           "first_sku", "first_name", "first_image"])
 
     # Merge items aggregation into orders
     orders = orders.merge(items_agg, left_on="id", right_on="order_id", how="left", suffixes=("", "_items"))
