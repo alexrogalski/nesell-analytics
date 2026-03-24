@@ -77,6 +77,17 @@ CATEGORY_KEYWORDS = {
 
 MAX_AI_RETRIES = 3
 
+# ── API cost guards ──
+# Sonnet 4 pricing: ~$3/M input, $15/M output tokens
+# With 1024 max_tokens output and ~500 token prompts:
+# ~$0.002 per call → 50 calls/day = ~$0.10/day = ~$3/month
+DAILY_API_CALL_LIMIT = 50       # max SDK calls per day (resets at midnight UTC)
+MAX_PROMPT_CHARS = 2000          # truncate prompts to save input tokens
+MAX_OUTPUT_TOKENS = 800          # enough for analysis + draft, not wasteful
+BATCH_SIZE_CAP = 5               # max messages per cron run (spread load across runs)
+_daily_call_count = 0
+_daily_call_date = None
+
 
 def process_messages(batch_size=50):
     """Process unprocessed inbound messages: translate + generate draft replies."""
@@ -256,22 +267,45 @@ def _get_anthropic_client():
         return None
 
 
+def _check_daily_limit():
+    """Check and enforce daily API call limit. Returns True if call is allowed."""
+    global _daily_call_count, _daily_call_date
+    today = datetime.now(timezone.utc).date()
+    if _daily_call_date != today:
+        _daily_call_count = 0
+        _daily_call_date = today
+    if _daily_call_count >= DAILY_API_CALL_LIMIT:
+        return False
+    _daily_call_count += 1
+    return True
+
+
 def _call_ai(prompt):
-    """Call Claude via Anthropic SDK (primary) or CLI (fallback). Returns response text."""
+    """Call Claude via Anthropic SDK (primary) or CLI (fallback). Returns response text.
+    Enforces daily call limit and prompt size cap."""
+    # Enforce prompt size limit
+    if len(prompt) > MAX_PROMPT_CHARS:
+        prompt = prompt[:MAX_PROMPT_CHARS] + "\n[truncated]"
+
+    # Check daily limit
+    if not _check_daily_limit():
+        print(f"    [RATE-LIMIT] Daily API limit reached ({DAILY_API_CALL_LIMIT} calls). Skipping until tomorrow.")
+        return None
+
     # Try Anthropic SDK first
     client = _get_anthropic_client()
     if client:
         try:
             response = client.messages.create(
                 model="claude-sonnet-4-20250514",
-                max_tokens=1024,
+                max_tokens=MAX_OUTPUT_TOKENS,
                 messages=[{"role": "user", "content": prompt}],
             )
             return response.content[0].text.strip()
         except Exception as e:
             print(f"    [WARN] Anthropic SDK failed: {e}")
 
-    # Fallback: Claude CLI
+    # Fallback: Claude CLI (free, no limit)
     if shutil.which("claude"):
         try:
             result = subprocess.run(
@@ -286,14 +320,16 @@ def _call_ai(prompt):
 
 
 def analyze_with_claude(batch_size=10):
-    """Analyze unprocessed inbound messages using AI (SDK or CLI)."""
+    """Analyze unprocessed inbound messages using AI (SDK or CLI).
+    Batch size is capped to BATCH_SIZE_CAP to spread API usage across cron runs."""
+    effective_batch = min(batch_size, BATCH_SIZE_CAP)
     msgs = db._get("messages", {
         "ai_analysis": "is.null",
         "direction": "eq.inbound",
         "body_text": "not.is.null",
         "select": "id,conversation_id,body_text,email_subject,detected_language,translation_pl,ai_retry_count",
         "order": "sent_at.desc",
-        "limit": str(batch_size),
+        "limit": str(effective_batch),
     })
 
     if not msgs:

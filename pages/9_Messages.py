@@ -396,10 +396,12 @@ def _call_ai_from_dashboard(prompt):
         try:
             import anthropic
             client = anthropic.Anthropic(api_key=api_key)
+            # Cap prompt to 2000 chars, output to 800 tokens (cost control)
+            capped_prompt = prompt[:2000]
             response = client.messages.create(
                 model="claude-sonnet-4-20250514",
-                max_tokens=1024,
-                messages=[{"role": "user", "content": prompt}],
+                max_tokens=800,
+                messages=[{"role": "user", "content": capped_prompt}],
             )
             return response.content[0].text.strip()
         except Exception as e:
