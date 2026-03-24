@@ -58,7 +58,15 @@ def sync_messages(days_back=30):
     except Exception as e:
         print(f"  [msg-center] Claude analysis failed: {e}")
 
-    # 6. Discord alert for new messages needing reply
+    # 6. SLA monitoring: flag overdue conversations
+    try:
+        overdue = _check_sla_breaches()
+        if overdue:
+            _send_sla_alert(overdue)
+    except Exception as e:
+        print(f"  [msg-center] SLA check failed: {e}")
+
+    # 7. Discord alert for new messages needing reply
     if new_inbound > 0:
         try:
             _send_discord_alert(new_inbound)
@@ -162,3 +170,83 @@ def get_conversation_messages(conv_id):
         "order": "sent_at.asc",
         "select": "*",
     })
+
+
+# ── SLA monitoring ──
+
+SLA_HOURS = {
+    "urgent": 4,
+    "high": 12,
+    "normal": 24,
+    "low": 48,
+}
+
+
+def _check_sla_breaches():
+    """Find conversations that breached SLA (needs_reply=true, older than threshold)."""
+    from datetime import timedelta
+
+    # Get all open conversations needing reply
+    convs = db._get("conversations", {
+        "needs_reply": "eq.true",
+        "status": "in.(open,escalated)",
+        "select": "id,source,platform,buyer_name,buyer_login,external_order_id,last_message_at,priority,category",
+        "order": "last_message_at.asc",
+    })
+
+    if not convs:
+        return []
+
+    now = datetime.now(timezone.utc)
+    overdue = []
+
+    for c in convs:
+        ts_str = c.get("last_message_at")
+        if not ts_str:
+            continue
+
+        ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+        priority = c.get("priority") or "normal"
+        sla_hours = SLA_HOURS.get(priority, 24)
+        deadline = ts + timedelta(hours=sla_hours)
+
+        if now > deadline:
+            hours_overdue = int((now - deadline).total_seconds() / 3600)
+            c["hours_overdue"] = hours_overdue
+            c["sla_hours"] = sla_hours
+            overdue.append(c)
+
+    if overdue:
+        print(f"  [msg-center] SLA: {len(overdue)} conversation(s) overdue")
+
+    return overdue
+
+
+def _send_sla_alert(overdue):
+    """Send Discord alert for SLA-breached conversations."""
+    fields = []
+    for c in overdue[:5]:
+        platform = (c.get("platform") or "").upper().replace("_", " ")
+        buyer = c.get("buyer_name") or c.get("buyer_login") or "?"
+        order = c.get("external_order_id") or ""
+        hours = c.get("hours_overdue", 0)
+        sla = c.get("sla_hours", 24)
+        priority = (c.get("priority") or "normal").upper()
+        cat = c.get("category") or ""
+
+        name = f"[{platform}] {buyer}"
+        value = f"Overdue: {hours}h (SLA: {sla}h) | {priority}"
+        if order:
+            value += f" | Order: {order}"
+        if cat:
+            value += f" | {cat}"
+
+        fields.append({"name": name[:256], "value": value[:1024], "inline": False})
+
+    discord_notify.send_embed(
+        title=f"SLA ALERT: {len(overdue)} overdue conversation(s)",
+        description="These conversations need immediate attention:",
+        color=discord_notify.RED if hasattr(discord_notify, 'RED') else 0xff0000,
+        fields=fields,
+        footer=f"SLA Monitor | {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+    )

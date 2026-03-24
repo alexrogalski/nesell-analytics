@@ -1,10 +1,11 @@
-"""Auto-translate messages and generate draft replies for customer conversations.
+"""Auto-translate messages and generate AI draft replies for customer conversations.
 
-Uses Claude CLI (claude -p) for per-case AI analysis - no API key needed,
-uses existing Claude Code subscription.
+Uses Anthropic SDK (primary) or Claude CLI (fallback) for per-case AI analysis.
 """
 import json
+import os
 import re
+import shutil
 import subprocess
 from datetime import datetime, timezone
 
@@ -74,10 +75,11 @@ CATEGORY_KEYWORDS = {
     ],
 }
 
+MAX_AI_RETRIES = 3
+
 
 def process_messages(batch_size=50):
     """Process unprocessed inbound messages: translate + generate draft replies."""
-    # Get inbound messages without translations
     msgs = db._get("messages", {
         "ai_processed_at": "is.null",
         "direction": "eq.inbound",
@@ -92,7 +94,6 @@ def process_messages(batch_size=50):
 
     print(f"  [msg-ai] Processing {len(msgs)} inbound messages")
 
-    # Get conversation info for platform/language detection
     conv_ids = list({str(m["conversation_id"]) for m in msgs})
     convs = {}
     for cid in conv_ids:
@@ -139,7 +140,6 @@ def _process_single_message(msg, conv):
         try:
             translator = GoogleTranslator(source="auto", target="pl")
             translation_pl = translator.translate(text[:4500])
-            # Try to detect actual language
             detected_lang = _detect_language(text, source_lang)
         except Exception as e:
             print(f"    [WARN] Translation failed for msg {msg['id']}: {e}")
@@ -188,7 +188,17 @@ def _process_single_message(msg, conv):
 
 
 def _detect_language(text, fallback="de"):
-    """Simple language detection based on common words."""
+    """Detect language using langdetect (with word-matching fallback)."""
+    try:
+        from langdetect import detect
+        lang = detect(text[:1000])
+        # Map langdetect codes to our codes
+        lang_map = {"de": "de", "fr": "fr", "it": "it", "es": "es",
+                     "nl": "nl", "sv": "sv", "pl": "pl", "en": "en"}
+        return lang_map.get(lang, fallback)
+    except Exception:
+        pass
+    # Fallback: simple word matching
     text_lower = text.lower()[:500]
     scores = {
         "de": sum(1 for w in ["und", "die", "der", "das", "ist", "ich", "nicht", "ein", "mit", "auf"] if f" {w} " in f" {text_lower} "),
@@ -217,15 +227,71 @@ def _auto_categorize(text, translation=None):
     return None
 
 
-# ── Claude CLI AI analysis ──
+# ── AI analysis (Anthropic SDK primary, Claude CLI fallback) ──
+
+def _get_anthropic_client():
+    """Get Anthropic client if API key is available."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        # Try loading from file
+        try:
+            from . import config
+            env = config._load_env_file(config.KEYS_DIR / "anthropic.env")
+            api_key = env.get("ANTHROPIC_API_KEY", "")
+        except Exception:
+            pass
+    if not api_key:
+        # Try Streamlit secrets
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+        except Exception:
+            pass
+    if not api_key:
+        return None
+    try:
+        import anthropic
+        return anthropic.Anthropic(api_key=api_key)
+    except Exception:
+        return None
+
+
+def _call_ai(prompt):
+    """Call Claude via Anthropic SDK (primary) or CLI (fallback). Returns response text."""
+    # Try Anthropic SDK first
+    client = _get_anthropic_client()
+    if client:
+        try:
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
+        except Exception as e:
+            print(f"    [WARN] Anthropic SDK failed: {e}")
+
+    # Fallback: Claude CLI
+    if shutil.which("claude"):
+        try:
+            result = subprocess.run(
+                ["claude", "-p", prompt, "--model", "sonnet", "--max-turns", "1"],
+                capture_output=True, text=True, timeout=45,
+            )
+            return result.stdout.strip()
+        except Exception as e:
+            print(f"    [WARN] Claude CLI failed: {e}")
+
+    return None
+
 
 def analyze_with_claude(batch_size=10):
-    """Analyze unprocessed inbound messages using Claude CLI. No API key needed."""
+    """Analyze unprocessed inbound messages using AI (SDK or CLI)."""
     msgs = db._get("messages", {
         "ai_analysis": "is.null",
         "direction": "eq.inbound",
         "body_text": "not.is.null",
-        "select": "id,conversation_id,body_text,email_subject,detected_language,translation_pl",
+        "select": "id,conversation_id,body_text,email_subject,detected_language,translation_pl,ai_retry_count",
         "order": "sent_at.desc",
         "limit": str(batch_size),
     })
@@ -234,22 +300,44 @@ def analyze_with_claude(batch_size=10):
         print("  [msg-ai-claude] No messages to analyze")
         return 0
 
-    print(f"  [msg-ai-claude] Analyzing {len(msgs)} messages with Claude")
+    # Filter out messages that exceeded retry limit
+    eligible = []
+    for m in msgs:
+        retries = m.get("ai_retry_count") or 0
+        if retries >= MAX_AI_RETRIES:
+            # Mark as permanently failed
+            db._patch("messages", {"id": f"eq.{m['id']}"}, {
+                "ai_analysis": f"[AUTO-SKIP] Exceeded {MAX_AI_RETRIES} retry attempts",
+            })
+            print(f"    Msg {m['id']}: skipped (exceeded {MAX_AI_RETRIES} retries)")
+        else:
+            eligible.append(m)
+
+    if not eligible:
+        print("  [msg-ai-claude] All pending messages exceeded retry limit")
+        return 0
+
+    print(f"  [msg-ai-claude] Analyzing {len(eligible)} messages with AI")
 
     analyzed = 0
-    for m in msgs:
+    for m in eligible:
         try:
             _analyze_single(m)
             analyzed += 1
         except Exception as e:
-            print(f"    [WARN] Claude analysis failed for msg {m['id']}: {e}")
+            # Increment retry counter
+            retries = (m.get("ai_retry_count") or 0) + 1
+            db._patch("messages", {"id": f"eq.{m['id']}"}, {
+                "ai_retry_count": retries,
+            })
+            print(f"    [WARN] AI analysis failed for msg {m['id']} (retry {retries}/{MAX_AI_RETRIES}): {e}")
 
-    print(f"  [msg-ai-claude] Done: {analyzed}/{len(msgs)} analyzed")
+    print(f"  [msg-ai-claude] Done: {analyzed}/{len(eligible)} analyzed")
     return analyzed
 
 
 def _analyze_single(msg):
-    """Analyze a single message using Claude CLI."""
+    """Analyze a single message using AI."""
     msg_id = msg["id"]
     conv_id = msg["conversation_id"]
     body = msg.get("body_text") or ""
@@ -257,10 +345,8 @@ def _analyze_single(msg):
     translation = msg.get("translation_pl") or ""
     detected_lang = msg.get("detected_language") or "de"
 
-    # Clean Amazon boilerplate for analysis
     body_clean = _clean_email_body(body)
 
-    # Get conversation + order context
     conv = db._get("conversations", {
         "id": f"eq.{conv_id}",
         "select": "source,platform,external_order_id,buyer_name,buyer_login,status",
@@ -274,13 +360,8 @@ def _analyze_single(msg):
     buyer = conv.get("buyer_name") or conv.get("buyer_login") or "?"
     platform = conv.get("platform", "?")
 
-    # Use cleaned body only, skip translated boilerplate
     msg_text = body_clean[:800]
-    if translation:
-        # Clean translation too
-        tl_clean = _clean_email_body(translation)[:500]
-    else:
-        tl_clean = ""
+    tl_clean = _clean_email_body(translation)[:500] if translation else ""
 
     prompt = f"""E-commerce customer service for "nesell" (Amazon/Allegro EU). Analyze and draft reply.
 
@@ -293,26 +374,15 @@ ORDER CONTEXT: {order_ctx[:500]}
 Reply as JSON only:
 {{"analiza":"2-3 sentences PL: what is the problem, what we know, what to do","kategoria":"shipping|return|damage|question|complaint|other","pilnosc":"low|normal|high|urgent","draft_pl":"full professional reply in Polish","draft_{detected_lang}":"same reply in {detected_lang}"}}"""
 
-    result = subprocess.run(
-        ["claude", "-p", prompt, "--model", "sonnet", "--max-turns", "1"],
-        capture_output=True, text=True, timeout=45,
-    )
-
-    output = result.stdout.strip()
+    output = _call_ai(prompt)
     if not output:
-        return
+        raise RuntimeError("No AI backend available (no API key and no claude CLI in PATH)")
 
     # Parse JSON from output
-    try:
-        # Find JSON in output (claude may add text around it)
-        json_match = re.search(r'\{.*\}', output, re.DOTALL)
-        if not json_match:
-            print(f"    [WARN] No JSON in Claude output for msg {msg_id}")
-            return
-        data = json.loads(json_match.group())
-    except json.JSONDecodeError:
-        print(f"    [WARN] Invalid JSON from Claude for msg {msg_id}")
-        return
+    json_match = re.search(r'\{.*\}', output, re.DOTALL)
+    if not json_match:
+        raise ValueError(f"No JSON in AI output")
+    data = json.loads(json_match.group())
 
     analysis = data.get("analiza", "")
     category = data.get("kategoria", "")
@@ -320,22 +390,19 @@ Reply as JSON only:
     draft_pl = data.get("draft_pl", "")
     draft_local = data.get(f"draft_{detected_lang}", "") or data.get("draft_de", "") or data.get("draft_fr", "") or data.get("draft_it", "") or data.get("draft_es", "") or data.get("draft_nl", "")
 
-    # If no local draft found, try any draft_ key
     if not draft_local:
         for k, v in data.items():
             if k.startswith("draft_") and k != "draft_pl" and v:
                 draft_local = v
                 break
 
-    # Update message
-    update = {"ai_analysis": analysis}
+    update = {"ai_analysis": analysis, "ai_retry_count": 0}
     if draft_pl:
         update["ai_draft_pl"] = draft_pl
     if draft_local:
         update["ai_draft_local"] = draft_local
     db._patch("messages", {"id": f"eq.{msg_id}"}, update)
 
-    # Update conversation category and priority
     conv_update = {}
     if category and category in ("shipping", "return", "damage", "question", "complaint", "other"):
         conv_update["category"] = category
@@ -358,7 +425,6 @@ def _clean_email_body(text):
     )
     if m:
         return m.group(1).strip()
-    # Remove known boilerplate
     lines = []
     for line in text.split("\n"):
         s = line.strip().lower()
@@ -375,11 +441,10 @@ def _clean_email_body(text):
 
 
 def _get_order_context(order_id):
-    """Build order context string for Claude prompt."""
+    """Build order context string for AI prompt."""
     if not order_id:
         return "Brak numeru zamowienia."
 
-    # Find order
     order = None
     for field in ["platform_order_id", "external_id"]:
         rows = db._get("orders", {field: f"eq.{order_id}", "select": "*", "limit": "1"})
@@ -399,7 +464,6 @@ def _get_order_context(order_id):
     internal_id = order.get("id")
     bl_id = str(order.get("external_id") or internal_id)
 
-    # Items
     items = db._get("order_items", {
         "order_id": f"eq.{internal_id}",
         "select": "sku,name,quantity",
@@ -408,7 +472,6 @@ def _get_order_context(order_id):
         for it in items[:3]:
             ctx_parts.append(f"- Produkt: {it.get('quantity', 1)}x {it.get('name', it.get('sku', '?'))}")
 
-    # Shipping
     shipping = db._get("shipping_costs", {
         "order_id": f"eq.{bl_id}",
         "select": "tracking_number,courier,ship_date,cost_pln",
@@ -420,7 +483,6 @@ def _get_order_context(order_id):
     else:
         ctx_parts.append("- WYSYLKA: BRAK DANYCH (nie znaleziono w shipping_costs)")
 
-    # Problems
     problems = db._get("shipping_problems", {
         "bl_order_id": f"eq.{bl_id}",
         "select": "problem_type,problem_detail,severity,status",

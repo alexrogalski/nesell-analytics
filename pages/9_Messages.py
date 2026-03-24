@@ -362,6 +362,65 @@ def _mark_replied(conv_id):
         pass
 
 
+def _mark_closed(conv_id):
+    """Mark conversation as closed in DB."""
+    try:
+        from etl import db
+        db._patch("conversations", {"id": f"eq.{conv_id}"}, {
+            "needs_reply": False,
+            "status": "closed",
+        })
+    except Exception:
+        pass
+
+
+def _call_ai_from_dashboard(prompt):
+    """Call AI from dashboard: try Anthropic SDK, then Claude CLI."""
+    import os
+    # Try Anthropic SDK
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        try:
+            api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+        except Exception:
+            pass
+    if not api_key:
+        try:
+            from etl import config
+            env = config._load_env_file(config.KEYS_DIR / "anthropic.env")
+            api_key = env.get("ANTHROPIC_API_KEY", "")
+        except Exception:
+            pass
+
+    if api_key:
+        try:
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            response = client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text.strip()
+        except Exception as e:
+            st.warning(f"SDK error: {e}")
+
+    # Fallback: Claude CLI (local only)
+    import shutil
+    if shutil.which("claude"):
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["claude", "-p", prompt, "--model", "sonnet", "--max-turns", "1"],
+                capture_output=True, text=True, timeout=30,
+            )
+            return result.stdout.strip()
+        except Exception:
+            pass
+
+    return None
+
+
 # ── Sidebar ──
 
 period_map = {7: "7D", 14: "14D", 30: "30D", 90: "90D"}
@@ -600,21 +659,40 @@ with thread_col:
             if is_inbound and m.get("draft_reply"):
                 last_inbound_draft = m
 
+    # ── Buyer history (other conversations with same buyer) ──
+    buyer_login = conv_row.get("buyer_login") or ""
+    if buyer_login:
+        other_convs = _get("conversations", {
+            "buyer_login": f"eq.{buyer_login}",
+            "id": f"neq.{selected}",
+            "select": "id,external_order_id,status,last_message_at,category",
+            "order": "last_message_at.desc",
+            "limit": "5",
+        })
+        if other_convs:
+            hist_items = " | ".join(
+                f"{(c.get('external_order_id') or '?')[:15]} ({c.get('status','?')})"
+                for c in other_convs
+            )
+            st.html(f'''<div style="padding:4px 10px; background:#0f172a; border:1px solid #1e293b; border-radius:4px; margin-bottom:6px; font-family:monospace; font-size:10px; color:#64748b;">
+              Historia kupujacego: {_esc(hist_items)}
+            </div>''')
+
     # ── Reply section ──
     if nr and last_inbound_draft:
         st.html('<div style="height:1px; background:#1e293b; margin:12px 0;"></div>')
 
         d_lang = (last_inbound_draft.get("detected_language") or "pl").upper()
 
-        # AI analysis panel (from Claude)
+        # AI analysis panel
         ai_analysis = last_inbound_draft.get("ai_analysis") or ""
-        if ai_analysis:
+        if ai_analysis and not ai_analysis.startswith("[AUTO-SKIP]"):
             st.html(f'''<div style="padding:8px 12px; background:#0c1222; border-left:3px solid #06b6d4; border-radius:0 6px 6px 0; margin-bottom:8px; font-family:monospace;">
-              <div style="font-size:10px; font-weight:700; color:#06b6d4; margin-bottom:3px;">ANALIZA CLAUDE</div>
+              <div style="font-size:10px; font-weight:700; color:#06b6d4; margin-bottom:3px;">ANALIZA AI</div>
               <div style="font-size:12px; color:#e2e8f0; line-height:1.5;">{_esc(ai_analysis)}</div>
             </div>''')
 
-        # Prefer Claude AI drafts over template-based
+        # Prefer AI drafts over template-based
         ai_draft_pl = last_inbound_draft.get("ai_draft_pl") or ""
         ai_draft_local = last_inbound_draft.get("ai_draft_local") or ""
 
@@ -622,7 +700,6 @@ with thread_col:
             draft_pl = ai_draft_pl
             draft_local = ai_draft_local or ai_draft_pl
         else:
-            # Fallback: context-aware template
             last_body = _clean_body(last_inbound_draft.get("body_text") or "")
             draft_pl = _build_smart_draft(order_ctx, last_body, d_lang.lower()) if order_ctx else (last_inbound_draft.get("draft_reply") or "")
             draft_local = draft_pl
@@ -633,14 +710,12 @@ with thread_col:
                 except Exception:
                     draft_local = last_inbound_draft.get("draft_reply_local") or draft_pl
 
-        # Show draft in Polish (always visible)
         if draft_pl:
             st.html(f'''<div style="padding:10px 14px; background:#1a1a2e; border-left:3px solid #8b5cf6; border-radius:0 6px 6px 0; margin-bottom:10px; font-family:monospace;">
               <div style="font-size:10px; font-weight:700; color:#8b5cf6; margin-bottom:4px;">PROPONOWANA ODPOWIEDZ (PL)</div>
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
-        # Editable text area in buyer's language (this gets sent)
         st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
         reply_text = st.text_area(
             f"reply_{d_lang}",
@@ -650,24 +725,28 @@ with thread_col:
             label_visibility="collapsed",
         )
 
-        # Custom prompt box for Claude regeneration
         custom_prompt = st.text_input(
-            "Wlasna instrukcja dla Claude (np. 'napisz bardziej empatycznie', 'zaproponuj wymiane')",
+            "Instrukcja dla AI (np. 'napisz bardziej empatycznie', 'zaproponuj wymiane')",
             key=f"custom_prompt_{selected}",
             placeholder="Wpisz instrukcje i kliknij Regeneruj...",
         )
 
-        btn_col1, btn_col2, btn_col3 = st.columns([1, 1, 2])
+        # Amazon SMTP warning
+        if source == "amazon_email":
+            st.html('<div style="font-size:10px; color:#f59e0b; font-family:monospace; padding:2px 0;">Uwaga: odpowiedzi Amazon wysylane przez Gmail. Lepiej odpowiadac przez Seller Central.</div>')
+
+        btn_col1, btn_col2, btn_col3, btn_col4 = st.columns([1, 1, 1, 1])
         with btn_col1:
             send_clicked = st.button("Wyslij", key=f"send_{selected}", type="primary")
         with btn_col2:
             regen_clicked = st.button("Regeneruj", key=f"regen_{selected}")
+        with btn_col3:
+            close_clicked = st.button("Zamknij", key=f"close_{selected}")
 
-        # Regenerate draft with custom prompt via Claude CLI
+        # Regenerate draft via Anthropic SDK (with CLI fallback)
         if regen_clicked and custom_prompt.strip():
-            with st.spinner("Claude generuje nowa odpowiedz..."):
+            with st.spinner("AI generuje nowa odpowiedz..."):
                 try:
-                    import subprocess
                     body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
                     tl = last_inbound_draft.get("translation_pl") or ""
 
@@ -681,34 +760,41 @@ with thread_col:
                         f"Reply as JSON: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
                     )
 
-                    result = subprocess.run(
-                        ["claude", "-p", regen_prompt, "--model", "sonnet", "--max-turns", "1"],
-                        capture_output=True, text=True, timeout=30,
-                    )
-                    import json
-                    json_match = re.search(r'\{.*\}', result.stdout, re.DOTALL)
-                    if json_match:
-                        data = json.loads(json_match.group())
-                        new_pl = data.get("draft_pl", "")
-                        new_local = data.get(f"draft_{d_lang.lower()}", "")
-                        if new_pl:
-                            st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
-                              <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
-                              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
-                            </div>''')
-                        if new_local:
-                            st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
-                              <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
-                              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
-                            </div>''')
-                            st.session_state[f"reply_{selected}"] = new_local
+                    output = _call_ai_from_dashboard(regen_prompt)
+                    if output:
+                        import json
+                        json_match = re.search(r'\{.*\}', output, re.DOTALL)
+                        if json_match:
+                            data = json.loads(json_match.group())
+                            new_pl = data.get("draft_pl", "")
+                            new_local = data.get(f"draft_{d_lang.lower()}", "")
+                            if new_pl:
+                                st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
+                                  <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
+                                  <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
+                                </div>''')
+                            if new_local:
+                                st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
+                                  <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
+                                  <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
+                                </div>''')
+                                st.session_state[f"reply_{selected}"] = new_local
+                        else:
+                            st.warning("AI nie zwrocilo JSON.")
                     else:
-                        st.warning("Claude nie zwrocil JSON. Sprobuj inaczej sformulowac instrukcje.")
+                        st.error("Brak AI backendu. Dodaj ANTHROPIC_API_KEY do Streamlit secrets.")
                 except Exception as e:
                     st.error(f"Blad: {e}")
 
+        # Close conversation
+        if close_clicked:
+            _mark_closed(selected)
+            st.success("Konwersacja zamknieta")
+            load_conversations.clear()
+            load_messages_for_conv.clear()
+
         if send_clicked and reply_text.strip():
-            with btn_col3:
+            with btn_col4:
                 with st.spinner("Wysylanie..."):
                     if source == "allegro":
                         ok, msg = _send_allegro_reply(thread_id, reply_text)
@@ -728,5 +814,14 @@ with thread_col:
                     else:
                         st.error(f"Blad: {msg}")
 
-    elif not nr:
-        st.html('<div style="text-align:center; padding:8px; font-size:11px; color:#10b981; font-family:monospace;">Odpowiedziano</div>')
+    else:
+        # Not needing reply: show close button if still open
+        action_col1, action_col2, _ = st.columns([1, 1, 3])
+        if status == "replied":
+            with action_col1:
+                if st.button("Zamknij", key=f"close2_{selected}"):
+                    _mark_closed(selected)
+                    st.success("Zamknieta")
+                    load_conversations.clear()
+        if not nr:
+            st.html('<div style="text-align:center; padding:4px; font-size:11px; color:#10b981; font-family:monospace;">Odpowiedziano</div>')

@@ -37,18 +37,19 @@ def sync_allegro_messages(days_back=30):
         if (i + 1) % 20 == 0:
             print(f"    ... processed {i+1}/{len(threads)} threads")
 
-    # Sync disputes/issues (may fail with 406 if no issues scope)
+    # Sync disputes/issues (requires sale:disputes scope, may not be available)
     issues = []
     try:
         issues = _fetch_issues(token, since)
-        print(f"  [allegro-msg] Found {len(issues)} active issues")
-        for issue in issues:
-            try:
-                _sync_issue(token, issue, since)
-            except Exception as e:
-                print(f"    [WARN] Issue {issue.get('id', '?')}: {e}")
-    except Exception as e:
-        print(f"  [allegro-msg] Issues sync skipped: {e}")
+        if issues:
+            print(f"  [allegro-msg] Found {len(issues)} active issues")
+            for issue in issues:
+                try:
+                    _sync_issue(token, issue, since)
+                except Exception as e:
+                    print(f"    [WARN] Issue {issue.get('id', '?')}: {e}")
+    except Exception:
+        pass  # Expected: 406 if app lacks sale:disputes scope
 
     print(f"  [allegro-msg] Done: {len(threads)} threads, {len(issues)} issues, {new_inbound} new inbound messages")
     return new_inbound
