@@ -272,8 +272,18 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
             # === SHIPPING & LOGISTICS ===
             wf += _section_header("Shipping & Logistics")
             if shipping_val > 0:
-                ship_label = "Printful Shipping" if fulfillment == "PRINTFUL" else "DPD Shipping"
-                ship_badge_text = "Printful dropship" if fulfillment == "PRINTFUL" else ship_badge
+                # Platform-specific shipping labels
+                _plat = platform_code or ""
+                if fulfillment == "PRINTFUL":
+                    ship_label, ship_badge_text = "Printful Shipping", "Printful dropship"
+                elif _plat == "allegro":
+                    ship_label, ship_badge_text = "Allegro Shipping", "Allegro Billing API"
+                elif _plat == "temu":
+                    ship_label, ship_badge_text = "Temu Shipping", "buyer delivery estimate"
+                elif _plat == "empik":
+                    ship_label, ship_badge_text = "Empik Shipping", "buyer delivery estimate"
+                else:
+                    ship_label, ship_badge_text = "DPD Shipping", ship_badge
                 wf += _wf_row(
                     ship_label, -shipping_val,
                     pct=-(shipping_val / pct_base * 100),

@@ -754,13 +754,11 @@ def load_orders_enriched(days=30):
     orders.loc[_has_seller, "shipping_pln"] = orders.loc[_has_seller, "seller_shipping_cost_pln"]
 
     # DPD shipping estimate ONLY for Amazon FBM orders (user's DPD contract)
-    # Allegro/Temu/Empik have their own shipping — cost included in platform fees
-    # Printful has their own shipping — handled separately below
     _is_fbm_mask = orders["fulfillment"] == "FBM"
-    _needs_ship_estimate = (~_has_seller) & _is_fbm_mask
+    _needs_dpd_estimate = (~_has_seller) & _is_fbm_mask
 
-    if _needs_ship_estimate.any():
-        _ship_countries = _countries[_needs_ship_estimate]
+    if _needs_dpd_estimate.any():
+        _ship_countries = _countries[_needs_dpd_estimate]
         _is_pl = _ship_countries == "PL"
 
         # Non-PL: DPD rate + security + fuel surcharge, converted to PLN
@@ -768,17 +766,53 @@ def load_orders_enriched(days=30):
         _dpd_total_eur = (_dpd_base + DPD_SECURITY_FEE) * (1 + DPD_FUEL_SURCHARGE)
 
         # Get EUR FX rates for shipping estimate
-        _ship_dates = _order_dates[_needs_ship_estimate]
+        _ship_dates = _order_dates[_needs_dpd_estimate]
         _eur_fx_ship = pd.Series(
             [_order_fx_cache.get((d, "EUR"), get_fx(d, "EUR")) for d in _ship_dates],
-            index=orders.index[_needs_ship_estimate],
+            index=orders.index[_needs_dpd_estimate],
         )
         _dpd_pln = _dpd_total_eur * _eur_fx_ship
 
         # PL domestic: flat 12 PLN
         _dpd_pln[_is_pl] = DPD_PL_DOMESTIC_PLN
 
-        orders.loc[_needs_ship_estimate, "shipping_pln"] = _dpd_pln.values
+        orders.loc[_needs_dpd_estimate, "shipping_pln"] = _dpd_pln.values
+
+    # Allegro/Temu/Empik: platform-specific shipping (NOT DPD)
+    _is_allegro = orders["platform_name"] == "allegro"
+    _is_temu = orders["platform_name"] == "temu"
+    _is_empik = orders["platform_name"] == "empik"
+
+    # Allegro: real shipping_fee from Allegro Billing API (stored in notes JSON)
+    _allegro_no_ship = _is_allegro & ~_has_seller
+    if _allegro_no_ship.any():
+        def _parse_allegro_ship(notes_val):
+            if not notes_val or not isinstance(notes_val, str):
+                return 0.0
+            try:
+                import json as _json
+                data = _json.loads(notes_val)
+                return float(data.get("shipping_fee", 0) or 0)
+            except (ValueError, TypeError):
+                return 0.0
+        _allegro_ship = orders.loc[_allegro_no_ship, "notes"].apply(_parse_allegro_ship)
+        orders.loc[_allegro_no_ship, "shipping_pln"] = _allegro_ship.values
+
+    # Temu/Empik: use buyer's delivery_price as estimate (platform-arranged shipping)
+    # These platforms charge shipping through their own system, closest proxy we have
+    _temu_empik_no_ship = (_is_temu | _is_empik) & ~_has_seller
+    if _temu_empik_no_ship.any():
+        _buyer_ship = orders.loc[_temu_empik_no_ship, "shipping_cost"].fillna(0).astype(float)
+        # Convert to PLN for non-PLN orders (Temu uses EUR)
+        _te_fx = pd.Series(
+            [_order_fx_cache.get((d, c), get_fx(d, c))
+             for d, c in zip(
+                 _order_dates[_temu_empik_no_ship],
+                 orders.loc[_temu_empik_no_ship, "currency"].fillna("PLN").str.upper()
+             )],
+            index=orders.index[_temu_empik_no_ship],
+        )
+        orders.loc[_temu_empik_no_ship, "shipping_pln"] = (_buyer_ship * _te_fx).values
 
     # Printful shipping: use Printful EU rates (from their API/pricing page)
     # Printful ships from EU fulfillment center (Latvia/Spain), rates include handling
