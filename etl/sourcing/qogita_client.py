@@ -133,14 +133,20 @@ class QogitaClient:
             )
 
         data = resp.json()
-        self._access_token = data.get("access", "")
-        self._refresh_token = data.get("refresh", "")
+        self._access_token = data.get("accessToken") or data.get("access", "")
+        self._refresh_token = data.get("refreshToken") or data.get("refresh", "")
         self._session.headers["Authorization"] = f"Bearer {self._access_token}"
 
     def _refresh(self) -> bool:
         """Refresh the access token. Returns True on success."""
         if not self._refresh_token:
-            return False
+            # No refresh token: just re-login
+            try:
+                self._access_token = ""
+                self._login()
+                return True
+            except Exception:
+                return False
 
         resp = self._session.post(
             f"{BASE_URL}/auth/refresh/",
@@ -150,12 +156,18 @@ class QogitaClient:
 
         if resp.status_code == 200:
             data = resp.json()
-            self._access_token = data.get("access", "")
-            self._refresh_token = data.get("refresh", self._refresh_token)
+            self._access_token = data.get("accessToken") or data.get("access", "")
+            self._refresh_token = data.get("refreshToken") or data.get("refresh", self._refresh_token)
             self._session.headers["Authorization"] = f"Bearer {self._access_token}"
             return True
 
-        return False
+        # Refresh failed: re-login
+        try:
+            self._access_token = ""
+            self._login()
+            return True
+        except Exception:
+            return False
 
     # ── HTTP helper ──────────────────────────────────────────────────
 
@@ -215,7 +227,16 @@ class QogitaClient:
         return self._parse_variant(data)
 
     def _parse_variant(self, data: dict) -> QogitaProduct:
-        """Parse variant API response into QogitaProduct."""
+        """Parse variant API response into QogitaProduct.
+
+        Real response structure (2026-03):
+            gtin, name, slug, label, category{name,slug,hscode},
+            brand{name,slug}, dimensions{width,height,depth,mass},
+            images[], price, priceCurrency, inventory, delay,
+            popularity, rating, ratingCount, qid, fid, unit, origin,
+            shippingFromCountries[], sellerCount, isWatchlisted,
+            priceUpdatedAt, isInStock
+        """
         product = QogitaProduct(
             gtin=data.get("gtin", ""),
             name=data.get("name", "") or data.get("title", ""),
@@ -251,7 +272,7 @@ class QogitaClient:
                 for img in images[:5]
             ]
 
-        # Price and offers
+        # Price
         price = data.get("price")
         if price is not None:
             try:
@@ -259,32 +280,17 @@ class QogitaClient:
             except (TypeError, ValueError):
                 pass
 
-        currency = data.get("priceCurrency") or data.get("currency", "EUR")
-        product.currency = currency
+        product.currency = data.get("priceCurrency", "EUR")
 
-        # Available quantity
-        avail = data.get("availableQuantity") or data.get("available_quantity", 0)
+        # Inventory (real field name)
+        inventory = data.get("inventory") or data.get("availableQuantity") or 0
         try:
-            product.total_available_qty = int(avail)
+            product.total_available_qty = int(inventory)
         except (TypeError, ValueError):
             pass
 
-        # Offers (if returned in response)
-        offers_data = data.get("offers", [])
-        if offers_data and isinstance(offers_data, list):
-            for offer_raw in offers_data:
-                offer = QogitaOffer(
-                    price=float(offer_raw.get("price", 0)),
-                    currency=offer_raw.get("priceCurrency", currency),
-                    available_quantity=int(offer_raw.get("availableQuantity", 0)),
-                    offer_qid=offer_raw.get("qid", ""),
-                    is_deal=offer_raw.get("isDeal", False),
-                    deal_min_quantity=offer_raw.get("dealMinQuantity", 0),
-                    deal_max_quantity=offer_raw.get("dealMaxQuantity", 0),
-                )
-                product.offers.append(offer)
-
-        product.offer_count = len(product.offers) if product.offers else (1 if product.lowest_price else 0)
+        # Seller count
+        product.offer_count = data.get("sellerCount", 0) or (1 if product.lowest_price else 0)
 
         return product
 
