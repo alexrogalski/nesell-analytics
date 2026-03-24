@@ -447,7 +447,7 @@ st.markdown(footer_html, unsafe_allow_html=True)
 
 
 # ============================================================
-# ORDER DETAILS (expandable) - Full Fee/Cost Breakdown
+# ORDER DETAILS - select an order to see full fee breakdown
 # ============================================================
 st.markdown(
     '<div class="section-header">ORDER DETAILS</div>',
@@ -456,12 +456,32 @@ st.markdown(
 st.markdown(
     '<div style="font-family: var(--font-mono); font-size: 0.72rem;'
     ' color: #64748b; margin-bottom: 12px;">'
-    'Expand an order to see the full margin waterfall: revenue, platform fees, COGS, shipping, and profit.'
+    'Select an order to see the full cost breakdown.'
     '</div>',
     unsafe_allow_html=True,
 )
 
-render_order_details(visible, items_df)
+# Build order options for selectbox
+_order_options = []
+for _, _r in visible.iterrows():
+    _date = str(_r["order_date"])[:10]
+    _eid = str(_r.get("external_id", ""))[:25]
+    _plat = str(_r.get("platform_name", ""))
+    _profit = float(_r.get("profit_pln", 0))
+    _label = f"{_date} | {_eid} | {_plat} | {'+' if _profit > 0 else ''}{_profit:,.0f} PLN"
+    _order_options.append(_label)
+
+if _order_options:
+    selected_idx = st.selectbox(
+        "Choose order",
+        range(len(_order_options)),
+        format_func=lambda i: _order_options[i],
+        key="order_detail_select",
+    )
+    # Render detail for selected order only
+    if selected_idx is not None:
+        _selected_row = visible.iloc[[selected_idx]]
+        render_order_details(_selected_row, items_df, detail_limit=1)
 
 
 # ============================================================

@@ -97,9 +97,12 @@ def _section_header(text):
     )
 
 
-def render_order_details(visible, items_df, detail_limit=30):
+def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
     """Render expandable order detail sections for visible orders."""
     detail_limit = min(detail_limit, len(visible))
+    # Auto-expand if only 1 order (selected via selectbox)
+    if auto_expand is None:
+        auto_expand = detail_limit == 1
 
     for i in range(detail_limit):
         row = visible.iloc[i]
@@ -165,7 +168,7 @@ def render_order_details(visible, items_df, detail_limit=30):
             + f"  |  {profit_icon}{_fmt(profit)} PLN"
         )
 
-        with st.expander(expander_label, expanded=False):
+        with st.expander(expander_label, expanded=auto_expand):
 
             wf = ""
 
