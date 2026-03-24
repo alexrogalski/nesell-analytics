@@ -219,7 +219,7 @@ def aggregate_daily(days_back: int = 90):
         batch = order_ids[i:i+500]
         ids_str = ",".join(str(x) for x in batch)
         items = _get_all("order_items", {
-            "select": "order_id,sku,quantity,unit_price,currency",
+            "select": "order_id,sku,quantity,unit_price,currency,asin",
             "order_id": f"in.({ids_str})",
         })
         all_items.extend(items)
@@ -249,6 +249,16 @@ def aggregate_daily(days_back: int = 90):
     if normalized_count:
         print(f"  SKU normalization: {normalized_count} SKUs remapped to products with COGS")
 
+    # Build SKU -> ASIN map from order items (for storage fee allocation)
+    sku_asin_map = {}
+    for item in all_items:
+        asin = item.get("asin") or ""
+        sku = (item.get("sku") or "").strip()
+        if asin and sku:
+            agg_key = sku.lstrip('0').rstrip('-').strip() or sku
+            if agg_key not in sku_asin_map:
+                sku_asin_map[agg_key] = asin
+
     # Get platform fee rates (fallback for orders without real fees)
     platforms = db._get("platforms", {"select": "id,fee_pct"})
     fee_pct_map = {p["id"]: float(p["fee_pct"] or 0) for p in platforms}
@@ -265,6 +275,34 @@ def aggregate_daily(days_back: int = 90):
         returns_map[rd] += int(r.get("quantity", 1) or 1)
     if returns:
         print(f"  Found {len(returns)} returns ({sum(returns_map.values())} units)")
+
+    # Load storage fees for P&L allocation (monthly per ASIN)
+    storage_fees = _get_all("amazon_storage_fees", {
+        "select": "month,asin,estimated_storage_fee,currency",
+    })
+    storage_fee_map = defaultdict(float)  # (month, asin) -> fee_eur
+    for sf in storage_fees:
+        key = (str(sf.get("month", ""))[:7], sf.get("asin", ""))
+        storage_fee_map[key] += float(sf.get("estimated_storage_fee", 0) or 0)
+    if storage_fees:
+        total_storage_eur = sum(storage_fee_map.values())
+        print(f"  Loaded {len(storage_fees)} storage fee records ({total_storage_eur:.2f} EUR total)")
+
+    # Load reimbursements for P&L credit (money back from Amazon)
+    reimbursements = _get_all("amazon_reimbursements", {
+        "select": "approval_date,amazon_order_id,sku,amount_total,currency_unit",
+        "approval_date": f"gte.{cutoff}",
+    })
+    reimb_by_date_sku = defaultdict(float)  # (date, sku) -> amount in original currency
+    reimb_currencies = {}  # (date, sku) -> currency
+    for r in reimbursements:
+        rdate = (r.get("approval_date") or "")[:10]
+        rsku = r.get("sku") or ""
+        if rdate and rsku:
+            reimb_by_date_sku[(rdate, rsku)] += float(r.get("amount_total", 0) or 0)
+            reimb_currencies[(rdate, rsku)] = r.get("currency_unit", "EUR")
+    if reimbursements:
+        print(f"  Loaded {len(reimbursements)} reimbursements for P&L credit")
 
     # Build set of FBM order IDs (Baselinker-sourced, numeric external_id = FBM)
     fbm_order_ids = set()
@@ -435,8 +473,29 @@ def aggregate_daily(days_back: int = 90):
             fallback_ship = round(data["shipping_orig"] * rate, 2) if currency != "PLN" else round(data["shipping_orig"], 2)
             shipping += fallback_ship
 
+        # Storage fee allocation: monthly storage per ASIN, spread across units sold
+        storage_pln = 0.0
+        asin = sku_asin_map.get(sku, "")
+        if asin and data["fba_units"] > 0:
+            # Get the month from the day string (YYYY-MM)
+            month_key = day[:7]
+            storage_eur = storage_fee_map.get((month_key, asin), 0)
+            if storage_eur > 0:
+                storage_pln = round(storage_eur * rate * net_units / max(data["fba_units"], 1), 2)
+
+        # Reimbursement credit: money back from Amazon (reduces costs)
+        reimb_pln = 0.0
+        reimb_amount = reimb_by_date_sku.get((day, sku), 0)
+        if reimb_amount != 0:
+            reimb_cur = reimb_currencies.get((day, sku), "EUR")
+            reimb_rate = _FX_EMERGENCY.get(reimb_cur, rate) if reimb_cur != "PLN" else 1.0
+            if reimb_cur != "PLN":
+                reimb_fx = fx_rates.convert_to_pln(1.0, reimb_cur, day)
+                reimb_rate = reimb_fx if reimb_fx else reimb_rate
+            reimb_pln = round(reimb_amount * reimb_rate, 2)
+
         # Profit based on NET revenue (after VAT) — matches dashboard lib/data.py
-        gross_profit = round(revenue_net_pln - cogs - fees - shipping, 2)
+        gross_profit = round(revenue_net_pln - cogs - fees - shipping - storage_pln + reimb_pln, 2)
         margin = round(gross_profit / revenue_net_pln * 100, 1) if revenue_net_pln > 0 else 0
         # Clamp to DB precision NUMERIC(5,2) — max +/-999.99
         margin = max(-999.9, min(999.9, margin))

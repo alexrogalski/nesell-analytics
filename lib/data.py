@@ -592,13 +592,28 @@ def load_orders_enriched(days=30):
             _cost_pln = _skus.map(lambda s: _cost_cache.get(s, (0, 0))[0])
             _cost_eur = _skus.map(lambda s: _cost_cache.get(s, (0, 0))[1])
 
-            # Apply PLN costs directly where available
-            _has_pln = _cost_pln > 0
+            # Printful COGS fix: PFT- products always use cost_eur * order-date FX
+            # to avoid currency drift from import-time conversion
+            _is_pft = _skus.str.startswith("PFT-")
+            _pft_with_eur = _is_pft & (_cost_eur > 0)
+            if _pft_with_eur.any():
+                _pft_dates = _item_dates[_pft_with_eur.index[_pft_with_eur]]
+                _pft_fx = pd.Series(
+                    [_fx_cache.get((d, "EUR"), 1.0) for d in _pft_dates],
+                    index=_pft_with_eur.index[_pft_with_eur],
+                )
+                items_df.loc[_pft_with_eur[_pft_with_eur].index, "unit_cost_pln"] = (
+                    _cost_eur[_pft_with_eur].values * _pft_fx.values
+                )
+
+            # Non-Printful: apply PLN costs directly where available
+            _non_pft_needs = ~_is_pft
+            _has_pln = (_cost_pln > 0) & _non_pft_needs
             if _has_pln.any():
                 items_df.loc[_has_pln[_has_pln].index, "unit_cost_pln"] = _cost_pln[_has_pln].values
 
-            # Convert EUR costs via FX for remaining items
-            _needs_eur_mask = (~_has_pln) & (_cost_eur > 0)
+            # Convert EUR costs via FX for remaining non-Printful items
+            _needs_eur_mask = (~_has_pln) & (_cost_eur > 0) & _non_pft_needs
             if _needs_eur_mask.any():
                 _eur_dates = _item_dates[_needs_eur_mask.index[_needs_eur_mask]]
                 _eur_fx = pd.Series(
@@ -960,6 +975,58 @@ def load_orders_enriched(days=30):
     orders.loc[orders["fulfillment_cost_pln"] > 0, "packaging_cost_pln"] = 2.0
 
     # ------------------------------------------------------------------
+    # 8c. Amazon reimbursements: money back for lost/damaged inventory
+    # Credited as negative cost (reduces total costs)
+    # ------------------------------------------------------------------
+    orders["reimbursement_pln"] = 0.0
+    try:
+        _reimb = load_amazon_reimbursements(days=days)
+        if not _reimb.empty and _is_amazon.any():
+            # Match reimbursements to orders via amazon_order_id -> platform_order_id
+            _reimb_by_order = _reimb[_reimb["amazon_order_id"].notna() & (_reimb["amazon_order_id"] != "")].copy()
+            if not _reimb_by_order.empty:
+                # Convert reimbursement amounts to PLN
+                _reimb_by_order["_fx"] = _reimb_by_order.apply(
+                    lambda r: get_fx(r.get("approval_date", "")[:10], r.get("currency_unit", "EUR")),
+                    axis=1,
+                )
+                _reimb_by_order["_amount_pln"] = _reimb_by_order["amount_total"] * _reimb_by_order["_fx"]
+
+                # Sum reimbursements per Amazon order
+                _reimb_agg = _reimb_by_order.groupby("amazon_order_id")["_amount_pln"].sum()
+                _reimb_map = _reimb_agg.to_dict()
+
+                # Map to orders using both platform_order_id and external_id
+                # FBA orders: external_id = Amazon order ID (e.g. 303-xxx-xxx)
+                # FBM orders: platform_order_id may have it, or external_id is numeric BL ID
+                _match_po = orders["platform_order_id"].map(_reimb_map).fillna(0)
+                _match_ext = orders["external_id"].map(_reimb_map).fillna(0)
+                orders["reimbursement_pln"] = _match_po.where(_match_po > 0, _match_ext).values
+
+            # Unmatched reimbursements (no order_id): distribute proportionally across FBA orders by date
+            _reimb_no_order = _reimb[_reimb["amazon_order_id"].isna() | (_reimb["amazon_order_id"] == "")].copy()
+            if not _reimb_no_order.empty:
+                _reimb_no_order["_fx"] = _reimb_no_order.apply(
+                    lambda r: get_fx(r.get("approval_date", "")[:10], r.get("currency_unit", "EUR")),
+                    axis=1,
+                )
+                _reimb_no_order["_amount_pln"] = _reimb_no_order["amount_total"] * _reimb_no_order["_fx"]
+                _reimb_daily = _reimb_no_order.groupby(
+                    _reimb_no_order["approval_date"].astype(str).str[:10]
+                )["_amount_pln"].sum().to_dict()
+
+                # Distribute by date: each FBA order on that date gets proportional share
+                if _reimb_daily:
+                    _fba_dates = _order_dates[_is_fba_mask]
+                    for rdate, ramount in _reimb_daily.items():
+                        _on_date = (_fba_dates == rdate)
+                        if _on_date.any():
+                            _n = _on_date.sum()
+                            orders.loc[_on_date[_on_date].index, "reimbursement_pln"] += ramount / _n
+    except Exception:
+        pass  # Reimbursement data unavailable, keep zeros
+
+    # ------------------------------------------------------------------
     # 8. Total costs and profit  [vectorized]
     # ------------------------------------------------------------------
     orders["total_costs_pln"] = (
@@ -972,6 +1039,7 @@ def load_orders_enriched(days=30):
         + orders["fx_spread_pln"]
         + orders["return_cost_pln"]
         + orders["packaging_cost_pln"]
+        - orders["reimbursement_pln"]  # credits reduce costs
     )
 
     orders["profit_pln"] = orders["revenue_net_pln"] - orders["total_costs_pln"]
@@ -1020,6 +1088,30 @@ def load_amazon_ad_spend(days=90):
     for col in ["impressions", "clicks", "orders"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+    return df
+
+
+@st.cache_data(ttl=300)
+def load_amazon_reimbursements(days=90):
+    """Load Amazon reimbursements (money back for lost/damaged inventory).
+
+    Returns DataFrame with columns: approval_date, reimbursement_id,
+    amazon_order_id, reason, sku, asin, currency_unit, amount_total
+    """
+    cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    rows = _get(
+        "amazon_reimbursements",
+        {
+            "select": "approval_date,reimbursement_id,amazon_order_id,reason,sku,asin,currency_unit,amount_total,quantity_reimbursed_cash,quantity_reimbursed_inventory,quantity_reimbursed_total",
+            "approval_date": f"gte.{cutoff}",
+            "order": "approval_date.desc",
+        },
+        limit=5000,
+    )
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    df["amount_total"] = pd.to_numeric(df["amount_total"], errors="coerce").fillna(0)
     return df
 
 

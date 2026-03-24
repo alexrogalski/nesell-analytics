@@ -129,6 +129,7 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
         fx_spread = float(row.get("fx_spread_pln", 0))
         return_cost = float(row.get("return_cost_pln", 0))
         packaging_cost = float(row.get("packaging_cost_pln", 0))
+        reimbursement = float(row.get("reimbursement_pln", 0))
         has_return = bool(row.get("has_return", False))
         profit = float(row.get("profit_pln", 0))
         margin = float(row.get("margin_pct", 0))
@@ -341,6 +342,15 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
                         pct=-(fx_spread / pct_base * 100),
                         color="#a78bfa", badge="~1.2% estimate",
                     )
+
+            # === REIMBURSEMENTS (credit) ===
+            if reimbursement > 0:
+                wf += _section_header("Credits")
+                wf += _wf_row(
+                    "Amazon Reimbursement", reimbursement,
+                    pct=(reimbursement / pct_base * 100) if pct_base > 0 else 0,
+                    color="#22c55e", badge="lost/damaged inventory credit",
+                )
 
             # === RESULT ===
             p_color = COLORS["success"] if profit > 0 else COLORS["danger"]

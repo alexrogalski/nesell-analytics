@@ -314,7 +314,7 @@ def sync_shipping_costs(conn, days_back: int = 90):
         if cost_currency == "PLN":
             cost_pln = cost_gross
         else:
-            fx = fx_rates.convert_to_pln(conn, cost_gross, cost_currency, o["order_date"])
+            fx = fx_rates.convert_to_pln(cost_gross, cost_currency, o["order_date"])
             cost_pln = round(fx, 2) if fx else round(cost_gross * EUR_PLN_FALLBACK, 2)
 
         cost_record = {
@@ -491,7 +491,7 @@ def import_dpd_csv(conn, csv_path: str):
         cost_pln = cost_data["cost_gross"]
         if currency != "PLN":
             ship_date = cost_data.get("ship_date") or str(date.today())
-            fx = fx_rates.convert_to_pln(conn, cost_data["cost_gross"], currency, ship_date)
+            fx = fx_rates.convert_to_pln(cost_data["cost_gross"], currency, ship_date)
             cost_pln = round(fx, 2) if fx else round(cost_data["cost_gross"] * EUR_PLN_FALLBACK, 2)
 
         # Update shipping_costs record with real invoice data

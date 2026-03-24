@@ -1,6 +1,6 @@
 """Baselinker ETL: pull orders and products into DB."""
 import requests, time, json, re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from . import config, db
 
 
@@ -114,7 +114,7 @@ def _transform_order(o: dict, platform_map: dict) -> dict | None:
         "external_id": ext_id,
         "platform_id": plat_id,
         "platform_order_id": platform_order_id,
-        "order_date": datetime.fromtimestamp(o.get("date_confirmed", 0)).isoformat(),
+        "order_date": datetime.fromtimestamp(o.get("date_confirmed", 0), tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
         "status": _map_bl_status(bl_status_id),
         "buyer_email": o.get("email", ""),
         "shipping_country": o.get("delivery_country_code", ""),

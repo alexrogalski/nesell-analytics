@@ -458,7 +458,7 @@ def reconcile_unmatched_costs(conn, days_back: int = 180) -> int:
         if cost_currency == "PLN":
             cost_pln = cost_gross
         else:
-            fx = fx_rates.convert_to_pln(conn, cost_gross, cost_currency, o["order_date"])
+            fx = fx_rates.convert_to_pln(cost_gross, cost_currency, o["order_date"])
             cost_pln = round(fx, 2) if fx else round(cost_gross * EUR_PLN_FALLBACK, 2)
 
         costs_to_insert.append({

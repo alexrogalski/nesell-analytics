@@ -70,11 +70,11 @@ def sync_fx_rates(conn, days_back: int = 90):
     return total
 
 
-def convert_to_pln(conn, amount: float, currency: str, day: date) -> float | None:
+def convert_to_pln(amount: float, currency: str, day: date) -> float | None:
     """Convert amount to PLN using DB rates."""
     if currency == "PLN":
         return amount
-    rate = db.get_fx_rate(conn, day, currency)
+    rate = db.get_fx_rate(day, currency)
     if rate:
         return round(amount * rate, 2)
     return None
