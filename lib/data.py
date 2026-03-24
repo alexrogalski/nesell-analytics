@@ -753,11 +753,11 @@ def load_orders_enriched(days=30):
     _has_seller = orders["seller_shipping_cost_pln"] > 0
     orders.loc[_has_seller, "shipping_pln"] = orders.loc[_has_seller, "seller_shipping_cost_pln"]
 
-    # For FBM orders WITHOUT seller_shipping_cost_pln, estimate via DPD rates
-    # EXCLUDE Printful orders — they use Printful's own shipping
+    # DPD shipping estimate ONLY for Amazon FBM orders (user's DPD contract)
+    # Allegro/Temu/Empik have their own shipping — cost included in platform fees
+    # Printful has their own shipping — handled separately below
     _is_fbm_mask = orders["fulfillment"] == "FBM"
-    _non_amazon_fbm = ~_is_amazon & ~_is_printful
-    _needs_ship_estimate = (~_has_seller) & (_is_fbm_mask | _non_amazon_fbm) & ~_is_printful
+    _needs_ship_estimate = (~_has_seller) & _is_fbm_mask
 
     if _needs_ship_estimate.any():
         _ship_countries = _countries[_needs_ship_estimate]
@@ -806,10 +806,12 @@ def load_orders_enriched(days=30):
     orders.loc[_is_fba_mask, "shipping_pln"] = 0.0
 
     # ------------------------------------------------------------------
-    # 4. Exportivo 3PL cost: 5 PLN per FBM order (NOT Printful) [vectorized]
+    # 4. Exportivo 3PL cost: 5 PLN per order (FBM + Allegro/Temu/Empik)
+    #    NOT for: FBA (Amazon warehouse), Printful (dropship)
     # ------------------------------------------------------------------
     orders["fulfillment_cost_pln"] = 0.0
-    _exportivo_fulfilled = (_is_fbm_mask | _non_amazon_fbm) & ~_is_printful
+    _non_amazon_non_printful = ~_is_amazon & ~_is_printful
+    _exportivo_fulfilled = (_is_fbm_mask | _non_amazon_non_printful)
     orders.loc[_exportivo_fulfilled, "fulfillment_cost_pln"] = 5.0
 
     # ------------------------------------------------------------------
