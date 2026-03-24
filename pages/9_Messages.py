@@ -377,7 +377,7 @@ def _mark_closed(conv_id):
 def _call_ai_from_dashboard(prompt):
     """Call AI from dashboard: try Anthropic SDK, then Claude CLI."""
     import os
-    # Try Anthropic SDK
+    # Try multiple sources for API key
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         try:
@@ -389,6 +389,14 @@ def _call_ai_from_dashboard(prompt):
             from etl import config
             env = config._load_env_file(config.KEYS_DIR / "anthropic.env")
             api_key = env.get("ANTHROPIC_API_KEY", "")
+        except Exception:
+            pass
+    if not api_key:
+        # Load from Supabase app_config (works on Streamlit Cloud)
+        try:
+            rows = _get("app_config", {"key": "eq.ANTHROPIC_API_KEY", "select": "value", "limit": "1"})
+            if rows:
+                api_key = rows[0].get("value", "")
         except Exception:
             pass
 
