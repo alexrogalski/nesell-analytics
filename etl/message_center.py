@@ -44,19 +44,12 @@ def sync_messages(days_back=30):
     except Exception as e:
         print(f"  [msg-center] Shipping problem linkage failed: {e}")
 
-    # 4. Auto-translate + generate draft replies
+    # 4. AI processing: translate, categorize, analyze, draft (one Sonnet call per message)
     try:
         from . import message_ai
-        message_ai.process_messages(batch_size=50)
+        message_ai.process_messages(batch_size=20)
     except Exception as e:
         print(f"  [msg-center] AI processing failed: {e}")
-
-    # 5. Claude AI analysis (per-case, uses claude CLI)
-    try:
-        from . import message_ai
-        message_ai.analyze_with_claude(batch_size=10)
-    except Exception as e:
-        print(f"  [msg-center] Claude analysis failed: {e}")
 
     # 6. SLA monitoring: flag overdue conversations
     try:
