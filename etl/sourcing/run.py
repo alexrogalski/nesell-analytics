@@ -18,6 +18,12 @@ Examples::
 
     # Quick check, no cache
     python3.11 -m etl.sourcing.run --file data.csv --no-cache
+
+    # Use Qogita wholesale prices instead of manual purchase price
+    python3.11 -m etl.sourcing.run --ean 4006381333931 --qogita
+
+    # Qogita mode: auto-fetch wholesale price, compare with Amazon/Allegro
+    python3.11 -m etl.sourcing.run --file eans.csv --qogita
 """
 
 from __future__ import annotations
@@ -45,6 +51,7 @@ from .cache import get_cached, set_cached
 
 _amazon_lookup = None
 _allegro_lookup = None
+_qogita_client = None
 
 
 def _get_amazon_lookup():
@@ -61,6 +68,17 @@ def _get_allegro_lookup():
         from . import allegro_lookup
         _allegro_lookup = allegro_lookup
     return _allegro_lookup
+
+
+def _get_qogita_client():
+    global _qogita_client
+    if _qogita_client is None:
+        try:
+            from .qogita_client import QogitaClient
+            _qogita_client = QogitaClient()
+        except (FileNotFoundError, ValueError):
+            _qogita_client = False  # Mark as unavailable
+    return _qogita_client if _qogita_client is not False else None
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +192,14 @@ def _build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Delay in seconds between API lookups (overrides config).",
+    )
+
+    # Qogita wholesale source.
+    p.add_argument(
+        "--qogita",
+        action="store_true",
+        help="Use Qogita wholesale prices as purchase price source. "
+             "Overrides --purchase-price. Requires ~/.keys/qogita.env.",
     )
 
     # Misc.
@@ -402,12 +428,21 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     # Validate single-EAN mode.
-    if args.ean and args.purchase_price is None:
-        parser.error("--purchase-price is required when using --ean")
+    use_qogita = getattr(args, "qogita", False)
+    if args.ean and args.purchase_price is None and not use_qogita:
+        parser.error("--purchase-price is required when using --ean (or use --qogita)")
 
     cfg = _build_config(args)
     use_cache = not args.no_cache
     quiet = args.quiet
+
+    # Qogita client (lazy init)
+    qogita = None
+    if use_qogita:
+        qogita = _get_qogita_client()
+        if qogita is None:
+            print("WARNING: Qogita credentials not found (~/.keys/qogita.env). "
+                  "Falling back to manual prices.", file=sys.stderr)
 
     # ------------------------------------------------------------------
     # Build product list
@@ -429,14 +464,62 @@ def main(argv: list[str] | None = None) -> int:
         if not quiet:
             print(f"Found {len(products)} valid products\n")
     else:
+        purchase_price = args.purchase_price or 0.0
+        purchase_currency = args.purchase_currency
+        ean_name = ""
+
+        # Qogita mode: fetch wholesale price for single EAN
+        if use_qogita and qogita and (not purchase_price or purchase_price <= 0):
+            if not quiet:
+                print(f"Fetching Qogita wholesale price for {args.ean} ...")
+            qprod = qogita.get_variant(args.ean)
+            if qprod and qprod.lowest_price and qprod.lowest_price > 0:
+                purchase_price = qprod.lowest_price
+                purchase_currency = qprod.currency
+                ean_name = qprod.name
+                if not quiet:
+                    print(f"  Qogita: {qprod.name[:50]}")
+                    print(f"  Brand: {qprod.brand}")
+                    print(f"  Price: {purchase_price} {purchase_currency}")
+                    print(f"  Available: {qprod.total_available_qty} units")
+                    print()
+            else:
+                if not quiet:
+                    print(f"  Qogita: product not found or no price\n")
+
+        if purchase_price <= 0:
+            print("ERROR: No purchase price available. Use --purchase-price or --qogita.",
+                  file=sys.stderr)
+            return 1
+
         products = [
             SupplierProduct(
                 ean=args.ean,
-                purchase_price=args.purchase_price,
-                purchase_currency=args.purchase_currency,
+                purchase_price=purchase_price,
+                purchase_currency=purchase_currency,
+                name=ean_name,
                 weight_kg=args.weight,
             )
         ]
+
+    # ------------------------------------------------------------------
+    # Qogita enrichment for file mode: fetch wholesale prices for
+    # products that don't have a purchase price
+    # ------------------------------------------------------------------
+    if use_qogita and qogita and args.file:
+        enriched = 0
+        for prod in products:
+            if prod.purchase_price <= 0:
+                qprod = qogita.get_variant(prod.ean)
+                if qprod and qprod.lowest_price and qprod.lowest_price > 0:
+                    prod.purchase_price = qprod.lowest_price
+                    prod.purchase_currency = qprod.currency
+                    if not prod.name:
+                        prod.name = qprod.name
+                    enriched += 1
+                time.sleep(0.3)
+        if enriched and not quiet:
+            print(f"Enriched {enriched} products with Qogita prices\n")
 
     # Apply --limit.
     if args.limit and args.limit < len(products):
