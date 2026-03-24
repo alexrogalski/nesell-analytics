@@ -7,11 +7,17 @@ from . import config, db
 def bl_api(method: str, params: dict = None) -> dict:
     """Call Baselinker API with rate limit retry."""
     for attempt in range(5):
-        resp = requests.post(config.BASELINKER_URL, data={
-            "token": config.BASELINKER_TOKEN,
-            "method": method,
-            "parameters": json.dumps(params or {})
-        }, timeout=60)
+        try:
+            resp = requests.post(config.BASELINKER_URL, data={
+                "token": config.BASELINKER_TOKEN,
+                "method": method,
+                "parameters": json.dumps(params or {})
+            }, timeout=120)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            wait = 15 * (attempt + 1)
+            print(f"  [Network error] {e.__class__.__name__} on {method}, retrying in {wait}s (attempt {attempt+1}/5)...")
+            time.sleep(wait)
+            continue
         data = resp.json()
         if data.get("status") == "ERROR":
             msg = data.get("error_message", "")
@@ -100,12 +106,16 @@ def _transform_order(o: dict, platform_map: dict) -> dict | None:
     # so amazon_fees.py can potentially match them in the future
     platform_order_id = source_ext_id
 
+    # Store raw BL status_id in notes for future analysis/debugging
+    bl_status_id = o.get("order_status_id")
+    notes = f"bl_status_id={bl_status_id}" if bl_status_id is not None else None
+
     return {
         "external_id": ext_id,
         "platform_id": plat_id,
         "platform_order_id": platform_order_id,
         "order_date": datetime.fromtimestamp(o.get("date_confirmed", 0)).isoformat(),
-        "status": _map_bl_status(o.get("order_status_id")),
+        "status": _map_bl_status(bl_status_id),
         "buyer_email": o.get("email", ""),
         "shipping_country": o.get("delivery_country_code", ""),
         "shipping_cost": float(o.get("delivery_price", 0) or 0),
@@ -114,6 +124,7 @@ def _transform_order(o: dict, platform_map: dict) -> dict | None:
         "total_paid_pln": total if currency == "PLN" else None,
         "platform_fee": platform_fee,
         "platform_fee_pln": 0,
+        "notes": notes,
         "raw_data": None,  # skip raw_data to save space
     }
 
@@ -137,9 +148,9 @@ def _extract_items(o: dict, platform_map: dict) -> list:
 BATCH_SIZE = 5000
 
 
-def sync_orders(conn, days_back: int = 90):
+def sync_orders(days_back: int = 90):
     """Pull orders from Baselinker for last N days. Saves in batches."""
-    platform_map = db.get_platform_map(conn)
+    platform_map = db.get_platform_map()
     since = int((datetime.now() - timedelta(days=days_back)).timestamp())
 
     total_fetched = 0
@@ -192,7 +203,7 @@ def sync_orders(conn, days_back: int = 90):
 
         # Save batch
         if len(batch_orders) >= BATCH_SIZE:
-            saved = _save_batch(conn, batch_orders, batch_items, platform_map)
+            saved = _save_batch(batch_orders, batch_items, platform_map)
             total_saved += saved
             print(f"  [Batch] Saved {saved} orders (total saved: {total_saved}, fetched: {total_fetched})")
             batch_orders = []
@@ -205,14 +216,14 @@ def sync_orders(conn, days_back: int = 90):
 
     # Save remaining
     if batch_orders:
-        saved = _save_batch(conn, batch_orders, batch_items, platform_map)
+        saved = _save_batch(batch_orders, batch_items, platform_map)
         total_saved += saved
 
     print(f"  DONE: {total_saved} orders saved from {total_fetched} fetched")
     return total_saved
 
 
-def _save_batch(conn, db_orders, raw_items, platform_map):
+def _save_batch(db_orders, raw_items, platform_map):
     """Save a batch of orders + their items."""
     # Deduplicate orders by (external_id, platform_id)
     seen = set()
@@ -222,14 +233,14 @@ def _save_batch(conn, db_orders, raw_items, platform_map):
         if key not in seen:
             seen.add(key)
             unique_orders.append(o)
-    count = db.upsert_orders(conn, unique_orders)
+    count = db.upsert_orders(unique_orders)
 
     # Now save items — need to look up order IDs
     items_to_save = []
     for it in raw_items:
         if not it.get("platform_id"):
             continue
-        order_id = db.get_order_id_by_external(conn, it["bl_order_id"], it["platform_id"])
+        order_id = db.get_order_id_by_external(it["bl_order_id"], it["platform_id"])
         if order_id:
             items_to_save.append({
                 "order_id": order_id,
@@ -245,13 +256,39 @@ def _save_batch(conn, db_orders, raw_items, platform_map):
             })
 
     if items_to_save:
-        db.upsert_order_items(conn, items_to_save)
+        db.upsert_order_items(items_to_save)
 
     return count
 
 
 def _map_bl_status(status_id) -> str:
-    """Map Baselinker status ID to our status."""
+    """Map Baselinker status ID to our status.
+
+    Baselinker uses custom status IDs per account (configured in panel settings).
+    Common conventions: low IDs = new/processing, higher IDs = shipped/delivered/cancelled.
+    We store the raw status_id in the order for analysis, and map known patterns here.
+
+    The exact mapping depends on the Baselinker account configuration.
+    Safe approach: default to "confirmed" but detect cancellation-range statuses.
+    """
+    if status_id is None:
+        return "confirmed"
+    try:
+        sid = int(status_id)
+    except (TypeError, ValueError):
+        return "confirmed"
+
+    # Baselinker standard status_id ranges (common across most accounts):
+    # These are panel-specific, but IDs in the high range often mean cancelled/returned.
+    # Known cancelled/returned status IDs from Baselinker's default templates:
+    # 5 = cancelled, 6 = returned (if using default numeric IDs)
+    # Some accounts use 100000+ range for custom statuses.
+    # We store the raw ID and flag only clearly cancellation-like ones.
+    if sid == 5:
+        return "cancelled"
+    if sid == 6:
+        return "returned"
+
     return "confirmed"
 
 
@@ -356,7 +393,7 @@ def _fetch_inventory_products(inventory_id: int, source_label: str) -> list:
     return all_products
 
 
-def _enrich_names_from_orders(conn, products: list) -> int:
+def _enrich_names_from_orders(products: list) -> int:
     """Enrich product names that are just EAN/barcodes using order_items.
 
     Queries order_items for real marketplace listing titles and updates
@@ -418,7 +455,7 @@ def _enrich_names_from_orders(conn, products: list) -> int:
     return enriched
 
 
-def sync_products(conn):
+def sync_products():
     """Pull products from both Baselinker inventories (Printful + wholesale).
 
     Syncs from:
@@ -451,11 +488,11 @@ def sync_products(conn):
     print(f"  Total unique products to upsert: {len(all_products)}")
 
     # 4. Enrich barcode-only names from order_items
-    enriched = _enrich_names_from_orders(conn, all_products)
+    enriched = _enrich_names_from_orders(all_products)
     if enriched:
         print(f"  Enriched {enriched} product names from order_items (replaced barcodes)")
 
     # 5. Upsert all products
-    count = db.upsert_products(conn, all_products)
+    count = db.upsert_products(all_products)
     print(f"  Upserted {count} products")
     return count

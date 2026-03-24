@@ -37,15 +37,17 @@ if orders_df.empty:
     st.warning("No order data available. Run ETL: python3.11 -m etl.run --orders --fba")
     st.stop()
 
-# Load returns data and match to orders
+# has_return is now computed inside load_orders_enriched().
+# Load returns_df only for the refund summary stats used further below.
 returns_df = load_amazon_returns(days=days)
-returned_order_ids = set()
-if not returns_df.empty:
-    returned_order_ids = set(returns_df["order_id"].dropna().unique())
-    # Add refund flag to orders
-    orders_df["has_return"] = orders_df["platform_order_id"].isin(returned_order_ids)
-else:
-    orders_df["has_return"] = False
+if "has_return" not in orders_df.columns:
+    # Fallback: compute here if data.py version is stale
+    returned_order_ids = set()
+    if not returns_df.empty:
+        returned_order_ids = set(returns_df["order_id"].dropna().unique())
+        orders_df["has_return"] = orders_df["platform_order_id"].isin(returned_order_ids)
+    else:
+        orders_df["has_return"] = False
 
 # Platform filter
 all_platforms = sorted(orders_df["platform_name"].unique())

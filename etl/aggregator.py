@@ -4,6 +4,21 @@ from collections import defaultdict
 from . import db, fx_rates
 
 # ---------------------------------------------------------------------------
+# EU VAT rates (same as lib/data.py) — used to compute net revenue from gross
+# ---------------------------------------------------------------------------
+EU_VAT_RATES = {
+    "DE": 0.19, "FR": 0.20, "IT": 0.22, "ES": 0.21,
+    "NL": 0.21, "SE": 0.25, "PL": 0.23, "BE": 0.21,
+    "AT": 0.20, "GB": 0.20, "EE": 0.22, "FI": 0.255,
+    "IE": 0.23, "PT": 0.23, "LU": 0.17, "CZ": 0.21,
+}
+
+# ---------------------------------------------------------------------------
+# Emergency FX fallback rates (when NBP has no data and DB is empty)
+# ---------------------------------------------------------------------------
+_FX_EMERGENCY = {"EUR": 4.30, "GBP": 5.10, "SEK": 0.41, "USD": 4.05, "CZK": 0.17, "HUF": 0.011}
+
+# ---------------------------------------------------------------------------
 # SKU normalization: map order-item SKUs to canonical product SKUs
 # ---------------------------------------------------------------------------
 
@@ -122,7 +137,7 @@ def _get_all(table, params):
     return all_rows
 
 
-def aggregate_daily(conn, days_back: int = 90):
+def aggregate_daily(days_back: int = 90):
     """Compute daily_metrics from orders + order_items + product costs.
 
     Uses real per-order fees (from orders.platform_fee) when available,
@@ -130,18 +145,29 @@ def aggregate_daily(conn, days_back: int = 90):
     """
     cutoff = str(date.today() - timedelta(days=days_back))
 
-    # Get all non-cancelled orders in period (paginated)
+    # Get all orders in period (paginated) — we filter statuses in Python
+    # because PostgREST neq only supports a single value.
     # seller_shipping_cost = actual courier cost (from shipping_costs module)
     # shipping_cost = buyer's delivery_price (revenue side, from Baselinker)
     orders = _get_all("orders", {
-        "select": "id,external_id,platform_id,order_date,currency,status,platform_fee,total_paid,shipping_cost,seller_shipping_cost,seller_shipping_cost_pln",
+        "select": "id,external_id,platform_id,order_date,currency,status,platform_fee,total_paid,shipping_cost,seller_shipping_cost,seller_shipping_cost_pln,shipping_country",
         "order_date": f"gte.{cutoff}",
-        "status": "neq.cancelled",
         "order": "order_date.desc",
     })
     if not orders:
         print("  No orders found for aggregation")
         return 0
+
+    # Filter out cancelled/refunded/returned orders (FIX 3: expanded status filter)
+    _excluded_statuses = {"cancelled", "canceled", "refunded", "returned"}
+    before_status_filter = len(orders)
+    orders = [
+        o for o in orders
+        if (o.get("status") or "").lower() not in _excluded_statuses
+    ]
+    status_excluded = before_status_filter - len(orders)
+    if status_excluded:
+        print(f"  Excluded {status_excluded} orders by status (cancelled/refunded/returned)")
 
     # Exclude FBA inbound/MCF shipments (S02-prefix orders and Non-Amazon channel)
     # NOTE: Stale rows from before this filter was added may need manual cleanup
@@ -177,18 +203,20 @@ def aggregate_daily(conn, days_back: int = 90):
             order_shipping_map[o["id"]] = seller_cost_pln
             seller_shipping_count += 1
         else:
-            # Fallback: use buyer's delivery_price as rough proxy for FBM shipping cost
-            order_shipping_map[o["id"]] = float(o.get("shipping_cost", 0) or 0)
+            # FIX 2: Do NOT use buyer's delivery_price as cost fallback.
+            # The dashboard (lib/data.py) applies its own DPD estimates as fallback.
+            # Using delivery_price here double-counted shipping on the cost side.
+            order_shipping_map[o["id"]] = 0
 
     # Count how many have real fees vs zero
     real_fees = sum(1 for f in order_fee_map.values() if f > 0)
     print(f"  Orders with real fees: {real_fees}/{len(orders)}")
     print(f"  Orders with seller shipping cost: {seller_shipping_count}/{len(orders)}")
 
-    # Get all order items for these orders (batch by 100 IDs)
+    # Get all order items for these orders (batch by 500 IDs to reduce API calls)
     all_items = []
-    for i in range(0, len(order_ids), 100):
-        batch = order_ids[i:i+100]
+    for i in range(0, len(order_ids), 500):
+        batch = order_ids[i:i+500]
         ids_str = ",".join(str(x) for x in batch)
         items = _get_all("order_items", {
             "select": "order_id,sku,quantity,unit_price,currency",
@@ -251,6 +279,12 @@ def aggregate_daily(conn, days_back: int = 90):
     if fbm_order_ids or fba_order_ids:
         print(f"  Amazon orders: {len(fba_order_ids)} FBA + {len(fbm_order_ids)} FBM")
 
+    # Build per-order shipping_country map (for VAT computation)
+    order_country_map = {}
+    for o in orders:
+        country = (o.get("shipping_country") or "").upper().strip()[:2]
+        order_country_map[o["id"]] = country
+
     # Aggregate: group by (date, platform_id, sku)
     agg = defaultdict(lambda: {
         "orders": set(), "units": 0, "revenue": 0.0, "currency": "EUR",
@@ -260,6 +294,7 @@ def aggregate_daily(conn, days_back: int = 90):
         "has_seller_cost": False,  # whether any order in group has seller_shipping_cost
         "fba_units": 0,    # units from FBA orders (for fee fallback selection)
         "fbm_units": 0,    # units from FBM orders (for fee fallback selection)
+        "country_revenue": defaultdict(float),  # country -> revenue for weighted VAT
     })
 
     # First pass: count items per order (for fee allocation)
@@ -302,6 +337,11 @@ def aggregate_daily(conn, days_back: int = 90):
         elif item["order_id"] in fbm_order_ids:
             agg[key]["fbm_units"] += qty
 
+        # Track revenue by country for weighted VAT calculation
+        country = order_country_map.get(item["order_id"], "")
+        item_revenue = float(item["unit_price"]) * qty
+        agg[key]["country_revenue"][country] += item_revenue
+
         # Allocate real order fee proportionally by quantity
         order_fee = order_fee_map.get(item["order_id"], 0)
         if order_fee > 0:
@@ -325,14 +365,32 @@ def aggregate_daily(conn, days_back: int = 90):
 
     # Build metrics
     metrics = []
+    fx_fallback_count = 0
     for (day, plat_id, sku), data in agg.items():
         currency = data["currency"]
         revenue = data["revenue"]
 
-        # FX conversion
-        fx = fx_rates.convert_to_pln(conn, 1.0, currency, day)
-        rate = fx if fx else 1.0
+        # FX conversion (FIX 4: use emergency fallback instead of 1.0)
+        fx = fx_rates.convert_to_pln(1.0, currency, day)
+        if fx is not None:
+            rate = fx
+        else:
+            rate = _FX_EMERGENCY.get(currency, 4.30)
+            fx_fallback_count += 1
         revenue_pln = round(revenue * rate, 2) if currency != "PLN" else revenue
+
+        # VAT deduction (FIX 1): compute weighted VAT from per-country revenue
+        # Each SKU group may span multiple orders from different countries.
+        # We compute a revenue-weighted average VAT rate across countries.
+        vat_pln = 0.0
+        if revenue > 0:
+            for country, country_rev in data["country_revenue"].items():
+                vat_rate = EU_VAT_RATES.get(country, 0.23)
+                # VAT is included in gross price: vat = gross * rate / (1 + rate)
+                country_rev_pln = round(country_rev * rate, 2) if currency != "PLN" else country_rev
+                vat_pln += country_rev_pln * vat_rate / (1 + vat_rate)
+        vat_pln = round(vat_pln, 2)
+        revenue_net_pln = round(revenue_pln - vat_pln, 2)
 
         # Fees: use real fees if available, else use FBA/FBM-aware fallback
         if data["real_fees"] > 0:
@@ -366,16 +424,21 @@ def aggregate_daily(conn, days_back: int = 90):
             return_ratio = returned_units / data["units"]
             revenue_pln = round(revenue_pln * (1 - return_ratio), 2)
             revenue = round(revenue * (1 - return_ratio), 2)
+            # Also adjust VAT and net revenue for returns
+            vat_pln = round(vat_pln * (1 - return_ratio), 2)
+            revenue_net_pln = round(revenue_pln - vat_pln, 2)
         # Shipping costs:
         # shipping_pln = seller's actual DPD cost (already in PLN from shipping_costs module)
-        # shipping_orig = buyer's delivery_price fallback (needs FX conversion)
+        # shipping_orig is now always 0 (FIX 2), but keep the logic for safety
         shipping = round(data["shipping_pln"], 2)
         if data["shipping_orig"] > 0:
             fallback_ship = round(data["shipping_orig"] * rate, 2) if currency != "PLN" else round(data["shipping_orig"], 2)
             shipping += fallback_ship
-        gross_profit = round(revenue_pln - cogs - fees - shipping, 2)
-        margin = round(gross_profit / revenue_pln * 100, 1) if revenue_pln > 0 else 0
-        # Clamp to DB precision NUMERIC(5,2) — max ±999.99
+
+        # Profit based on NET revenue (after VAT) — matches dashboard lib/data.py
+        gross_profit = round(revenue_net_pln - cogs - fees - shipping, 2)
+        margin = round(gross_profit / revenue_net_pln * 100, 1) if revenue_net_pln > 0 else 0
+        # Clamp to DB precision NUMERIC(5,2) — max +/-999.99
         margin = max(-999.9, min(999.9, margin))
 
         metrics.append({
@@ -391,8 +454,14 @@ def aggregate_daily(conn, days_back: int = 90):
             "shipping_cost": min(shipping, 99_999_999.99),
             "gross_profit": max(-99_999_999.99, min(gross_profit, 99_999_999.99)),
             "margin_pct": margin,
+            # New columns (FIX 1) — will be written only if DB columns exist
+            "vat_pln": min(vat_pln, 99_999_999.99),
+            "revenue_net_pln": min(revenue_net_pln, 99_999_999.99),
         })
 
-    count = db.upsert_daily_metrics(conn, metrics)
+    if fx_fallback_count:
+        print(f"  [WARN] Used emergency FX fallback for {fx_fallback_count} metric rows")
+
+    count = db.upsert_daily_metrics(metrics)
     print(f"  Aggregated {count} daily metrics from {len(all_items)} items")
     return count

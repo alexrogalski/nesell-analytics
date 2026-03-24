@@ -127,6 +127,9 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
         ppc_cost = float(row.get("ppc_cost_pln", 0))
         storage_fee = float(row.get("storage_fee_pln", 0))
         fx_spread = float(row.get("fx_spread_pln", 0))
+        return_cost = float(row.get("return_cost_pln", 0))
+        packaging_cost = float(row.get("packaging_cost_pln", 0))
+        has_return = bool(row.get("has_return", False))
         profit = float(row.get("profit_pln", 0))
         margin = float(row.get("margin_pct", 0))
         roi = float(row.get("roi_pct", 0))
@@ -287,6 +290,20 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
                     "3PL Exportivo", -fulfillment_cost,
                     pct=-(fulfillment_cost / pct_base * 100),
                     color="#06b6d4", badge="5 PLN/order",
+                )
+
+            if packaging_cost > 0:
+                wf += _wf_row(
+                    "Packaging", -packaging_cost,
+                    pct=-(packaging_cost / pct_base * 100),
+                    color="#06b6d4", badge="2 PLN/FBM order",
+                )
+
+            if has_return and return_cost > 0:
+                wf += _wf_row(
+                    "Return Processing", -return_cost,
+                    pct=-(return_cost / pct_base * 100),
+                    color=COLORS["danger"], badge="2.50 PLN Exportivo",
                 )
 
             # === OTHER COSTS ===

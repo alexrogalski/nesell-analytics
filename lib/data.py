@@ -449,6 +449,13 @@ def load_orders_enriched(days=30):
     latest_fx["PLN"] = 1.0
     fx_lookup_default = latest_fx
 
+    # Emergency fallback rates when NBP data is completely missing.
+    # Better to use approximate rates than 1.0 which would treat EUR as 1 PLN.
+    _FX_EMERGENCY_FALLBACK = {
+        "EUR": 4.30, "GBP": 5.10, "SEK": 0.41, "USD": 4.05,
+        "CZK": 0.17, "HUF": 0.011, "DKK": 0.58, "NOK": 0.38,
+    }
+
     def get_fx(date_str, currency):
         cur = str(currency).upper()
         if cur == "PLN":
@@ -457,7 +464,7 @@ def load_orders_enriched(days=30):
         rate = fx_lookup.get((day, cur))
         if rate:
             return rate
-        return fx_lookup_default.get(cur, 1.0)
+        return fx_lookup_default.get(cur, _FX_EMERGENCY_FALLBACK.get(cur, 1.0))
 
     # Build products cost lookup: sku -> {cost_pln, cost_eur, ...}  [vectorized]
     prod_lookup = {}
@@ -733,7 +740,7 @@ def load_orders_enriched(days=30):
         "PL": 0.0,  # domestic handled separately
     }
     DPD_SECURITY_FEE = 0.45   # EUR per package
-    DPD_FUEL_SURCHARGE = 0.17  # 17%
+    DPD_FUEL_SURCHARGE = 0.217  # 21.7% (Feb 2026 actual rate)
     DPD_PL_DOMESTIC_PLN = 12.0
 
     # Start with seller_shipping_cost_pln where available (highest priority)
@@ -868,6 +875,26 @@ def load_orders_enriched(days=30):
     orders.loc[_is_amazon_nonpln, "fx_spread_pln"] = orders.loc[_is_amazon_nonpln, "revenue_pln"] * ACCS_SPREAD
 
     # ------------------------------------------------------------------
+    # 8a. Return processing cost: 2.50 PLN per returned order (Exportivo)
+    # ------------------------------------------------------------------
+    orders["has_return"] = False
+    try:
+        _returns = load_amazon_returns(days=days)
+        if not _returns.empty:
+            _returned_ids = set(_returns["order_id"].dropna().unique())
+            orders["has_return"] = orders["platform_order_id"].isin(_returned_ids)
+    except Exception:
+        pass
+    orders["return_cost_pln"] = 0.0
+    orders.loc[orders["has_return"], "return_cost_pln"] = 2.50
+
+    # ------------------------------------------------------------------
+    # 8b. Packaging cost: 2.00 PLN per FBM/Exportivo-fulfilled order
+    # ------------------------------------------------------------------
+    orders["packaging_cost_pln"] = 0.0
+    orders.loc[orders["fulfillment_cost_pln"] > 0, "packaging_cost_pln"] = 2.0
+
+    # ------------------------------------------------------------------
     # 8. Total costs and profit  [vectorized]
     # ------------------------------------------------------------------
     orders["total_costs_pln"] = (
@@ -878,6 +905,8 @@ def load_orders_enriched(days=30):
         + orders["ppc_cost_pln"]
         + orders["storage_fee_pln"]
         + orders["fx_spread_pln"]
+        + orders["return_cost_pln"]
+        + orders["packaging_cost_pln"]
     )
 
     orders["profit_pln"] = orders["revenue_net_pln"] - orders["total_costs_pln"]

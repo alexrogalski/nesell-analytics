@@ -46,26 +46,24 @@ def _patch(table, match_params, data):
     return resp.json() if resp.text else []
 
 
-# --- Public API (same interface as before, but conn is ignored/unused) ---
+# --- Public API ---
 
-def get_conn():
-    """Compatibility stub. Returns None — we use REST API."""
-    # Verify connection works
+def verify_connection():
+    """Verify Supabase REST API connection works."""
     try:
         _get("platforms", {"select": "id", "limit": "1"})
         print("  [DB] Connected to Supabase REST API")
     except Exception as e:
         raise Exception(f"Cannot connect to Supabase: {e}")
-    return None
 
 
-def get_platform_map(conn):
+def get_platform_map():
     """Return {platform_code: id} mapping."""
     rows = _get("platforms", {"select": "code,id"})
     return {r["code"]: r["id"] for r in rows}
 
 
-def upsert_orders(conn, orders):
+def upsert_orders(orders):
     """Upsert orders into DB."""
     if not orders:
         return 0
@@ -86,6 +84,7 @@ def upsert_orders(conn, orders):
             "total_paid_pln": o.get("total_paid_pln"),
             "platform_fee": o.get("platform_fee", 0),
             "platform_fee_pln": o.get("platform_fee_pln"),
+            "notes": o.get("notes"),
             "raw_data": o.get("raw_data"),
         })
     # Batch in chunks of 500 (PostgREST limit)
@@ -97,7 +96,7 @@ def upsert_orders(conn, orders):
     return total
 
 
-def upsert_order_items(conn, items):
+def upsert_order_items(items):
     """Upsert order items (merge duplicates by summing quantities)."""
     if not items:
         return 0
@@ -136,7 +135,7 @@ def upsert_order_items(conn, items):
     return total
 
 
-def upsert_products(conn, products):
+def upsert_products(products):
     """Upsert products from catalog (deduplicated by SKU within batch)."""
     if not products:
         return 0
@@ -182,13 +181,13 @@ def upsert_products(conn, products):
     return total
 
 
-def upsert_fx_rate(conn, date, currency, rate_pln):
+def upsert_fx_rate(date, currency, rate_pln):
     """Upsert single FX rate."""
     _post("fx_rates", [{"date": str(date), "currency": currency, "rate_pln": float(rate_pln)}],
           on_conflict="date,currency")
 
 
-def get_fx_rate(conn, date, currency):
+def get_fx_rate(date, currency):
     """Get FX rate for a date. Falls back to most recent."""
     if currency == "PLN":
         return 1.0
@@ -202,13 +201,21 @@ def get_fx_rate(conn, date, currency):
     return float(rows[0]["rate_pln"]) if rows else None
 
 
-def upsert_daily_metrics(conn, metrics):
-    """Upsert daily aggregated metrics."""
+def upsert_daily_metrics(metrics):
+    """Upsert daily aggregated metrics.
+
+    Includes vat_pln and revenue_net_pln columns when present in the input.
+    Falls back gracefully if the DB columns don't exist yet (pre-migration).
+    """
     if not metrics:
         return 0
+
+    # Check if new columns are present in the data
+    has_vat = any("vat_pln" in m for m in metrics)
+
     rows = []
     for m in metrics:
-        rows.append({
+        row = {
             "date": str(m["date"]),
             "platform_id": m["platform_id"],
             "sku": m["sku"],
@@ -221,16 +228,32 @@ def upsert_daily_metrics(conn, metrics):
             "shipping_cost": float(m["shipping_cost"]),
             "gross_profit": float(m["gross_profit"]),
             "margin_pct": float(m["margin_pct"]),
-        })
+        }
+        if has_vat:
+            row["vat_pln"] = float(m.get("vat_pln", 0))
+            row["revenue_net_pln"] = float(m.get("revenue_net_pln", 0))
+        rows.append(row)
+
     total = 0
     for i in range(0, len(rows), 500):
         chunk = rows[i:i+500]
-        _post("daily_metrics", chunk, on_conflict="date,platform_id,sku")
+        try:
+            _post("daily_metrics", chunk, on_conflict="date,platform_id,sku")
+        except Exception as e:
+            # If new columns don't exist yet, retry without them
+            if has_vat and ("vat_pln" in str(e) or "revenue_net_pln" in str(e)):
+                print("  [WARN] daily_metrics missing vat_pln/revenue_net_pln columns, writing without them")
+                for row in chunk:
+                    row.pop("vat_pln", None)
+                    row.pop("revenue_net_pln", None)
+                _post("daily_metrics", chunk, on_conflict="date,platform_id,sku")
+            else:
+                raise
         total += len(chunk)
     return total
 
 
-def count_order_items(conn, order_id):
+def count_order_items(order_id):
     """Count existing order items for a given order_id."""
     resp = requests.get(
         _url("order_items"),
@@ -246,7 +269,7 @@ def count_order_items(conn, order_id):
     return len(resp.json())
 
 
-def get_order_id_by_external(conn, external_id, platform_id):
+def get_order_id_by_external(external_id, platform_id):
     """Get internal order ID by external ID."""
     rows = _get("orders", {
         "select": "id",
@@ -257,7 +280,7 @@ def get_order_id_by_external(conn, external_id, platform_id):
     return rows[0]["id"] if rows else None
 
 
-def run_rpc(conn, function_name, params=None):
+def run_rpc(function_name, params=None):
     """Call a PostgreSQL function via PostgREST RPC."""
     resp = requests.post(
         f"{_BASE}/rest/v1/rpc/{function_name}",
@@ -271,7 +294,7 @@ def run_rpc(conn, function_name, params=None):
 
 # ── Amazon data tables ───────────────────────────────────────────────
 
-def upsert_amazon_traffic(conn, records):
+def upsert_amazon_traffic(records):
     """Upsert Amazon traffic data (sessions, page views, Buy Box %)."""
     if not records:
         return 0
@@ -289,7 +312,7 @@ def upsert_amazon_traffic(conn, records):
     return total
 
 
-def upsert_amazon_inventory(conn, records):
+def upsert_amazon_inventory(records):
     """Upsert FBA inventory snapshots."""
     if not records:
         return 0
@@ -305,7 +328,7 @@ def upsert_amazon_inventory(conn, records):
     return total
 
 
-def upsert_amazon_storage_fees(conn, records):
+def upsert_amazon_storage_fees(records):
     """Upsert FBA storage fee data."""
     if not records:
         return 0
@@ -317,7 +340,7 @@ def upsert_amazon_storage_fees(conn, records):
     return total
 
 
-def upsert_amazon_fba_fees(conn, records):
+def upsert_amazon_fba_fees(records):
     """Upsert estimated FBA fees per SKU (deduplicate within batch)."""
     if not records:
         return 0
@@ -334,19 +357,25 @@ def upsert_amazon_fba_fees(conn, records):
     return total
 
 
-def upsert_amazon_returns(conn, records):
-    """Insert Amazon return records (append-only)."""
+def upsert_amazon_returns(records):
+    """Upsert Amazon return records (deduplicated by return_date, order_id, sku, quantity)."""
     if not records:
         return 0
+    # Deduplicate within batch by (return_date, order_id, sku, quantity)
+    seen = {}
+    for r in records:
+        key = (r.get("return_date"), r.get("order_id", ""), r.get("sku"), r.get("quantity", 1))
+        seen[key] = r
+    deduped = list(seen.values())
     total = 0
-    for i in range(0, len(records), 500):
-        chunk = records[i:i+500]
-        _post("amazon_returns", chunk)
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
+        _post("amazon_returns", chunk, on_conflict="return_date,order_id,sku,quantity")
         total += len(chunk)
     return total
 
 
-def upsert_amazon_reimbursements(conn, records):
+def upsert_amazon_reimbursements(records):
     """Upsert Amazon reimbursement records (deduplicate within batch)."""
     if not records:
         return 0
@@ -364,7 +393,7 @@ def upsert_amazon_reimbursements(conn, records):
     return total
 
 
-def upsert_amazon_bsr(conn, records):
+def upsert_amazon_bsr(records):
     """Upsert BSR snapshots."""
     if not records:
         return 0
@@ -380,7 +409,7 @@ def upsert_amazon_bsr(conn, records):
     return total
 
 
-def upsert_amazon_pricing(conn, records):
+def upsert_amazon_pricing(records):
     """Upsert competitive pricing snapshots."""
     if not records:
         return 0
@@ -396,7 +425,7 @@ def upsert_amazon_pricing(conn, records):
     return total
 
 
-def upsert_amazon_settlements(conn, records):
+def upsert_amazon_settlements(records):
     """Insert settlement records (append-only)."""
     if not records:
         return 0
@@ -408,7 +437,7 @@ def upsert_amazon_settlements(conn, records):
     return total
 
 
-def upsert_amazon_ad_spend(conn, records):
+def upsert_amazon_ad_spend(records):
     """Upsert Amazon advertising/PPC spend data."""
     if not records:
         return 0
@@ -416,5 +445,41 @@ def upsert_amazon_ad_spend(conn, records):
     for i in range(0, len(records), 500):
         chunk = records[i:i+500]
         _post("amazon_ad_spend", chunk, on_conflict="date,campaign_name,marketplace_id")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_restock(records):
+    """Upsert Amazon restock recommendation snapshots (per snapshot_date, sku)."""
+    if not records:
+        return 0
+    # Deduplicate within batch by (snapshot_date, sku) — keep last occurrence
+    seen = {}
+    for r in records:
+        key = (r.get("snapshot_date"), r.get("sku", ""))
+        seen[key] = r
+    deduped = list(seen.values())
+    total = 0
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
+        _post("amazon_restock", chunk, on_conflict="snapshot_date,sku")
+        total += len(chunk)
+    return total
+
+
+def upsert_amazon_aged_inventory(records):
+    """Upsert FBA aged inventory snapshots (per snapshot_date, sku)."""
+    if not records:
+        return 0
+    # Deduplicate within batch by (snapshot_date, sku) — keep last occurrence
+    seen = {}
+    for r in records:
+        key = (r.get("snapshot_date"), r.get("sku", ""))
+        seen[key] = r
+    deduped = list(seen.values())
+    total = 0
+    for i in range(0, len(deduped), 500):
+        chunk = deduped[i:i+500]
+        _post("amazon_aged_inventory", chunk, on_conflict="snapshot_date,sku")
         total += len(chunk)
     return total
