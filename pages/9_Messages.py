@@ -728,9 +728,9 @@ with thread_col:
         )
 
         custom_prompt = st.text_input(
-            "Instrukcja dla AI (np. 'napisz bardziej empatycznie', 'zaproponuj wymiane')",
+            "Dodatkowa instrukcja (opcjonalna, np. 'bardziej empatycznie', 'zaproponuj wymiane')",
             key=f"custom_prompt_{selected}",
-            placeholder="Wpisz instrukcje i kliknij Regeneruj...",
+            placeholder="Opcjonalnie: dodatkowe wytyczne dla AI...",
         )
 
         # Amazon SMTP warning
@@ -745,48 +745,66 @@ with thread_col:
         with btn_col3:
             close_clicked = st.button("Zamknij", key=f"close_{selected}")
 
-        # Regenerate draft via Anthropic SDK (with CLI fallback)
-        if regen_clicked and custom_prompt.strip():
-            with st.spinner("AI generuje nowa odpowiedz..."):
-                try:
-                    body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
-                    tl = last_inbound_draft.get("translation_pl") or ""
+        # Regeneruj: takes text from reply box + optional instruction
+        if regen_clicked:
+            user_text = reply_text.strip()
+            extra = custom_prompt.strip()
 
-                    regen_prompt = (
-                        f"E-commerce support for nesell. Generate customer reply.\n"
-                        f"BUYER MESSAGE: {body_clean[:600]}\n"
-                        f"PL TRANSLATION: {tl[:400]}\n"
-                        f"ORDER: {order}\n"
-                        f"PLATFORM: {platform}\n"
-                        f"USER INSTRUCTION: {custom_prompt}\n\n"
-                        f"Reply as JSON: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
-                    )
+            if not user_text and not extra:
+                st.warning("Wpisz tekst odpowiedzi lub instrukcje dla AI.")
+            else:
+                with st.spinner("Sonnet generuje..."):
+                    try:
+                        body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
-                    output = _call_ai_from_dashboard(regen_prompt)
-                    if output:
-                        import json
-                        json_match = re.search(r'\{.*\}', output, re.DOTALL)
-                        if json_match:
-                            data = json.loads(json_match.group())
-                            new_pl = data.get("draft_pl", "")
-                            new_local = data.get(f"draft_{d_lang.lower()}", "")
-                            if new_pl:
-                                st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
-                                  <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
-                                  <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
-                                </div>''')
-                            if new_local:
-                                st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
-                                  <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
-                                  <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
-                                </div>''')
-                                st.session_state[f"reply_{selected}"] = new_local
+                        if user_text and user_text != draft_local:
+                            # User wrote their own text: translate + polish it
+                            regen_prompt = (
+                                f"E-commerce support for nesell. The seller wrote this reply draft:\n"
+                                f"\"{user_text}\"\n\n"
+                                f"BUYER MESSAGE: {body_clean[:400]}\n"
+                                f"PLATFORM: {platform} | ORDER: {order}\n"
+                                f"BUYER LANGUAGE: {d_lang}\n"
+                                f"{f'EXTRA INSTRUCTION: {extra}' if extra else ''}\n\n"
+                                f"Translate and polish this into a professional customer reply. "
+                                f"Reply as JSON only: {{\"draft_pl\":\"polished reply in Polish\",\"draft_{d_lang.lower()}\":\"same reply in {d_lang}\"}}"
+                            )
                         else:
-                            st.warning("AI nie zwrocilo JSON.")
-                    else:
-                        st.error("Brak AI backendu. Dodaj ANTHROPIC_API_KEY do Streamlit secrets.")
-                except Exception as e:
-                    st.error(f"Blad: {e}")
+                            # No custom text, just instruction to regenerate
+                            regen_prompt = (
+                                f"E-commerce support for nesell. Generate a new customer reply.\n"
+                                f"BUYER MESSAGE: {body_clean[:400]}\n"
+                                f"PLATFORM: {platform} | ORDER: {order}\n"
+                                f"BUYER LANGUAGE: {d_lang}\n"
+                                f"INSTRUCTION: {extra}\n\n"
+                                f"Reply as JSON only: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
+                            )
+
+                        output = _call_ai_from_dashboard(regen_prompt)
+                        if output:
+                            import json
+                            json_match = re.search(r'\{.*\}', output, re.DOTALL)
+                            if json_match:
+                                data = json.loads(json_match.group())
+                                new_pl = data.get("draft_pl", "")
+                                new_local = data.get(f"draft_{d_lang.lower()}", "")
+                                if new_pl:
+                                    st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
+                                      <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
+                                      <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
+                                    </div>''')
+                                if new_local:
+                                    st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
+                                      <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
+                                      <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
+                                    </div>''')
+                                    st.session_state[f"reply_{selected}"] = new_local
+                            else:
+                                st.warning("AI nie zwrocilo JSON.")
+                        else:
+                            st.error("Brak AI backendu. Dodaj ANTHROPIC_API_KEY do Streamlit secrets.")
+                    except Exception as e:
+                        st.error(f"Blad: {e}")
 
         # Close conversation
         if close_clicked:
