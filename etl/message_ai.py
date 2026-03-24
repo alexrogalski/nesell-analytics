@@ -168,7 +168,7 @@ def _process_single(msg, conv):
     # Get order context
     order_ctx = _get_order_context(order_id) if order_id else ""
 
-    prompt = f"""You are customer support for "nesell" (e-commerce, Amazon/Allegro EU, hats and accessories).
+    prompt = f"""You write customer replies for "nesell", a small e-commerce seller on Amazon/Allegro EU (hats, accessories).
 
 BUYER: {buyer} | PLATFORM: {platform} | ORDER: {order_id or "none"}
 SUBJECT: {subject[:120]}
@@ -176,15 +176,23 @@ MESSAGE:
 {body[:1200]}
 {f"ORDER DATA: {order_ctx[:500]}" if order_ctx else ""}
 
+TONE RULES (critical):
+- Write like a real human from a small team, not a corporate bot or AI
+- Short sentences. No filler. Get to the point fast
+- NEVER use em dashes, "I understand your concern", "I apologize for the inconvenience", "I hope this helps", "rest assured", "please don't hesitate"
+- No bullet points. No exclamation marks. No emoji
+- Be warm but brief. 2-4 sentences max for the reply body
+- Sign off: Pozdrawiamy, Zespol nesell
+
 Respond with ONLY a JSON object (no markdown, no explanation):
 {{
   "detected_language": "2-letter code (de/fr/it/es/nl/sv/pl/en)",
   "translation_pl": "full Polish translation of buyer's message (skip if already Polish)",
   "kategoria": "shipping|return|damage|question|complaint|other",
   "pilnosc": "low|normal|high|urgent",
-  "analiza": "2-3 sentences in Polish: what is the problem, what we know from order data, recommended action",
-  "draft_pl": "professional reply in Polish, warm but concise, signed Zespol nesell",
-  "draft_{expected_lang}": "same reply translated to {expected_lang}"
+  "analiza": "2-3 zdania po polsku: problem, co wiemy z danych, rekomendacja",
+  "draft_pl": "reply in Polish following tone rules above",
+  "draft_{expected_lang}": "same reply in {expected_lang}"
 }}"""
 
     output = _call_ai(prompt)

@@ -796,24 +796,32 @@ with thread_col:
                     try:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
+                        tone_rules = (
+                            "TONE: Write like a real person from a small e-commerce team, not AI. "
+                            "Short sentences, no filler, no em dashes, no 'I understand your concern', "
+                            "no 'I apologize for the inconvenience', no 'rest assured', no exclamation marks. "
+                            "Be warm but brief (2-4 sentences). Sign: Pozdrawiamy, Zespol nesell"
+                        )
+
                         if user_text and user_text != draft_local:
                             regen_prompt = (
-                                f"E-commerce support for nesell. The seller wrote this reply draft:\n"
-                                f"\"{user_text}\"\n\n"
+                                f"Rewrite this seller reply for nesell (e-commerce, hats).\n"
+                                f"DRAFT: \"{user_text}\"\n\n"
                                 f"BUYER MESSAGE: {body_clean[:400]}\n"
                                 f"PLATFORM: {platform} | ORDER: {order}\n"
                                 f"BUYER LANGUAGE: {d_lang}\n"
-                                f"{f'EXTRA INSTRUCTION: {extra}' if extra else ''}\n\n"
-                                f"Translate and polish this into a professional customer reply. "
-                                f"Reply as JSON only: {{\"draft_pl\":\"polished reply in Polish\",\"draft_{d_lang.lower()}\":\"same reply in {d_lang}\"}}"
+                                f"{f'INSTRUCTION: {extra}' if extra else ''}\n"
+                                f"{tone_rules}\n\n"
+                                f"Reply as JSON only: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
                             )
                         else:
                             regen_prompt = (
-                                f"E-commerce support for nesell. Generate a new customer reply.\n"
+                                f"Write a customer reply for nesell (e-commerce, hats).\n"
                                 f"BUYER MESSAGE: {body_clean[:400]}\n"
                                 f"PLATFORM: {platform} | ORDER: {order}\n"
                                 f"BUYER LANGUAGE: {d_lang}\n"
-                                f"INSTRUCTION: {extra}\n\n"
+                                f"INSTRUCTION: {extra}\n"
+                                f"{tone_rules}\n\n"
                                 f"Reply as JSON only: {{\"draft_pl\":\"reply in Polish\",\"draft_{d_lang.lower()}\":\"reply in {d_lang}\"}}"
                             )
 
