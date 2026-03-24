@@ -735,15 +735,23 @@ with thread_col:
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
+        # Apply pending regen result BEFORE widget renders
+        reply_key = f"reply_{selected}"
+        pending_key = f"_pending_regen_{selected}"
+        pending_pl_key = f"_pending_regen_pl_{selected}"
+
+        if pending_key in st.session_state:
+            st.session_state[reply_key] = st.session_state.pop(pending_key)
+
         # Show regenerated PL version if available
-        regen_pl = st.session_state.get(f"regen_pl_{selected}")
+        regen_pl = st.session_state.pop(pending_pl_key, None) if pending_pl_key in st.session_state else st.session_state.get(f"regen_pl_{selected}")
         if regen_pl:
+            st.session_state[f"regen_pl_{selected}"] = regen_pl
             st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin-bottom:10px; font-family:monospace;">
               <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(regen_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
-        reply_key = f"reply_{selected}"
         st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
         if reply_key not in st.session_state:
             st.session_state[reply_key] = draft_local
@@ -829,11 +837,12 @@ with thread_col:
                     except Exception as e:
                         st.error(f"Blad: {e}")
 
-        # Apply regen result: update widget state and rerun
+        # Apply regen result: save to pending keys and rerun
+        # (pending keys are applied BEFORE widget renders on next cycle)
         if _regen_new_local:
-            st.session_state[reply_key] = _regen_new_local
+            st.session_state[pending_key] = _regen_new_local
             if _regen_new_pl:
-                st.session_state[f"regen_pl_{selected}"] = _regen_new_pl
+                st.session_state[pending_pl_key] = _regen_new_pl
             st.rerun()
 
         # Close conversation
