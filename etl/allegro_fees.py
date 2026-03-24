@@ -38,7 +38,7 @@ def _load_allegro_token():
         print("  [allegro] Token expired, refreshing...")
         try:
             subprocess.run(
-                ["python3.11", str(Path.home() / "allegro-mcp" / "auth.py"), "refresh"],
+                ["/opt/homebrew/bin/python3.11", str(Path.home() / "allegro-mcp" / "auth.py"), "refresh"],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -352,7 +352,7 @@ def _update_orders_with_fees(token, order_fees, since_date):
     }
 
     # Get allegro platform ID
-    platform_map = db.get_platform_map(None)
+    platform_map = db.get_platform_map()
     allegro_platform_id = platform_map.get("allegro")
     if not allegro_platform_id:
         print("  [WARN] No 'allegro' platform found in DB")
@@ -454,7 +454,7 @@ def _update_orders_with_fees(token, order_fees, since_date):
 
 # ── Public entry point ──────────────────────────────────────────────
 
-def sync_allegro_fees(conn=None, days_back=90):
+def sync_allegro_fees(days_back=90):
     """Main entry: fetch Allegro billing entries and update orders with real fees."""
     print("  Loading Allegro token...")
     token = _load_allegro_token()
