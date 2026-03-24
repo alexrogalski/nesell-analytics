@@ -396,24 +396,59 @@ st.markdown(waterfall_html, unsafe_allow_html=True)
 
 
 # ============================================================
-# ORDERS TABLE (HTML)
+# ORDERS TABLE - click a row to see full breakdown
 # ============================================================
 st.markdown(
-    '<div class="section-header">ORDER LIST</div>',
+    '<div class="section-header">ORDER LIST <span style="font-size:0.6rem;color:#64748b;font-weight:400;margin-left:8px">Click a row to see details</span></div>',
     unsafe_allow_html=True,
 )
 
-# Pagination
-PAGE_SIZE = 50
-if "orders_page_count" not in st.session_state:
-    st.session_state.orders_page_count = 1
-visible_count = st.session_state.orders_page_count * PAGE_SIZE
-visible = filtered.head(visible_count)
+# Prepare display DataFrame for st.dataframe with row selection
+visible = filtered.head(50)
 
-table_html = render_table_html(visible, items_df)
-st.markdown(table_html, unsafe_allow_html=True)
+_display_cols = {
+    "order_date": "Date",
+    "external_id": "Order ID",
+    "platform_name": "Platform",
+    "shipping_country": "Country",
+    "first_name": "Item",
+}
+_money_cols = {
+    "revenue_net_pln": "Revenue PLN",
+    "cogs_pln": "COGS PLN",
+    "fees_pln": "Fees PLN",
+    "shipping_pln": "Ship PLN",
+    "profit_pln": "Profit PLN",
+    "margin_pct": "Margin %",
+}
 
-# CSV export for orders - includes new profit breakdown columns
+_table_df = visible.copy()
+_table_df["order_date"] = _table_df["order_date"].astype(str).str[:10]
+_table_df["external_id"] = _table_df["external_id"].astype(str).str[:25]
+_table_df["first_name"] = _table_df["first_name"].astype(str).str[:30]
+
+# Round money columns
+for _mc in _money_cols:
+    if _mc in _table_df.columns:
+        _table_df[_mc] = pd.to_numeric(_table_df[_mc], errors="coerce").fillna(0).round(0).astype(int)
+
+_all_cols = {**_display_cols, **_money_cols}
+_show_cols = [c for c in _all_cols if c in _table_df.columns]
+_rename = {c: _all_cols[c] for c in _show_cols}
+
+_view_df = _table_df[_show_cols].rename(columns=_rename).reset_index(drop=True)
+
+# Clickable dataframe
+event = st.dataframe(
+    _view_df,
+    use_container_width=True,
+    hide_index=True,
+    on_select="rerun",
+    selection_mode="single-row",
+    key="orders_table_select",
+)
+
+# CSV export
 _orders_export_cols = [
     "order_date", "external_id", "platform_name", "shipping_country",
     "unit_count", "first_name", "revenue_pln", "vat_amount_pln",
@@ -425,63 +460,28 @@ _orders_export_cols = [c for c in _orders_export_cols if c in filtered.columns]
 _orders_csv = filtered[_orders_export_cols].to_csv(index=False).encode("utf-8")
 st.download_button("Download CSV", _orders_csv, "orders.csv", "text/csv", key="dl_orders")
 
-# Show more button + count
-if visible_count < len(filtered):
-    remaining = len(filtered) - visible_count
-    show_label = f"Show more ({remaining:,} remaining)"
-    if st.button(show_label, key="orders_show_more"):
-        st.session_state.orders_page_count += 1
-        st.rerun()
-
-footer_html = (
-    '<div class="orders-table-footer">'
-    + '<span>Showing '
-    + f"{min(visible_count, len(filtered)):,}"
-    + ' of '
-    + f"{len(filtered):,}"
-    + ' orders</span>'
-    + '<span>' + str(period_map.get(days, "")) + ' period</span>'
-    + '</div>'
-)
-st.markdown(footer_html, unsafe_allow_html=True)
-
-
 # ============================================================
-# ORDER DETAILS - select an order to see full fee breakdown
+# ORDER DETAILS - shown when a row is clicked
 # ============================================================
-st.markdown(
-    '<div class="section-header">ORDER DETAILS</div>',
-    unsafe_allow_html=True,
-)
-st.markdown(
-    '<div style="font-family: var(--font-mono); font-size: 0.72rem;'
-    ' color: #64748b; margin-bottom: 12px;">'
-    'Select an order to see the full cost breakdown.'
-    '</div>',
-    unsafe_allow_html=True,
-)
+_selected_rows = event.selection.rows if event and event.selection else []
 
-# Build order options for selectbox
-_order_options = []
-for _, _r in visible.iterrows():
-    _date = str(_r["order_date"])[:10]
-    _eid = str(_r.get("external_id", ""))[:25]
-    _plat = str(_r.get("platform_name", ""))
-    _profit = float(_r.get("profit_pln", 0))
-    _label = f"{_date} | {_eid} | {_plat} | {'+' if _profit > 0 else ''}{_profit:,.0f} PLN"
-    _order_options.append(_label)
+if _selected_rows:
+    _sel_idx = _selected_rows[0]
+    _sel_order = visible.iloc[[_sel_idx]]
 
-if _order_options:
-    selected_idx = st.selectbox(
-        "Choose order",
-        range(len(_order_options)),
-        format_func=lambda i: _order_options[i],
-        key="order_detail_select",
+    st.markdown(
+        '<div class="section-header">ORDER DETAILS</div>',
+        unsafe_allow_html=True,
     )
-    # Render detail for selected order only
-    if selected_idx is not None:
-        _selected_row = visible.iloc[[selected_idx]]
-        render_order_details(_selected_row, items_df, detail_limit=1)
+    render_order_details(_sel_order, items_df, detail_limit=1)
+else:
+    st.markdown(
+        '<div style="font-family:var(--font-mono);font-size:0.72rem;'
+        'color:#475569;padding:16px 0;text-align:center">'
+        'Click a row in the table above to see the full cost breakdown for that order.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # ============================================================
