@@ -735,32 +735,34 @@ with thread_col:
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
-        # Apply pending regen result BEFORE widget renders
-        reply_key = f"reply_{selected}"
-        pending_key = f"_pending_regen_{selected}"
-        pending_pl_key = f"_pending_regen_pl_{selected}"
+        # Reply state: content in _rc, widget versioned via _rv
+        rc_key = f"_rc_{selected}"
+        rv_key = f"_rv_{selected}"
+        rpl_key = f"_rpl_{selected}"
 
-        if pending_key in st.session_state:
-            st.session_state[reply_key] = st.session_state.pop(pending_key)
+        if rc_key not in st.session_state:
+            st.session_state[rc_key] = draft_local
+        if rv_key not in st.session_state:
+            st.session_state[rv_key] = 0
 
-        # Show regenerated PL version if available
-        regen_pl = st.session_state.pop(pending_pl_key, None) if pending_pl_key in st.session_state else st.session_state.get(f"regen_pl_{selected}")
+        # Show regenerated PL if available
+        regen_pl = st.session_state.get(rpl_key)
         if regen_pl:
-            st.session_state[f"regen_pl_{selected}"] = regen_pl
             st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin-bottom:10px; font-family:monospace;">
               <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(regen_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
         st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
-        if reply_key not in st.session_state:
-            st.session_state[reply_key] = draft_local
+        widget_key = f"reply_{selected}_v{st.session_state[rv_key]}"
         reply_text = st.text_area(
             f"reply_{d_lang}",
+            value=st.session_state[rc_key],
             height=120,
-            key=reply_key,
+            key=widget_key,
             label_visibility="collapsed",
         )
+        st.session_state[rc_key] = reply_text
 
         custom_prompt = st.text_input(
             "Dodatkowa instrukcja (opcjonalna, np. 'bardziej empatycznie', 'zaproponuj wymiane')",
@@ -781,8 +783,6 @@ with thread_col:
             close_clicked = st.button("Zamknij", key=f"close_{selected}")
 
         # Regeneruj: takes text from reply box + optional instruction
-        _regen_new_local = None
-        _regen_new_pl = None
         if regen_clicked:
             user_text = reply_text.strip()
             extra = custom_prompt.strip()
@@ -790,6 +790,8 @@ with thread_col:
             if not user_text and not extra:
                 st.warning("Wpisz tekst odpowiedzi lub instrukcje dla AI.")
             else:
+                _regen_local = None
+                _regen_pl = None
                 with st.spinner("Sonnet generuje..."):
                     try:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
@@ -821,14 +823,14 @@ with thread_col:
                             json_match = re.search(r'\{.*\}', output, re.DOTALL)
                             if json_match:
                                 data = json.loads(json_match.group())
-                                _regen_new_local = data.get(f"draft_{d_lang.lower()}", "")
-                                if not _regen_new_local:
+                                _regen_local = data.get(f"draft_{d_lang.lower()}", "")
+                                if not _regen_local:
                                     for k, v in data.items():
                                         if k.startswith("draft_") and k != "draft_pl" and v:
-                                            _regen_new_local = v
+                                            _regen_local = v
                                             break
-                                _regen_new_pl = data.get("draft_pl", "")
-                                if not _regen_new_local:
+                                _regen_pl = data.get("draft_pl", "")
+                                if not _regen_local:
                                     st.warning("AI nie zwrocilo odpowiedzi w jezyku kupujacego.")
                             else:
                                 st.warning("AI nie zwrocilo JSON. Output: " + output[:200])
@@ -837,13 +839,13 @@ with thread_col:
                     except Exception as e:
                         st.error(f"Blad: {e}")
 
-        # Apply regen result: save to pending keys and rerun
-        # (pending keys are applied BEFORE widget renders on next cycle)
-        if _regen_new_local:
-            st.session_state[pending_key] = _regen_new_local
-            if _regen_new_pl:
-                st.session_state[pending_pl_key] = _regen_new_pl
-            st.rerun()
+                # Outside spinner and try/except: update content + bump version
+                if _regen_local:
+                    st.session_state[rc_key] = _regen_local
+                    st.session_state[rv_key] = st.session_state.get(rv_key, 0) + 1
+                    if _regen_pl:
+                        st.session_state[rpl_key] = _regen_pl
+                    st.rerun()
 
         # Close conversation
         if close_clicked:
