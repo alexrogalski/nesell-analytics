@@ -392,11 +392,20 @@ def _call_ai_from_dashboard(prompt):
         except Exception:
             pass
     if not api_key:
-        # Load from Supabase app_config (works on Streamlit Cloud)
+        # Load from Supabase app_config table (works on Streamlit Cloud without extra secrets)
         try:
-            rows = _get("app_config", {"key": "eq.ANTHROPIC_API_KEY", "select": "value", "limit": "1"})
-            if rows:
-                api_key = rows[0].get("value", "")
+            import requests as _req
+            from lib.data import SUPABASE_URL, HEADERS
+            resp = _req.get(
+                f"{SUPABASE_URL}/rest/v1/app_config",
+                headers=HEADERS,
+                params={"key": "eq.ANTHROPIC_API_KEY", "select": "value", "limit": "1"},
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                rows = resp.json()
+                if rows:
+                    api_key = rows[0].get("value", "")
         except Exception:
             pass
 
