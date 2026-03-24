@@ -242,10 +242,10 @@ def _process_product(
     # ------------------------------------------------------------------
     amazon_data: dict[str, dict] = {}
 
+    # Check cache per market first.
+    markets_to_fetch: list[str] = []
     for market in cfg.amazon_markets:
         cache_key_platform = f"amazon_{market.lower()}"
-
-        # Cache check.
         if use_cache:
             cached = get_cached(ean, cache_key_platform, ttl_hours=cfg.cache_ttl_hours)
             if cached:
@@ -253,26 +253,31 @@ def _process_product(
                 if not quiet:
                     print(f"    {market}: cached")
                 continue
+        markets_to_fetch.append(market)
 
-        # Live lookup.
+    # Fetch missing markets in one call (EAN search once, then iterate markets).
+    if markets_to_fetch:
         try:
             amz_mod = _get_amazon_lookup()
-            mdata = amz_mod.lookup_ean(ean, marketplace=market)
-            if mdata:
+            results = amz_mod.lookup_ean(ean, markets=markets_to_fetch, delay_sec=cfg.amazon_delay_sec)
+            for market, product_data in results.items():
+                # Convert dataclass to dict for storage / downstream.
+                from dataclasses import asdict
+                mdata = asdict(product_data)
                 amazon_data[market] = mdata
                 if use_cache:
-                    set_cached(ean, cache_key_platform, mdata)
+                    set_cached(ean, f"amazon_{market.lower()}", mdata)
                 if not quiet:
-                    price = mdata.get("buy_box_price") or mdata.get("lowest_price", "?")
+                    price = mdata.get("buy_box_price") or mdata.get("lowest_fba_price") or "?"
                     print(f"    {market}: {price} {mdata.get('currency', '')}")
-            else:
-                if not quiet:
-                    print(f"    {market}: not found")
         except Exception as exc:
             if not quiet:
-                print(f"    {market}: ERROR {exc}")
+                print(f"    Amazon: ERROR {exc}")
 
-        time.sleep(cfg.amazon_delay_sec)
+        # Report markets with no data.
+        for market in markets_to_fetch:
+            if market not in amazon_data and not quiet:
+                print(f"    {market}: not found")
 
     # ------------------------------------------------------------------
     # Allegro lookup
@@ -290,8 +295,10 @@ def _process_product(
         if allegro_data is None:
             try:
                 alg_mod = _get_allegro_lookup()
-                allegro_data = alg_mod.lookup_ean(ean)
-                if allegro_data:
+                alg_result = alg_mod.lookup_ean(ean)
+                if alg_result:
+                    from dataclasses import asdict
+                    allegro_data = asdict(alg_result)
                     if use_cache:
                         set_cached(ean, "allegro", allegro_data)
                     if not quiet:
@@ -303,6 +310,7 @@ def _process_product(
             except Exception as exc:
                 if not quiet:
                     print(f"    Allegro: ERROR {exc}")
+                allegro_data = None
 
             time.sleep(cfg.allegro_delay_sec)
 

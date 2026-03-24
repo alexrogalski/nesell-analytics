@@ -264,20 +264,27 @@ def _analyse_allegro(
             "image_url": str,
         }
     """
+    title = allegro_data.get("title") or allegro_data.get("product_name", "")
     result = ProfitAnalysis(
         ean=ean,
         platform="allegro",
-        title=allegro_data.get("title", ""),
+        title=title,
         sell_currency="PLN",
         purchase_price_pln=purchase_price_pln,
     )
+
+    is_estimated = allegro_data.get("is_estimated", False)
 
     # Pick the best available sell price.
     sell = allegro_data.get("lowest_price")
     if sell is None or sell <= 0:
         sell = allegro_data.get("avg_price")
     if sell is None or sell <= 0:
-        result.errors.append("No sell price found on Allegro")
+        if is_estimated:
+            result.errors.append("Allegro: product found but no pricing (app not verified)")
+            result.verdict = "NO_PRICE"
+        else:
+            result.errors.append("No sell price found on Allegro")
         return result
 
     result.sell_price = sell

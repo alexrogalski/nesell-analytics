@@ -8,6 +8,7 @@ Usage:
     results = lookup_ean("5903111111111")  # dict[market_code, AmazonProductData]
 """
 from dataclasses import dataclass, field
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
 from ..amazon_api import api_get, api_post
@@ -378,15 +379,80 @@ def _find_asin_for_ean(ean: str) -> tuple[str, str, dict]:
     return "", "", {}
 
 
+def _lookup_single_market(
+    asin: str,
+    market: str,
+    catalog_info: dict,
+    delay_sec: float,
+) -> tuple[str, AmazonProductData]:
+    """Fetch offers + fees for one ASIN on one marketplace. Thread-safe."""
+    product = AmazonProductData(
+        asin=asin,
+        marketplace=market,
+        currency=MARKETPLACE_CURRENCIES.get(market, "EUR"),
+    )
+
+    if catalog_info:
+        product.title = catalog_info.get("title", "")
+        product.category = catalog_info.get("category", "")
+        product.bsr_rank = catalog_info.get("bsr_rank")
+        product.image_url = catalog_info.get("image_url", "")
+
+    # Get competitive offers
+    try:
+        offers = get_item_offers(asin, marketplace=market)
+        if "error" in offers:
+            product.errors.append(f"offers: {offers['error']}")
+        else:
+            product.buy_box_price = offers.get("buy_box_price")
+            product.buy_box_is_fba = offers.get("buy_box_is_fba")
+            product.lowest_fba_price = offers.get("lowest_fba_price")
+            product.lowest_fbm_price = offers.get("lowest_fbm_price")
+            product.num_fba_sellers = offers.get("num_fba_sellers", 0)
+            product.num_fbm_sellers = offers.get("num_fbm_sellers", 0)
+            product.num_total_offers = offers.get("num_total_offers", 0)
+    except Exception as e:
+        product.errors.append(f"offers: {e}")
+
+    time.sleep(delay_sec)
+
+    # Estimate fees using buy box price (or lowest FBA, or lowest FBM)
+    sell_price = (
+        product.buy_box_price
+        or product.lowest_fba_price
+        or product.lowest_fbm_price
+    )
+
+    if sell_price and sell_price > 0:
+        try:
+            fees = estimate_fees(asin, sell_price, marketplace=market, is_fba=True)
+            if "error" in fees:
+                product.errors.append(f"fees: {fees['error']}")
+            else:
+                product.referral_fee = fees.get("referral_fee", 0.0)
+                product.fba_fee = fees.get("fba_fee", 0.0)
+                product.total_fee = fees.get("total_fee", 0.0)
+        except Exception as e:
+            product.errors.append(f"fees: {e}")
+    else:
+        product.errors.append("no sell price available for fee estimation")
+
+    return market, product
+
+
 def lookup_ean(ean: str,
                markets: list[str] | None = None,
-               delay_sec: float | None = None) -> dict[str, AmazonProductData]:
+               delay_sec: float | None = None,
+               max_workers: int = 4) -> dict[str, AmazonProductData]:
     """Full lookup pipeline: search EAN across EU marketplaces, get offers + fees.
+
+    Uses a thread pool to query multiple marketplaces in parallel.
 
     Args:
         ean: European Article Number (barcode).
         markets: List of marketplace codes to check. Defaults to all 8 EU markets.
         delay_sec: Delay between API call groups. Defaults to SourcingConfig.amazon_delay_sec.
+        max_workers: Max parallel threads for marketplace lookups.
 
     Returns:
         dict mapping marketplace code (e.g. "DE") to AmazonProductData.
@@ -405,62 +471,25 @@ def lookup_ean(ean: str,
         print(f"    EAN {ean} not found on Amazon (searched DE, FR, IT)")
         return results
 
-    # Step 2: For each target marketplace, get offers + estimate fees
-    for market in markets:
-        product = AmazonProductData(
-            asin=asin,
-            marketplace=market,
-            currency=MARKETPLACE_CURRENCIES.get(market, "EUR"),
-        )
+    # Step 2: Parallel lookup across all target marketplaces
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {
+            pool.submit(
+                _lookup_single_market, asin, market, catalog_info, delay_sec
+            ): market
+            for market in markets
+        }
 
-        # Populate catalog info from initial search
-        if catalog_info:
-            product.title = catalog_info.get("title", "")
-            product.category = catalog_info.get("category", "")
-            product.bsr_rank = catalog_info.get("bsr_rank")
-            product.image_url = catalog_info.get("image_url", "")
-
-        # Get competitive offers
-        try:
-            offers = get_item_offers(asin, marketplace=market)
-            if "error" in offers:
-                product.errors.append(f"offers: {offers['error']}")
-            else:
-                product.buy_box_price = offers.get("buy_box_price")
-                product.buy_box_is_fba = offers.get("buy_box_is_fba")
-                product.lowest_fba_price = offers.get("lowest_fba_price")
-                product.lowest_fbm_price = offers.get("lowest_fbm_price")
-                product.num_fba_sellers = offers.get("num_fba_sellers", 0)
-                product.num_fbm_sellers = offers.get("num_fbm_sellers", 0)
-                product.num_total_offers = offers.get("num_total_offers", 0)
-        except Exception as e:
-            product.errors.append(f"offers: {e}")
-
-        time.sleep(delay_sec)
-
-        # Estimate fees using buy box price (or lowest FBA, or lowest FBM)
-        sell_price = (
-            product.buy_box_price
-            or product.lowest_fba_price
-            or product.lowest_fbm_price
-        )
-
-        if sell_price and sell_price > 0:
+        for future in as_completed(futures):
+            market = futures[future]
             try:
-                fees = estimate_fees(asin, sell_price, marketplace=market, is_fba=True)
-                if "error" in fees:
-                    product.errors.append(f"fees: {fees['error']}")
-                else:
-                    product.referral_fee = fees.get("referral_fee", 0.0)
-                    product.fba_fee = fees.get("fba_fee", 0.0)
-                    product.total_fee = fees.get("total_fee", 0.0)
+                mkt, product = future.result()
+                results[mkt] = product
             except Exception as e:
-                product.errors.append(f"fees: {e}")
-        else:
-            product.errors.append("no sell price available for fee estimation")
-
-        time.sleep(delay_sec)
-
-        results[market] = product
+                results[market] = AmazonProductData(
+                    asin=asin,
+                    marketplace=market,
+                    errors=[str(e)],
+                )
 
     return results

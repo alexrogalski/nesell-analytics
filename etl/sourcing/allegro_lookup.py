@@ -1,7 +1,11 @@
 """Allegro product lookup by EAN for sourcing analysis.
 
-Searches Allegro.pl marketplace by EAN phrase, extracts pricing data,
-identifies Smart! (fulfilled by Allegro) offers, and calculates price stats.
+Uses /sale/products (GTIN mode) for product discovery and category,
+then estimates pricing based on available market data.
+
+The /offers/listing endpoint (public search with actual prices) requires
+a verified Allegro application. Until our app is verified, we use the
+product catalog endpoint and mark pricing as estimated.
 
 Usage:
     from etl.sourcing.allegro_lookup import lookup_ean
@@ -27,6 +31,8 @@ _cfg = SourcingConfig()
 class AllegroProductData:
     """Aggregated product data from Allegro search results for a given EAN."""
     ean: str
+    product_id: str = ""
+    product_name: str = ""
     offer_count: int = 0
     lowest_price: float | None = None
     highest_price: float | None = None
@@ -36,6 +42,8 @@ class AllegroProductData:
     currency: str = "PLN"
     category_id: str = ""
     category_name: str = ""
+    is_listed: bool = False
+    is_estimated: bool = False
     top_offers: list[dict] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
 
@@ -43,20 +51,8 @@ class AllegroProductData:
 # ── HTTP helper ──────────────────────────────────────────────────────
 
 def _allegro_get(path: str, params: dict | None = None,
-                 token: str = "") -> dict:
-    """GET request to Allegro API with retry on 429/5xx and re-auth on 401.
-
-    Args:
-        path: API path (e.g. "/offers/listing").
-        params: Query parameters.
-        token: Bearer token for Authorization header.
-
-    Returns:
-        Parsed JSON response as dict.
-
-    Raises:
-        RuntimeError: If all retries exhausted or token is invalid.
-    """
+                 token: str = "") -> dict | None:
+    """GET request to Allegro API with retry on 429/5xx and re-auth on 401."""
     url = f"{ALLEGRO_API_BASE}{path}"
     headers = {
         "Authorization": f"Bearer {token}",
@@ -90,7 +86,6 @@ def _allegro_get(path: str, params: dict | None = None,
             continue
 
         if resp.status_code == 401:
-            # Token expired mid-session; try to reload
             print("    [allegro] 401 Unauthorized, attempting token refresh...")
             try:
                 new_token = _load_allegro_token()
@@ -107,7 +102,10 @@ def _allegro_get(path: str, params: dict | None = None,
             time.sleep(wait)
             continue
 
-        # 4xx other than 401/429: don't retry
+        if resp.status_code == 403:
+            print(f"    [allegro] 403 on {path}")
+            return None
+
         raise RuntimeError(
             f"Allegro API {path} returned {resp.status_code}: {resp.text[:300]}"
         )
@@ -117,19 +115,35 @@ def _allegro_get(path: str, params: dict | None = None,
     )
 
 
-# ── Search ───────────────────────────────────────────────────────────
+# ── Product catalog search (GTIN mode) ──────────────────────────────
 
-def search_by_ean(ean: str, token: str) -> list[dict]:
-    """Search Allegro offers listing by EAN phrase.
+def _search_product_catalog(ean: str, token: str) -> dict | None:
+    """Search Allegro product catalog by EAN (GTIN mode).
 
-    Uses the public offers/listing endpoint which searches by phrase.
-    EAN codes are indexed in product descriptions and parameters,
-    so a phrase search usually finds exact matches.
-
-    Returns list of parsed offer dicts with keys:
-        id, name, price, currency, delivery_price, is_smart,
-        seller_id, seller_name, quantity, condition.
+    Returns the best matching product dict or None.
     """
+    params = {
+        "phrase": ean,
+        "mode": "GTIN",
+        "language": "pl-PL",
+    }
+
+    data = _allegro_get("/sale/products", params=params, token=token)
+    if not data:
+        return None
+
+    products = data.get("products", [])
+    if not products:
+        return None
+
+    # Return the first (best-match) product
+    return products[0]
+
+
+# ── Offer listing search (requires verified app) ────────────────────
+
+def _search_offers_listing(ean: str, token: str) -> list[dict]:
+    """Search public offers by EAN phrase. Needs verified app (may 403)."""
     params = {
         "phrase": ean,
         "searchMode": "DESCRIPTIONS",
@@ -141,14 +155,13 @@ def search_by_ean(ean: str, token: str) -> list[dict]:
     try:
         data = _allegro_get("/offers/listing", params=params, token=token)
     except Exception as e:
-        print(f"    [allegro] Search failed for EAN {ean}: {e}")
+        print(f"    [allegro] Offers listing failed: {e}")
         return []
 
-    time.sleep(_cfg.allegro_delay_sec)
+    if data is None:
+        return []
 
     offers = []
-
-    # Items in "promoted" and "regular" sections
     for section_key in ("promoted", "regular"):
         section = data.get("items", {}).get(section_key, [])
         for item in section:
@@ -160,55 +173,32 @@ def search_by_ean(ean: str, token: str) -> list[dict]:
 
 
 def _parse_offer_item(item: dict) -> dict | None:
-    """Parse a single item from Allegro listing search results.
-
-    Returns a normalized offer dict or None if parsing fails.
-    """
+    """Parse a single item from Allegro listing search results."""
     try:
-        offer_id = item.get("id", "")
-        name = item.get("name", "")
-
-        # Price
-        selling_mode = item.get("sellingMode", {})
-        price_obj = selling_mode.get("price", {})
+        price_obj = item.get("sellingMode", {}).get("price", {})
         price = _safe_float(price_obj.get("amount"))
-        currency = price_obj.get("currency", "PLN")
-
         if price is None:
             return None
 
-        # Delivery
         delivery = item.get("delivery", {})
         delivery_price_obj = delivery.get("lowestPrice", {})
-        delivery_price = _safe_float(delivery_price_obj.get("amount"))
-        is_smart = delivery.get("availableForFree", False)
-
-        # Seller
-        seller = item.get("seller", {})
-        seller_id = seller.get("id", "")
-        seller_name = seller.get("login", "")
-
-        # Stock / condition
-        stock = item.get("stock", {})
-        quantity = stock.get("available", 0)
 
         return {
-            "id": str(offer_id),
-            "name": name,
+            "id": str(item.get("id", "")),
+            "name": item.get("name", ""),
             "price": price,
-            "currency": currency,
-            "delivery_price": delivery_price or 0.0,
-            "is_smart": is_smart,
-            "seller_id": str(seller_id),
-            "seller_name": seller_name,
-            "quantity": quantity,
+            "currency": price_obj.get("currency", "PLN"),
+            "delivery_price": _safe_float(delivery_price_obj.get("amount")) or 0.0,
+            "is_smart": delivery.get("availableForFree", False),
+            "seller_id": str(item.get("seller", {}).get("id", "")),
+            "seller_name": item.get("seller", {}).get("login", ""),
+            "quantity": item.get("stock", {}).get("available", 0),
         }
     except Exception:
         return None
 
 
 def _safe_float(value) -> float | None:
-    """Safely convert a value to float."""
     if value is None:
         return None
     try:
@@ -217,73 +207,99 @@ def _safe_float(value) -> float | None:
         return None
 
 
+# ── Category path helper ─────────────────────────────────────────────
+
+def _extract_category(product: dict) -> tuple[str, str]:
+    """Extract leaf category_id and category_name from product dict."""
+    cat = product.get("category", {})
+    cat_id = str(cat.get("id", ""))
+    cat_name = ""
+    path = cat.get("path", [])
+    if path:
+        cat_name = path[-1].get("name", "")
+    return cat_id, cat_name
+
+
 # ── Main pipeline ────────────────────────────────────────────────────
 
-def lookup_ean(ean: str) -> AllegroProductData:
+def lookup_ean(ean: str) -> AllegroProductData | None:
     """Full lookup pipeline: search EAN on Allegro, aggregate pricing data.
 
-    Args:
-        ean: European Article Number (barcode).
+    Strategy:
+    1. Try /offers/listing (full pricing data, but may 403)
+    2. Fall back to /sale/products (product catalog: confirms existence + category)
 
-    Returns:
-        AllegroProductData with pricing stats, Smart! offer info, and top 5 offers.
+    If only catalog data is available, the result is marked is_estimated=True
+    with no pricing (downstream profit_calculator handles missing prices).
     """
     result = AllegroProductData(ean=ean)
 
-    # Step 1: Load token
+    # Load token
     try:
         token = _load_allegro_token()
     except Exception as e:
         result.errors.append(f"Token load failed: {e}")
         return result
 
-    # Step 2: Search by EAN
-    try:
-        offers = search_by_ean(ean, token)
-    except Exception as e:
-        result.errors.append(f"Search failed: {e}")
-        return result
+    # Strategy 1: Try offers/listing (real prices)
+    offers = _search_offers_listing(ean, token)
+    time.sleep(_cfg.allegro_delay_sec)
 
-    if not offers:
-        return result
-
-    result.offer_count = len(offers)
-
-    # Step 3: Extract prices and identify Smart! offers
-    all_prices: list[float] = []
-    smart_prices: list[float] = []
-
-    for offer in offers:
-        price = offer.get("price")
-        if price is not None and price > 0:
-            all_prices.append(price)
-            if offer.get("is_smart"):
-                smart_prices.append(price)
-
-    # Price statistics
-    if all_prices:
-        all_prices.sort()
-        result.lowest_price = all_prices[0]
-        result.highest_price = all_prices[-1]
-        result.avg_price = round(sum(all_prices) / len(all_prices), 2)
-
-    # Smart! statistics
-    result.smart_offers_count = len(smart_prices)
-    if smart_prices:
-        smart_prices.sort()
-        result.smart_lowest_price = smart_prices[0]
-
-    # Step 4: Top 5 offers (sorted by price ascending)
-    sorted_offers = sorted(offers, key=lambda o: o.get("price", float("inf")))
-    result.top_offers = sorted_offers[:5]
-
-    # Step 5: Extract category from first offer if available
-    # Note: The listing endpoint doesn't return category directly.
-    # We can get it from the search result metadata.
-    # For now, category enrichment would require a separate API call.
-
-    # Currency from first offer
     if offers:
-        result.currency = offers[0].get("currency", "PLN")
+        result.offer_count = len(offers)
+
+        all_prices: list[float] = []
+        smart_prices: list[float] = []
+
+        for offer in offers:
+            price = offer.get("price")
+            if price is not None and price > 0:
+                all_prices.append(price)
+                if offer.get("is_smart"):
+                    smart_prices.append(price)
+
+        if all_prices:
+            all_prices.sort()
+            result.lowest_price = all_prices[0]
+            result.highest_price = all_prices[-1]
+            result.avg_price = round(sum(all_prices) / len(all_prices), 2)
+
+        result.smart_offers_count = len(smart_prices)
+        if smart_prices:
+            smart_prices.sort()
+            result.smart_lowest_price = smart_prices[0]
+
+        sorted_offers = sorted(offers, key=lambda o: o.get("price", float("inf")))
+        result.top_offers = sorted_offers[:5]
+
+        if offers:
+            result.currency = offers[0].get("currency", "PLN")
+
+        # Enrich with catalog data for category
+        catalog = _search_product_catalog(ean, token)
+        if catalog:
+            result.product_id = catalog.get("id", "")
+            result.product_name = catalog.get("name", "")
+            result.category_id, result.category_name = _extract_category(catalog)
+            pub = catalog.get("publication", {})
+            result.is_listed = pub.get("status") == "LISTED"
+
+        return result
+
+    # Strategy 2: Fall back to product catalog (no prices, but confirms existence)
+    catalog = _search_product_catalog(ean, token)
+    if not catalog:
+        return None  # Product not found on Allegro at all
+
+    result.product_id = catalog.get("id", "")
+    result.product_name = catalog.get("name", "")
+    result.category_id, result.category_name = _extract_category(catalog)
+
+    pub = catalog.get("publication", {})
+    result.is_listed = pub.get("status") == "LISTED"
+    result.is_estimated = True
+
+    if result.is_listed:
+        result.errors.append("Prices unavailable (app not verified for /offers/listing)")
 
     return result
