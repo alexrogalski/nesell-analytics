@@ -703,6 +703,11 @@ def load_orders_enriched(days=30):
     orders.loc[_is_amazon & ~_is_fbm, "fulfillment"] = "FBA"
     orders.loc[_is_amazon & _is_fbm, "fulfillment"] = "FBM"
 
+    # Printful (dropship) detection: SKU starts with PFT-
+    # Printful handles production + shipping directly, no Exportivo/DPD
+    _is_printful = orders["first_sku"].fillna("").astype(str).str.startswith("PFT-")
+    orders.loc[_is_printful, "fulfillment"] = "PRINTFUL"
+
     # ------------------------------------------------------------------
     # 1. VAT deduction: compute net revenue from gross  [vectorized]
     # ------------------------------------------------------------------
@@ -749,9 +754,10 @@ def load_orders_enriched(days=30):
     orders.loc[_has_seller, "shipping_pln"] = orders.loc[_has_seller, "seller_shipping_cost_pln"]
 
     # For FBM orders WITHOUT seller_shipping_cost_pln, estimate via DPD rates
+    # EXCLUDE Printful orders — they use Printful's own shipping
     _is_fbm_mask = orders["fulfillment"] == "FBM"
-    _non_amazon_fbm = ~_is_amazon  # non-Amazon orders also need shipping estimate
-    _needs_ship_estimate = (~_has_seller) & (_is_fbm_mask | _non_amazon_fbm)
+    _non_amazon_fbm = ~_is_amazon & ~_is_printful
+    _needs_ship_estimate = (~_has_seller) & (_is_fbm_mask | _non_amazon_fbm) & ~_is_printful
 
     if _needs_ship_estimate.any():
         _ship_countries = _countries[_needs_ship_estimate]
@@ -774,15 +780,37 @@ def load_orders_enriched(days=30):
 
         orders.loc[_needs_ship_estimate, "shipping_pln"] = _dpd_pln.values
 
+    # Printful shipping: use Printful EU rates (from their API/pricing page)
+    # Printful ships from EU fulfillment center (Latvia/Spain), rates include handling
+    PRINTFUL_SHIP_EUR = {
+        "DE": 3.49, "AT": 3.99, "NL": 3.49, "BE": 3.49, "LU": 3.49,
+        "FR": 4.29, "IT": 4.29, "ES": 4.29, "PT": 4.29,
+        "SE": 4.99, "PL": 3.99, "CZ": 3.99, "DK": 4.99,
+        "IE": 4.99, "FI": 4.99, "EE": 3.99, "LT": 3.99, "LV": 3.99,
+        "GB": 4.99, "HU": 3.99, "RO": 4.29, "SK": 3.99, "SI": 3.99,
+        "HR": 4.29, "BG": 4.29, "GR": 4.99,
+    }
+    _printful_needs_ship = _is_printful & ~_has_seller
+    if _printful_needs_ship.any():
+        _pf_countries = _countries[_printful_needs_ship]
+        _pf_base_eur = _pf_countries.map(PRINTFUL_SHIP_EUR).fillna(4.49)
+        _pf_ship_dates = _order_dates[_printful_needs_ship]
+        _pf_eur_fx = pd.Series(
+            [_order_fx_cache.get((d, "EUR"), get_fx(d, "EUR")) for d in _pf_ship_dates],
+            index=orders.index[_printful_needs_ship],
+        )
+        orders.loc[_printful_needs_ship, "shipping_pln"] = (_pf_base_eur * _pf_eur_fx).values
+
     # FBA orders: shipping = 0 (already included in platform fees)
     _is_fba_mask = orders["fulfillment"] == "FBA"
     orders.loc[_is_fba_mask, "shipping_pln"] = 0.0
 
     # ------------------------------------------------------------------
-    # 4. Exportivo 3PL cost: 5 PLN per FBM order  [vectorized]
+    # 4. Exportivo 3PL cost: 5 PLN per FBM order (NOT Printful) [vectorized]
     # ------------------------------------------------------------------
     orders["fulfillment_cost_pln"] = 0.0
-    orders.loc[_is_fbm_mask | _non_amazon_fbm, "fulfillment_cost_pln"] = 5.0
+    _exportivo_fulfilled = (_is_fbm_mask | _non_amazon_fbm) & ~_is_printful
+    orders.loc[_exportivo_fulfilled, "fulfillment_cost_pln"] = 5.0
 
     # ------------------------------------------------------------------
     # 5. PPC ad cost attribution  [vectorized]
@@ -886,7 +914,8 @@ def load_orders_enriched(days=30):
     except Exception:
         pass
     orders["return_cost_pln"] = 0.0
-    orders.loc[orders["has_return"], "return_cost_pln"] = 2.50
+    # Exportivo return fee only for non-Printful orders (Printful handles returns themselves)
+    orders.loc[orders["has_return"] & ~_is_printful, "return_cost_pln"] = 2.50
 
     # ------------------------------------------------------------------
     # 8b. Packaging cost: 2.00 PLN per FBM/Exportivo-fulfilled order

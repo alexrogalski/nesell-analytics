@@ -272,16 +272,20 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
             # === SHIPPING & LOGISTICS ===
             wf += _section_header("Shipping & Logistics")
             if shipping_val > 0:
+                ship_label = "Printful Shipping" if fulfillment == "PRINTFUL" else "DPD Shipping"
+                ship_badge_text = "Printful dropship" if fulfillment == "PRINTFUL" else ship_badge
                 wf += _wf_row(
-                    "DPD Shipping", -shipping_val,
+                    ship_label, -shipping_val,
                     pct=-(shipping_val / pct_base * 100),
-                    color="#06b6d4", badge=ship_badge,
+                    color="#06b6d4", badge=ship_badge_text,
                 )
             elif fulfillment == "FBA":
                 wf += _wf_row(
                     "Shipping", 0, color="#64748b",
                     badge="included in FBA fee above",
                 )
+            elif fulfillment == "PRINTFUL":
+                wf += _wf_row("Shipping", 0, color="#64748b", badge="Printful dropship")
             else:
                 wf += _wf_row("Shipping", 0, color="#64748b", badge="n/a")
 
@@ -373,7 +377,7 @@ def render_order_details(visible, items_df, detail_limit=30, auto_expand=None):
                   f'font-weight:700;color:{roi_color}">{"n/a" if not has_cogs else f"{roi:.0f}%"}</span></div>'
             )
             if fulfillment:
-                ff_color = '#3b82f6' if fulfillment == 'FBA' else '#10b981'
+                ff_color = '#3b82f6' if fulfillment == 'FBA' else ('#a78bfa' if fulfillment == 'PRINTFUL' else '#10b981')
                 kpi_html += (
                     f'<div style="background:var(--bg-card);border:1px solid #1e293b;'
                     f'border-radius:6px;padding:6px 14px;display:flex;align-items:center;gap:8px">'
