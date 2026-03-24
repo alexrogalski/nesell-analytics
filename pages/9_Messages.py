@@ -797,17 +797,20 @@ with thread_col:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
                         if user_text and user_text != draft_local:
-                            # User wrote their own text: ONLY translate and polish, keep meaning exact
+                            # User wrote their own text: translate, polish, keep meaning exact
                             regen_prompt = (
                                 f"The seller typed this message to send to a buyer:\n"
                                 f"\"{user_text}\"\n\n"
+                                f"CONTEXT (for reference only):\n"
+                                f"BUYER MESSAGE: {body_clean[:400]}\n"
+                                f"PLATFORM: {platform} | ORDER: {order}\n"
                                 f"BUYER LANGUAGE: {d_lang}\n"
                                 f"{f'EXTRA INSTRUCTION: {extra}' if extra else ''}\n\n"
                                 f"RULES:\n"
                                 f"- Translate the seller's text to {d_lang} and to Polish\n"
-                                f"- Keep the EXACT same meaning. Do NOT add information, do NOT change what the seller is saying\n"
+                                f"- Keep the EXACT same meaning. Do NOT add, remove, or change what the seller is saying\n"
+                                f"- Use the context to understand what the reply is about, but do NOT pull in extra details from it\n"
                                 f"- Only fix grammar and make it sound professional\n"
-                                f"- Do NOT invent details, promises, or actions the seller did not mention\n"
                                 f"- End with: Pozdrawiamy, Zespol nesell\n\n"
                                 f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
                             )
