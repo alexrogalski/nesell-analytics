@@ -767,6 +767,7 @@ with thread_col:
             close_clicked = st.button("Zamknij", key=f"close_{selected}")
 
         # Regeneruj: takes text from reply box + optional instruction
+        _do_rerun = False
         if regen_clicked:
             user_text = reply_text.strip()
             extra = custom_prompt.strip()
@@ -779,7 +780,6 @@ with thread_col:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
                         if user_text and user_text != draft_local:
-                            # User wrote their own text: translate + polish it
                             regen_prompt = (
                                 f"E-commerce support for nesell. The seller wrote this reply draft:\n"
                                 f"\"{user_text}\"\n\n"
@@ -791,7 +791,6 @@ with thread_col:
                                 f"Reply as JSON only: {{\"draft_pl\":\"polished reply in Polish\",\"draft_{d_lang.lower()}\":\"same reply in {d_lang}\"}}"
                             )
                         else:
-                            # No custom text, just instruction to regenerate
                             regen_prompt = (
                                 f"E-commerce support for nesell. Generate a new customer reply.\n"
                                 f"BUYER MESSAGE: {body_clean[:400]}\n"
@@ -815,7 +814,7 @@ with thread_col:
                                             break
                                 if new_local:
                                     st.session_state[regen_key] = new_local
-                                    st.rerun()
+                                    _do_rerun = True
                                 else:
                                     st.warning("AI nie zwrocilo odpowiedzi w jezyku kupujacego.")
                             else:
@@ -824,6 +823,8 @@ with thread_col:
                             st.error("Brak AI backendu. Sprawdz klucz w app_config.")
                     except Exception as e:
                         st.error(f"Blad: {e}")
+        if _do_rerun:
+            st.rerun()
 
         # Close conversation
         if close_clicked:
