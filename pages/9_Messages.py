@@ -735,16 +735,22 @@ with thread_col:
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
-        # Use regenerated text if available, otherwise default draft
-        regen_key = f"regen_result_{selected}"
-        initial_value = st.session_state.get(regen_key, draft_local)
+        # Show regenerated PL version if available
+        regen_pl = st.session_state.get(f"regen_pl_{selected}")
+        if regen_pl:
+            st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin-bottom:10px; font-family:monospace;">
+              <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
+              <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(regen_pl).replace(chr(10), "<br>")}</div>
+            </div>''')
 
+        reply_key = f"reply_{selected}"
         st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
+        if reply_key not in st.session_state:
+            st.session_state[reply_key] = draft_local
         reply_text = st.text_area(
             f"reply_{d_lang}",
-            value=initial_value,
             height=120,
-            key=f"reply_{selected}",
+            key=reply_key,
             label_visibility="collapsed",
         )
 
@@ -767,7 +773,8 @@ with thread_col:
             close_clicked = st.button("Zamknij", key=f"close_{selected}")
 
         # Regeneruj: takes text from reply box + optional instruction
-        _do_rerun = False
+        _regen_new_local = None
+        _regen_new_pl = None
         if regen_clicked:
             user_text = reply_text.strip()
             extra = custom_prompt.strip()
@@ -806,24 +813,27 @@ with thread_col:
                             json_match = re.search(r'\{.*\}', output, re.DOTALL)
                             if json_match:
                                 data = json.loads(json_match.group())
-                                new_local = data.get(f"draft_{d_lang.lower()}", "")
-                                if not new_local:
+                                _regen_new_local = data.get(f"draft_{d_lang.lower()}", "")
+                                if not _regen_new_local:
                                     for k, v in data.items():
                                         if k.startswith("draft_") and k != "draft_pl" and v:
-                                            new_local = v
+                                            _regen_new_local = v
                                             break
-                                if new_local:
-                                    st.session_state[regen_key] = new_local
-                                    _do_rerun = True
-                                else:
+                                _regen_new_pl = data.get("draft_pl", "")
+                                if not _regen_new_local:
                                     st.warning("AI nie zwrocilo odpowiedzi w jezyku kupujacego.")
                             else:
-                                st.warning("AI nie zwrocilo JSON.")
+                                st.warning("AI nie zwrocilo JSON. Output: " + output[:200])
                         else:
-                            st.error("Brak AI backendu. Sprawdz klucz w app_config.")
+                            st.error("Brak AI backendu. Sprawdz ANTHROPIC_API_KEY.")
                     except Exception as e:
                         st.error(f"Blad: {e}")
-        if _do_rerun:
+
+        # Apply regen result: update widget state and rerun
+        if _regen_new_local:
+            st.session_state[reply_key] = _regen_new_local
+            if _regen_new_pl:
+                st.session_state[f"regen_pl_{selected}"] = _regen_new_pl
             st.rerun()
 
         # Close conversation
