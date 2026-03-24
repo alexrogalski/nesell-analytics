@@ -735,10 +735,14 @@ with thread_col:
               <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(draft_pl).replace(chr(10), "<br>")}</div>
             </div>''')
 
+        # Use regenerated text if available, otherwise default draft
+        regen_key = f"regen_result_{selected}"
+        initial_value = st.session_state.get(regen_key, draft_local)
+
         st.html(f'<div style="font-size:11px; font-weight:600; color:#64748b; font-family:monospace; margin-bottom:2px;">Tresc do wyslania ({d_lang}):</div>')
         reply_text = st.text_area(
             f"reply_{d_lang}",
-            value=draft_local,
+            value=initial_value,
             height=120,
             key=f"reply_{selected}",
             label_visibility="collapsed",
@@ -803,23 +807,21 @@ with thread_col:
                             json_match = re.search(r'\{.*\}', output, re.DOTALL)
                             if json_match:
                                 data = json.loads(json_match.group())
-                                new_pl = data.get("draft_pl", "")
                                 new_local = data.get(f"draft_{d_lang.lower()}", "")
-                                if new_pl:
-                                    st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; margin:8px 0; font-family:monospace;">
-                                      <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">NOWA ODPOWIEDZ (PL)</div>
-                                      <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_pl).replace(chr(10), "<br>")}</div>
-                                    </div>''')
+                                if not new_local:
+                                    for k, v in data.items():
+                                        if k.startswith("draft_") and k != "draft_pl" and v:
+                                            new_local = v
+                                            break
                                 if new_local:
-                                    st.html(f'''<div style="padding:10px 14px; background:#1a2e1a; border-left:3px solid #10b981; border-radius:0 6px 6px 0; font-family:monospace;">
-                                      <div style="font-size:10px; font-weight:700; color:#10b981; margin-bottom:4px;">{d_lang}</div>
-                                      <div style="font-size:12px; color:#e2e8f0; line-height:1.6;">{_esc(new_local).replace(chr(10), "<br>")}</div>
-                                    </div>''')
-                                    st.session_state[f"reply_{selected}"] = new_local
+                                    st.session_state[regen_key] = new_local
+                                    st.rerun()
+                                else:
+                                    st.warning("AI nie zwrocilo odpowiedzi w jezyku kupujacego.")
                             else:
                                 st.warning("AI nie zwrocilo JSON.")
                         else:
-                            st.error("Brak AI backendu. Dodaj ANTHROPIC_API_KEY do Streamlit secrets.")
+                            st.error("Brak AI backendu. Sprawdz klucz w app_config.")
                     except Exception as e:
                         st.error(f"Blad: {e}")
 
