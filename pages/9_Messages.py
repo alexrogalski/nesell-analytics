@@ -796,37 +796,26 @@ with thread_col:
                     try:
                         body_clean = _clean_body(last_inbound_draft.get("body_text") or "")
 
-                        if user_text and user_text != draft_local:
-                            # User wrote their own text: translate, polish, keep meaning exact
-                            regen_prompt = (
-                                f"The seller typed this message to send to a buyer:\n"
-                                f"\"{user_text}\"\n\n"
-                                f"CONTEXT (for reference only):\n"
-                                f"BUYER MESSAGE: {body_clean[:400]}\n"
-                                f"PLATFORM: {platform} | ORDER: {order}\n"
-                                f"BUYER LANGUAGE: {d_lang}\n"
-                                f"{f'EXTRA INSTRUCTION: {extra}' if extra else ''}\n\n"
-                                f"RULES:\n"
-                                f"- Translate the seller's text to {d_lang} and to Polish\n"
-                                f"- Keep the EXACT same meaning. Do NOT add, remove, or change what the seller is saying\n"
-                                f"- Use the context to understand what the reply is about, but do NOT pull in extra details from it\n"
-                                f"- Only fix grammar and make it sound professional\n"
-                                f"- End with: Pozdrawiamy, Zespol nesell\n\n"
-                                f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
-                            )
-                        else:
-                            # No user text: generate new reply from instruction
-                            regen_prompt = (
-                                f"Write a customer reply for nesell (small e-commerce, hats).\n"
-                                f"BUYER MESSAGE: {body_clean[:400]}\n"
-                                f"PLATFORM: {platform} | ORDER: {order}\n"
-                                f"BUYER LANGUAGE: {d_lang}\n"
-                                f"INSTRUCTION: {extra}\n\n"
-                                f"TONE: Like a real person, not AI. Short sentences, no filler, no em dashes, "
-                                f"no 'I understand your concern', no 'rest assured'. 2-4 sentences max. "
-                                f"End with: Pozdrawiamy, Zespol nesell\n\n"
-                                f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
-                            )
+                        # Determine seller's intended message
+                        modified_textarea = user_text and user_text != draft_local
+                        seller_says = user_text if modified_textarea else extra
+
+                        regen_prompt = (
+                            f"TASK: Translate the seller's message to {d_lang} and Polish.\n\n"
+                            f"SELLER SAYS: \"{seller_says}\"\n\n"
+                            f"CONTEXT (read-only, do NOT copy into reply):\n"
+                            f"BUYER MESSAGE: {body_clean[:400]}\n"
+                            f"PLATFORM: {platform} | ORDER: {order}\n"
+                            f"{f'STYLE NOTE: {extra}' if modified_textarea and extra else ''}\n\n"
+                            f"STRICT RULES:\n"
+                            f"- Output ONLY what the seller said, translated to {d_lang} and Polish\n"
+                            f"- Fix grammar, make it sound professional\n"
+                            f"- Do NOT add ANY information the seller did not write\n"
+                            f"- Do NOT add assessments, promises, opinions, or solutions from the context\n"
+                            f"- No em dashes. No filler phrases\n"
+                            f"- Add greeting (Dzien dobry / Guten Tag / etc.) and sign-off: Pozdrawiamy, Zespol nesell\n\n"
+                            f"Reply as JSON only: {{\"draft_pl\":\"Polish version\",\"draft_{d_lang.lower()}\":\"{d_lang} version\"}}"
+                        )
 
                         output = _call_ai_from_dashboard(regen_prompt)
                         if output:
